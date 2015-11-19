@@ -6,7 +6,9 @@
 # written by Cody Szuwalski, 11/2015
 
 #==source a file with helper functions
-source("C:/Users/Cody/Desktop/BlueShark/Helpers.R")
+library(devtools)
+inURL<-"https://raw.githubusercontent.com/szuwalski/General-MSE/master/General%20MSE%20helpers.R"
+source_url(inURL)
 
 #=======================
 #==simulation controls==
@@ -259,6 +261,10 @@ steepnessS	<-rep(.5,SimYear)
 sigmaRs	<-rep(.001,SimYear)
 RzeroS	<-rep(1,SimYear)
 
+RecErrN  <-matrix(rnorm(SimYear*Nsim,0,sigmaRn[1]),ncol=SimYear)
+RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs[1]),ncol=SimYear)
+
+
 #===================================================
 #==Virgin numbers at age, biomass, initial depletion, recruitment
 #===================================================
@@ -304,8 +310,6 @@ targetDep	<-(VirBioN+VirBioS)*depletion
 maxExp	<-0.999
 minExp	<-0.001
 
-RecErrN	<-matrix(rnorm(SimYear*Nsim,0,sigmaRn[1]),ncol=SimYear)
-RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs[1]),ncol=SimYear)
 
 #==defines the exploitation pattern
 maxMult	<-1.5
@@ -386,8 +390,10 @@ mtext(side=3,"Exploitation history",cex=.7)
 # BEGIN SIMULATION OF ASSESSMENT AND HARVEST
 #===============================================================
  if(EstimationPlots==1)
+ {
   dev.new()
-
+  par(mfrow=c(1,1))
+  }
 #==tempNn and tempNs from above are the starting points
 projNn	<-array(dim=c(SimYear,MaxAge,Nsim))
 projNs	<-array(dim=c(SimYear,MaxAge,Nsim))
