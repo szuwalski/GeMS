@@ -1,0 +1,129 @@
+#if !defined(_SIMASS_)
+#  define _SIMASS_
+
+class model_data : public ad_comm{
+  ofstream *   pad_post;
+  int call_no;
+  data_int styr;
+  data_int endyr;
+  data_int maxAge;
+  data_int survYr;
+  data_ivector survYears;
+  data_int survLenYr;
+  data_ivector survLenYears;
+  data_number survSampN;
+  data_vector survBiomass;
+  data_number survCV;
+  data_vector catchBiomass;
+  data_number catchCV;
+  data_vector AgeBin;
+  data_matrix survLenFreq;
+  data_matrix catchLenFreq;
+  data_vector weightPars;
+  data_number NatM;
+  data_vector maturity;
+  data_number steepness;
+  data_number smallNum;
+  data_number InitSmoothWeight;
+  int ipass;
+  int Nproj;
+  int IsB0;
+  ~model_data();
+  model_data(int argc,char * argv[]);
+  friend class model_parameters;
+};
+
+class model_parameters : public model_data ,
+  public function_minimizer
+{
+public:
+  ~model_parameters();
+  void preliminary_calculations(void);
+  void set_runtime(void);
+  virtual void * mycast(void) {return (void*)this;}
+  static int mc_phase(void)
+  {
+    return initial_params::mc_phase;
+  }
+  static int mceval_phase(void)
+  {
+    return initial_params::mceval_phase;
+  }
+  static int sd_phase(void)
+  {
+    return initial_params::sd_phase;
+  }
+  static int current_phase(void)
+  {
+    return initial_params::current_phase;
+  }
+  static int last_phase(void)
+  {
+    return (initial_params::current_phase
+      >=initial_params::max_number_phases);
+  }
+  static prevariable current_feval(void)
+  {
+    return *objective_function_value::pobjfun;
+  }
+private:
+  ivector integer_control_flags;
+  dvector double_control_flags;
+  param_init_bounded_number srv_q;
+  param_init_bounded_number fish_sel50;
+  param_init_bounded_number fish_sel95;
+  param_init_bounded_number srv_sel50;
+  param_init_bounded_number srv_sel95;
+  param_init_bounded_vector stNatLen;
+  param_init_number log_avg_fmort_dir;
+  param_init_bounded_dev_vector fmort_dir_dev;
+  param_init_number mean_log_rec;
+  param_init_bounded_dev_vector rec_dev;
+  param_number prior_function_value;
+  param_number likelihood_function_value;
+  objective_function_value f;
+  param_vector sel_fish;
+  param_vector sel_srv;
+  param_vector fmort_dir;
+  param_matrix F_dir;
+  param_matrix F_trawl;
+  param_matrix Natlen;
+  param_stddev_vector Spbio;
+  param_vector predSurvBio;
+  param_matrix predSurvNatlen;
+  param_matrix predSurvLenFreq;
+  param_matrix predCatchAtLen;
+  param_stddev_vector predCatchBio;
+  param_matrix predCatchLenFreq;
+  param_number SurvBio_like;
+  param_number SurvLen_like;
+  param_number Catch_like;
+  param_number CatchLen_like;
+  param_number initsmo_penal;
+  param_number Rec_pen;
+  param_number F_pen;
+  param_vector WeightAtLen;
+  param_number F35;
+  param_number SBPRF35;
+  param_number Bmsy;
+  param_number FOFL;
+  param_number OFL;
+  param_number FutRec;
+  param_number FutMort;
+public:
+  virtual void userfunction(void);
+  virtual void report(const dvector& gradients);
+  virtual void final_calcs(void);
+  model_parameters(int sz,int argc, char * argv[]);
+  virtual void initializationfunction(void);
+  void getselectivity(void);
+  void getmortality(void);
+  void get_num_at_len(void);
+  void get_num_at_len_yr(void);
+  void evaluate_the_objective_function(void);
+  void get_fut_mortality(void);
+  void Find_F35(void);
+  void Find_OFL(void);
+
+};
+#endif
