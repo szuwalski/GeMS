@@ -12,164 +12,273 @@ source("C:/Users/Cody/Desktop/Publications/BlueShark/Helpers.R")
 #==this is where the output and files will be stored
 CurDir<-"C:/Users/Cody/Desktop/Publications/BlueShark/"
 setwd(CurDir)
-input<-"C:/Users/Cody/Desktop/Publications/BlueShark/CTLfile_faster.csv"
-out<-ReadCTLfile(input)
+
 
 #=======================
 #==simulation controls==
 #=======================
-Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
-SimYear		<-out$OM$SimYear			# total number of years in simulation
-InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available)
-AssessmentType	<-out$OM$AssessmentType		# this can be "Production" or "Non-spatial age" ("Spatial age" and "Time-varying production" in the works)
-FisheryIndepenDat <-out$OM$FisheryIndepenDat
-LifeHistoryPlots	<-out$OM$LifeHistoryPlots
-EstimationPlots	<-out$OM$EstimationPlots	# this plots the diagnostics for each run of the estimation model (will be a lot of plots!)
-AssessmentData	<-out$OM$AssessmentData		# this plots the diagnostics for each run of the estimation model (will be a lot of plots!)
+Nsim			<-2	# number of simulations to do in the MSE
+SimYear		<-60	# total number of years in simulation
+InitYear		<-50	# year in which MSE starts (i.e. the number of years of data available)
+AssessmentType	<-"Non-spatial age"	# this can be "Production" or "Non-spatial age" ("Spatial age" in the works)
+FisheryIndepentDat<-0
+LifeHistoryPlots	<-1
+ if(LifeHistoryPlots==1)
+ {
+  dev.new()
+  par(mfrow=c(4,4),mar=c(2,3,2,2))
+ }
 
-depletion		<-out$OM$depletion		# model is conditioned to a specific depletion given a trajectory of effort
-CatchShareN		<-out$OM$CatchShareN		# the amount of effort allocated to a given area
-CatchShareS		<-1-CatchShareN
+EstimationPlots	<-1
+
+depletion	<-0.3		# model is conditioned to a specific depletion given a trajectory of effort
+CatchShareN	<-0.5		# the amount of effort allocated to a given area
+CatchShareS	<-1-CatchShareN
 
 #==sampling uncertainty
-CatchCVn	<-out$OM$CatchCVn
-CatchCVs	<-out$OM$CatchCVs
+CatchCVn	<-0.1
+CatchCVs	<-0.1
 
-IndexCVn	<-out$OM$IndexCVn
-IndexCVs	<-out$OM$IndexCVs
+IndexCVn	<-0.2
+IndexCVs	<-0.2
 
-LenSampleN	<-out$OM$LenSampleN
-LenSampleS	<-out$OM$LenSampleS
+LenSampleN	<-200
+LenSampleS	<-200
 
-GrowthSDn	<-out$OM$GrowthSDn
-GrowthSDs	<-out$OM$GrowthSDs
-
+GrowthSDn<-10
+GrowthSDs<-10
 #==========================================================
 #=================population dynamics======================
 #=========================================================
 #==When making dynamics time-varying, only make them vary after
 #=='InitYear'.  The idea is that this simulates a relatively steady
-#==environment until climate change, then things change. MEH.
+#==environment until climate change, then things change.
 #===========================================================
 #===========================================================
-MaxAge<-out$OM$MaxAge
+MaxAge<-30
 Ages<-seq(1,MaxAge)
 
 #==natural mortality================
- NatMn		<-CleanInput(out$OM$NatMn,SimYear)
- NatMs		<-CleanInput(out$OM$NatMn,SimYear)
+NatMn		<-rep(.2,SimYear)
+NatMs		<-rep(.2,SimYear)
 
 #==Length at age====================
-VonKn		<-CleanInput(out$OM$VonKn,SimYear)
-LinfN		<-CleanInput(out$OM$LinfN,SimYear)
-t0n		<-CleanInput(out$OM$t0n,SimYear)
+#==north==
+VonKn		<-rep(.2,SimYear)
+LinfN		<-rep(300,SimYear)
+t0n		<-rep(.9,SimYear)
 LenAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  LenAtAgeN[i,]<-LinfN[i]*(1-exp(-VonKn[i]*(Ages-t0n[i])))
 
-VonKs		<-CleanInput(out$OM$VonKs,SimYear)
-LinfS		<-CleanInput(out$OM$LinfS,SimYear)
-t0s		<-CleanInput(out$OM$t0s,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(LenAtAgeN[1,],type="l",las=1)
+ for(x in 2:SimYear)
+  lines(LenAtAgeN[x,])
+ mtext(side=3,"Length at Age (N)",cex=.7)
+ }
+
+#==south==
+VonKs		<-rep(.2,SimYear)
+LinfS		<-rep(300,SimYear)
+t0s		<-rep(.9,SimYear)
 LenAtAgeS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  LenAtAgeS[i,]<-LinfS[i]*(1-exp(-VonKs[i]*(Ages-t0s[i])))
+
+if(LifeHistoryPlots==1)
+ {
+ plot(LenAtAgeS[1,],type="l",las=1)
+ for(x in 2:SimYear)
+  lines(LenAtAgeS[x,])
+ mtext(side=3,"Length at Age (S)",cex=.7)
+ }
 
 #==specify the number of length bins
  BinWidth<-(max(LenAtAgeS,LenAtAgeN)*1.05)/MaxAge
  LengthBins<-seq(0,max(LenAtAgeS,LenAtAgeN)*1.05,BinWidth)
  LengthBinsMid<-LengthBins[1:(length(LengthBins)-1)] + mean(LengthBins[1:2])
 
-#==maturity at age==========================
-mat50n	<-CleanInput(out$OM$mat50n,SimYear)
-mat95n	<-CleanInput(out$OM$mat95n,SimYear)
+#==maturity==========================
+#==by age now, can be changed to by length==
+#==north==
+mat50n	<-rep(6,SimYear)
+mat95n	<-rep(8,SimYear)
+
 matureN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  matureN[i,]<-1/(1+exp(-1*log(19)*(Ages-mat50n[i])/(mat95n[i]-mat50n[i])))
+ #matureN[i,]	<-1/(1+exp(-1*log(19)*(Ages-mat50n)/(mat95n-mat50n)))
 
-mat50s	<-CleanInput(out$OM$mat50s,SimYear)
-mat95s	<-CleanInput(out$OM$mat95s,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(matureN[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(matureN[x,])
+ mtext(side=3,"Maturity at age (N)",cex=.7)
+ }
+
+#==south==
+mat50s	<-rep(6,SimYear)
+mat95s	<-rep(8,SimYear)
 matureS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  matureS[i,]<-1/(1+exp(-1*log(19)*(Ages-mat50s[i])/(mat95s[i]-mat50s[i])))
+ #matureS[i,]	<-1/(1+exp(-1*log(19)*(Ages-mat50s[i])/(mat95s[i]-mat50s[i])))
+
+if(LifeHistoryPlots==1)
+ {
+ plot(matureS[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(matureS[x,])
+ mtext(side=3,"Maturity at age (S)",cex=.7)
+ }
 
 #=====================================
 #==fishery selectivitiy============== 
-sel50n	<-CleanInput(out$OM$sel50n,SimYear)
-sel95n	<-CleanInput(out$OM$sel95n,SimYear)
+#==north==
+sel50n	<-rep(190,SimYear)
+sel95n	<-rep(225,SimYear)
 vulnN		<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  vulnN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-sel50n[i])/(sel95n[i]-sel50n[i])))
 
 vulnN[vulnN<0.01]<-0
 
-sel50s	<-CleanInput(out$OM$sel50s,SimYear)
-sel95s	<-CleanInput(out$OM$sel95s,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(vulnN[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(vulnN[x,])
+ mtext(side=3,"Fishery selectivity at len(N)",cex=.7)
+
+ }
+
+#==south==
+sel50s	<-rep(190,SimYear)
+sel95s	<-rep(225,SimYear)
 vulnS		<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  vulnS[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-sel50s[i])/(sel95s[i]-sel50s[i])))
 
 vulnS[vulnS<0.01]<-0
 
+if(LifeHistoryPlots==1)
+ {
+ plot(vulnS[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(vulnS[x,])
+ mtext(side=3,"Fishery selectivity at len (S)",cex=.7)
+ }
+
 #==index selectivity=====================
-surv50n	<-CleanInput(out$OM$surv50n,SimYear)
-surv95n	<-CleanInput(out$OM$surv95n,SimYear)
+#==north==
+surv50n	<-rep(90,SimYear)
+surv95n	<-rep(150,SimYear)
 survSelN		<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  survSelN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50n[i])/(surv95n[i]-surv50n[i])))
 
-surv50s	<-CleanInput(out$OM$surv50s,SimYear)
-surv95s	<-CleanInput(out$OM$surv95s,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(survSelN[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(survSelN[x,])
+ mtext(side=3,"Index selectivity at len(N)",cex=.7)
+ }
+
+#==south==
+surv50s	<-rep(90,SimYear)
+surv95s	<-rep(150,SimYear)
 survSelS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  survSelS[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50s[i])/(surv95s[i]-surv50s[i])))
 
+if(LifeHistoryPlots==1)
+ {
+ plot(survSelS[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(survSelS[x,])
+ mtext(side=3,"Index selectivity at len (S)",cex=.7)
+ }
+
 #==weight at length==========================
-alphaN		<-CleanInput(out$OM$alphaN,SimYear)
-betaN			<-CleanInput(out$OM$betaN,SimYear)
+alphaN		<-0.0000017
+betaN			<-3
 WeightAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
- WeightAtAgeN[i,]	<-alphaN[i]*LenAtAgeN[i,]^betaN[i]
+ WeightAtAgeN[i,]	<-alphaN*LenAtAgeN[i,]^betaN
 
-alphaS		<-CleanInput(out$OM$alphaS,SimYear)
-betaS			<-CleanInput(out$OM$betaS,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(WeightAtAgeN[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(WeightAtAgeN[x,])
+ mtext(side=3,"Weight at length (N)",cex=.7)
+ }
+
+alphaS		<-0.0000017
+betaS			<-3
 WeightAtAgeS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
- WeightAtAgeS[i,]	<-alphaS[i]*LenAtAgeS[i,]^betaS[i]
+ WeightAtAgeS[i,]	<-alphaS*LenAtAgeS[i,]^betaS
+
+if(LifeHistoryPlots==1)
+ {
+ plot(WeightAtAgeS[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(WeightAtAgeS[x,])
+ mtext(side=3,"Weight at length (S)",cex=.7)
+ }
 
 #==movement from box to box==
-MaxMovingN	<-CleanInput(out$OM$MaxMovingN,SimYear)
-Move50n	<-CleanInput(out$OM$Move50n,SimYear)
-Move95n	<-CleanInput(out$OM$Move95n,SimYear)
+#==north
+MaxMovingN	<-0
+Move50n	<-rep(6,SimYear)
+Move95n	<-rep(10,SimYear)
 MovementN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
- MovementN[i,]	<-MaxMovingN[i]/(1+exp(-1*log(19)*(Ages-Move50n[i])/(Move95n[i]-Move50n[i])))
+ MovementN[i,]	<-MaxMovingN/(1+exp(-1*log(19)*(Ages-Move50n[i])/(Move95n[i]-Move50n[i])))
 
-MaxMovingS	<-CleanInput(out$OM$MaxMovingS,SimYear)
-Move50s	<-CleanInput(out$OM$Move50s,SimYear)
-Move95s	<-CleanInput(out$OM$Move95s,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(MovementN[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(MovementN[x,])
+  mtext(side=3,"Movement at age (N)",cex=.7)
+ }
+
+
+#==south
+MaxMovingS	<-0
+Move50s	<-rep(6,SimYear)
+Move95s	<-rep(10,SimYear)
 MovementS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
- MovementS[i,]	<-MaxMovingS[i]/(1+exp(-1*log(19)*(Ages-Move50s[i])/(Move95s[i]-Move50s[i])))
+ MovementS[i,]	<-MaxMovingS/(1+exp(-1*log(19)*(Ages-Move50s[i])/(Move95s[i]-Move50s[i])))
 
-#==recruitment parameters==
-steepnessN	<-CleanInput(out$OM$steepnessN,SimYear)
-sigmaRn	<-CleanInput(out$OM$sigmaRn,SimYear)
-RzeroN	<-CleanInput(out$OM$RzeroN,SimYear)
+if(LifeHistoryPlots==1)
+ {
+ plot(MovementS[1,],las=1,type="l")
+ for(x in 2:SimYear)
+  lines(MovementS[x,])
+  mtext(side=3,"Movement at age (S)",cex=.7)
+ }
 
-steepnessS	<-CleanInput(out$OM$steepnessS,SimYear)
-sigmaRs	<-CleanInput(out$OM$sigmaRs,SimYear)
-RzeroS	<-CleanInput(out$OM$RzeroS,SimYear)
+#==recruitment (these should have low steepness because of low fecundity)
+#==these parameters are hard to specify or estimate with the given data
+#==they largely determine the dynamics of the system though...
+steepnessN	<-rep(.7,SimYear)
+sigmaRn	<-rep(.001,SimYear)
+RzeroN	<-rep(100000,SimYear)
+
+steepnessS	<-rep(.7,SimYear)
+sigmaRs	<-rep(.001,SimYear)
+RzeroS	<-rep(100000,SimYear)
 
 RecErrN	<-matrix(rnorm(SimYear*Nsim,0,sigmaRn[1]),ncol=SimYear)
 RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs[1]),ncol=SimYear)
-
-#==historic fishing mortality
-HistoricalF		<-CleanInput(out$OM$HistoricalF,SimYear)[1:InitYear]
-HarvestControl	<-out$OM$HarvestControl
-ConstantCatch	<-out$OM$ConstantCatch
-ConstantF		<-out$OM$ConstantF
-HCalpha		<-out$OM$HCalpha
-HCbeta		<-out$OM$HCbeta
 
 #===================================================
 #==Virgin numbers at age, biomass, initial depletion, recruitment
@@ -183,22 +292,48 @@ VirBioS<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 ExploitBioN<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
 
-#=========================================================================
-# INITALIZE THE POPULATION
-# Option 1: Set the initial conditions by scaling the specified F series
-# that will put the population at the designated depletion 
-#
-# Option 2: Set depletion to 0 and use the input time series of F to 
-# initialize the population
-#==========================================================================
-if(depletion>0)
-{
+if(LifeHistoryPlots==1)
+ {
+ssb<-seq(1,VirBioN,VirBioN/100)
+record<-ssb
+  for(x in 1:length(record))
+   {
+     record[x]<-Recruitment(EggsIN=ssb[x],steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=RecErrN[1],recType="BH",NatMin=NatMn[1],
+							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,])
+   }
+plot(record~ssb)
+mtext(side=3,"SSB vs Rec (N)",cex=.7)
+ssb<-seq(1,VirBioS,VirBioS/100)
+record<-ssb
+  for(x in 1:length(record))
+   {
+     record[x]<-Recruitment(EggsIN=ssb[x],steepnessIN=steepnessS[1],RzeroIN=RzeroS[1],RecErrIN=RecErrS[1],recType="BH",NatMin=NatMs[1],
+							vulnIN=vulnS[1,],matureIN=matureS[1,],weightIN=WeightAtAgeS[1,],LenAtAgeIN=LenAtAgeS[1,])
+   }
+plot(record~ssb)
+mtext(side=3,"SSB vs Rec (S)",cex=.7)
+}  
+
+#================================
+# Set the initial conditions by specifying an F
+# that will put the population at the designated
+# depletion after the specified time period
+# (may have to make this variable--fish up, back off--to get contrast)
+#===============================
 targetDep	<-(VirBioN+VirBioS)*depletion
 maxExp	<-0.999
 minExp	<-0.001
 
 #==defines the exploitation pattern
-ExpSeries	<-HistoricalF
+maxMult	<-1.5
+levelMult	<-1
+peak		<-round(InitYear/3)
+levelOff	<-2*peak
+ascending	<-seq(0.01,maxMult,(maxMult-0.01)/(peak))
+descending	<-seq(maxMult,levelMult,-(maxMult-levelMult)/(peak))
+steady	<-rep(levelMult,peak)
+ExpSeries	<-c(ascending,descending,steady)
+ExpSeries	<-ExpSeries[1:InitYear]
 
 #==finds an exploitation rate that returns a given depletion at the end of the 
 #==INCORPORATE THE CATCHSHARE BY AREA INTO THIS CHUNK OF CODE============
@@ -213,8 +348,8 @@ tempNs[1,]	<-VirInitS
 tempCatchN	<-rep(0,InitYear)
 tempCatchS	<-rep(0,InitYear)
 
-tempRecN	<-rep(0,InitYear)
-tempRecS	<-rep(0,InitYear)
+tempRecN	<-tempCatchN
+tempRecS	<-tempCatchS
 
 tempCatchAtAgeN	<-matrix(ncol=MaxAge,nrow=InitYear)
 tempCatchAtAgeS	<-matrix(ncol=MaxAge,nrow=InitYear)
@@ -223,6 +358,7 @@ tempExp	<-(maxExp+minExp)/2
 tempF		<- -log(1-tempExp)
 tempFsrsN	<-ExpSeries*tempF
 tempFsrsS	<-ExpSeries*tempF
+#tmpExpSrs	<-1-exp(-tempFsrs)
 
 for (j in 2:InitYear)
 {
@@ -263,62 +399,14 @@ if(tempDep<targetDep)
  maxExp	<-tempExp
 initExp	<-tempExp
 }
-HistoricalF<-ExpSeries*tempExp
-print(c("Final Depletion",tempDep))
-}
 
-if(depletion==0)
-{
-tempNn	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempNn[1,]	<-VirInitN
-tempNs	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempNs[1,]	<-VirInitS
-tempCatchN	<-rep(0,InitYear)
-tempCatchS	<-rep(0,InitYear)
-tempRecN	<-rep(0,InitYear)
-tempRecS	<-rep(0,InitYear)
-tempCatchAtAgeN	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempCatchAtAgeS	<-matrix(ncol=MaxAge,nrow=InitYear)
-
-HistoricalFs<-HistoricalF*CatchShareS
-HistoricalFn<-HistoricalF*CatchShareN
-
-for (j in 2:InitYear)
-{
- for (i in 2:(MaxAge-1))
-  {
-   tempNn[j,i]		<-tempNn[j-1,i-1]*exp(-HistoricalFn[j]*vulnN[1,i-1])*exp(-NatMn[1])
-   tempNs[j,i]		<-tempNs[j-1,i-1]*exp(-HistoricalFs[j]*vulnS[1,i-1])*exp(-NatMs[1])
-
-  }
-   tempNn[j,MaxAge]	<-(tempNn[j-1,(MaxAge-1)])*exp(-HistoricalFn[j]*vulnN[1,MaxAge])*exp(-NatMn[1])+ tempNn[j-1,MaxAge]*exp(-HistoricalFn[j]*vulnN[1,MaxAge])*exp(-NatMn[1])
-   tempNs[j,MaxAge]	<-(tempNs[j-1,(MaxAge-1)])*exp(-HistoricalFs[j]*vulnS[1,MaxAge])*exp(-NatMs[1])+ tempNs[j-1,MaxAge]*exp(-HistoricalFs[j]*vulnS[1,MaxAge])*exp(-NatMs[1])
-
-   EggsN			<-sum(tempNn[j-1,]*matureN[1,]*WeightAtAgeN[1,])
-   EggsS			<-sum(tempNs[j-1,]*matureS[1,]*WeightAtAgeS[1,])
-
-   tempNn[j,1]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=RecErrN[1,j],recType="BH",NatMin=NatMn[1],
-							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,])
-   tempNs[j,1]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[1],RzeroIN=RzeroS[1],RecErrIN=RecErrS[1,j],recType="BH",NatMin=NatMs[1],
-							vulnIN=vulnS[1,],matureIN=matureS[1,],weightIN=WeightAtAgeS[1,],LenAtAgeIN=LenAtAgeS[1,])
-   tempRecN[j]		<-tempNn[j,1]
-   tempRecS[j]		<-tempNs[j,1]
-
-   tempCatchAtAgeN[j,]	<-((vulnN[1,]*HistoricalFn[j])/(vulnN[1,]*HistoricalFn[j]+NatMn[1])) * (1-exp(-(vulnN[1,]*HistoricalFn[j]+NatMn[1]))) * tempNn[j-1,]
-   tempCatchN[j]		<-sum(tempCatchAtAgeN[j,]*WeightAtAgeN[1,])
-
-   tempCatchAtAgeS[j,]	<-((vulnS[1,]*HistoricalFs[j])/(vulnS[1,]*HistoricalFs[j]+NatMs[1])) * (1-exp(-(vulnS[1,]*HistoricalFs[j]+NatMs[1]))) * tempNs[j-1,]
-   tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[1,])
-
- }
-}
-
-if(LifeHistoryPlots==1)
- PlotLifeHistory()
-
+HistoricFmort<-ExpSeries*tempExp
+mtext(side=3,"Exploitation history",cex=.7)
+round((-log(1-HistoricFmort)),3)
 #===============================================================
 # BEGIN SIMULATION OF ASSESSMENT AND HARVEST
 #===============================================================
+
 #==tempNn and tempNs from above are the starting points
 projNn	<-array(dim=c(SimYear,MaxAge,Nsim))
 projNs	<-array(dim=c(SimYear,MaxAge,Nsim))
@@ -347,12 +435,17 @@ projSurvLenFreqS	<-array(dim=c(SimYear,MaxAge,Nsim))
 #==============================================================
 # calculate the catch proportion at (length) for assessment
 #==============================================================
+library(splines)
+
  tempCatAtLenN<-matrix(nrow=MaxAge,ncol=MaxAge)
  tempCatAtLenS<-matrix(nrow=MaxAge,ncol=MaxAge)
+ GrowthSDn<-10
+ GrowthSDs<-10
 
 for(x in 1:Nsim)
  for(y in 2:InitYear)
  {
+
  #==make length frequencies for catch==
  for(w in 1:nrow(tempCatAtLenN))
  {
@@ -363,11 +456,12 @@ for(x in 1:Nsim)
   ProbS<-probtemp/sum(probtemp)
   tempCatAtLenS[w,]<-tempCatchAtAgeS[y,w]*ProbS
  }
+
  projCatLenFreqN[y,,x]<-apply(tempCatAtLenN,2,sum)
  projCatLenFreqS[y,,x]<-apply(tempCatAtLenS,2,sum)
 }
 
-if(AssessmentData==1)
+if(LifeHistoryPlots==1)
  {
  dev.new()
  par(mfrow=c(ceiling(sqrt(InitYear)),ceiling(sqrt(InitYear))),mar=c(.1,.1,.1,.1))
@@ -376,7 +470,7 @@ if(AssessmentData==1)
  }
 
 #==============================================================
-# calculate the survey proportion at length for assessment
+# calculate the survey proportion at age (length) for assessment
 #==============================================================
  tempSurvAtLenN<-matrix(nrow=MaxAge,ncol=MaxAge)
  tempSurvAtLenS<-matrix(nrow=MaxAge,ncol=MaxAge)
@@ -393,6 +487,7 @@ for(x in 1:Nsim)
   ProbS<-probtemp/sum(probtemp)
   tempSurvAtLenS[w,]<-tempNs[y,w]*survSelS[y,w]*ProbS
  }
+
  projSurvLenFreqN[y,,x]<-apply(tempSurvAtLenN,2,sum)
  projSurvLenFreqS[y,,x]<-apply(tempSurvAtLenS,2,sum)
 }
@@ -405,7 +500,7 @@ if(LifeHistoryPlots==1)
   barplot(rbind(projSurvLenFreqN[i,,1],projSurvLenFreqS[i,,1]),beside=T,xaxt='n',yaxt='n')
  }
 
-#==transfer historical time series from above
+#==transfer historic time series from above
 for(x in 1:Nsim)
 {
 projNn[1:InitYear,,x]			<-tempNn
@@ -414,8 +509,8 @@ projCatchN[x,1:InitYear]		<-tempCatchN
 projCatchS[x,1:InitYear]		<-tempCatchS
 projRecN[x,1:InitYear]			<-tempRecN
 projRecS[x,1:InitYear]			<-tempRecS
-projFmortN[x,1:InitYear]		<-HistoricalF
-projFmortS[x,1:InitYear]		<-HistoricalF
+projFmortN[x,1:InitYear]		<-HistoricFmort
+projFmortS[x,1:InitYear]		<-HistoricFmort
 projSurvN[x,1:InitYear]			<-apply(tempNn*survSelN[1:InitYear,]*WeightAtAgeN[1:InitYear,],1,sum)
 projSurvS[x,1:InitYear]			<-apply(tempNs*survSelS[1:InitYear,]*WeightAtAgeS[1:InitYear,],1,sum)
 }
@@ -443,14 +538,14 @@ SurvErrorS		<-matrix(rnorm(Nsim*SimYear,0,IndexCVs),nrow=Nsim,ncol=SimYear)
 SurvAssessN		<-projSurvN*exp(SurvErrorN)
 SurvAssessS		<-projSurvS*exp(SurvErrorS)
 
-#==storage for management and assessment quantities
+#==save management and assessment quantities
 FMSY<-matrix(nrow=Nsim,ncol=SimYear)
 BMSY<-matrix(nrow=Nsim,ncol=SimYear)
 TAC<-matrix(nrow=Nsim,ncol=SimYear)
 CurBio<-matrix(nrow=Nsim,ncol=SimYear)
 
 #=================================================================================
-#==BEGIN PROJECTIONS===========================================================
+#==BEGIN SIMULATION===========================================================
 
 for(z in 1:Nsim)
 {
@@ -462,29 +557,24 @@ for(z in 1:Nsim)
  SurvData<-SurvAssessN[z,!is.na(SurvAssessN[z,])] + SurvAssessS[z,!is.na(SurvAssessS[z,])] 
 
  #=================================================================================
- #===ASSESS THE STOCK, CHOOSE A METHOD IN CTL FILE=================================
+ #===ASSESS THE STOCK, CHOOSE A METHOD AT THE TOP=================================
  #=================================================================================
 
  #==Production model==
- if(AssessmentType == 1)
+ if(AssessmentType == "Production")
  {
- if(y==InitYear)
-  x		<-c(1.2*(VirBioN+VirBioS),0.3)	#initial values
- if(y>InitYear)
-  x		<-outs$par
- outs		<-nlminb(start=x,objective=ProdMod,CatchData=CatchData[2:y],IndexData=CPUEData[2:y])
- PredBio	<-ProdModPlot(outs$par,CatchData[2:y],CPUEData[2:y],plots=EstimationPlots)
+ x		<-c(1.5*(VirBioN+VirBioS),0.2)	#initial values
+ outs		<-nlminb(start=x,objective=ProdMod,CatchData=CatchData,IndexData=CPUEData )
+ PredBio	<-ProdModPlot(outs$par,CatchData,CPUEData,plots=EstimationPlots)
  FMSY[z,y] 	<-abs(outs$par[2])/2
  BMSY[z,y]	<-abs(outs$par[1])/2
  MSY		<-BMSY[z,y]*FMSY[z,y]
- CurBio[z,y]<-PredBio[length(PredBio)-1]
- TAC[z,y]	<-HarvestControlRule(FMSY=FMSY[z,y],BMSY=BMSY[z,y],ExploitBio=CurBio[z,y],SpawnBio=CurBio[z,y],
-			alpha=HCalpha,beta=HCbeta,HarvestControl=HarvestControl,ConstantCatch=ConstantCatch,
-  			ConstantF=ConstantF)
+ CurBio[z,y]<-PredBio[length(PredBio)]
+ TAC[z,y]	<-CurBio[z,y]*FMSY[z,y]
  }
 
  #==Age-structured model
- if(AssessmentType == 2)
+ if(AssessmentType == "Non-spatial age")
  {
  #==make folder if it isn't there
  setwd(CurDir)
@@ -496,7 +586,6 @@ for(z in 1:Nsim)
  file.copy(from="GenAss/simass.exe",to=IndSimFolder)
  
  #==write the true values
- #==Probably don't need this if it is stored in the MSE object
  setwd(IndSimFolder)
  file.create("TrueQuantities.DAT")
  cat("#True quantities","\n",file="TrueQuantities.DAT")
@@ -529,7 +618,7 @@ for(z in 1:Nsim)
  cat("#Simulated assessment control file","\n",file="SimAss.CTL")
  cat("#","\n",file="SimAss.CTL",append=TRUE)
  cat("#weight parameters","\n",file="SimAss.CTL",append=TRUE)
- cat(c(alphaN[1],betaN[1]) ,"\n",file="SimAss.CTL",append=TRUE)
+ cat(c(alphaN,betaN) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#length parameters","\n",file="SimAss.CTL",append=TRUE)
  cat(c(VonKn[1],LinfN[1],t0n[1]) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#natural mortality","\n",file="SimAss.CTL",append=TRUE)
@@ -543,7 +632,7 @@ for(z in 1:Nsim)
  cat("#initial smoothness weight","\n",file="SimAss.CTL",append=TRUE)
  cat(0.1,"\n",file="SimAss.CTL",append=TRUE) 
  cat("#Fishery Independent data available?","\n",file="SimAss.CTL",append=TRUE)
- cat(FisheryIndepenDat,"\n",file="SimAss.CTL",append=TRUE)
+ cat(FisheryIndepentDat,"\n",file="SimAss.CTL",append=TRUE)
  cat("#Length at age standard deviation","\n",file="SimAss.CTL",append=TRUE)
  cat(GrowthSDn,"\n",file="SimAss.CTL",append=TRUE)
 
@@ -619,7 +708,7 @@ projSurvLenFreqS[is.na(projSurvLenFreqS)]<-0
  shell("simass -nohess")
 
 #==================================
-# PLOT THE ASSESSMENT OUTPUT (if instructed)
+# PLOT THE OUTPUT (if instructed)
 #==================================
 REP<-readLines(paste(CurDir,IndSimFolder,"/simass.rep",sep=""))
 CTL<-readLines(paste(CurDir,IndSimFolder,"/simass.CTL",sep=""))
@@ -637,7 +726,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
  TAC[z,y]	<-OFL
  }
 
- if(EstimationPlots==1 & AssessmentType == 1)
+ if(EstimationPlots==1 & AssessmentType == "Production")
  {
   lines(BMSY[z,],col=3,lty=3)
   legend("topright",bty='n',col=c(NA,1,2,3),pch=c(15,NA,NA,NA),lty=c(NA,1,2,3),
@@ -730,6 +819,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 	 }
 	 projCatLenFreqN[y+1,,z]<-apply(tempCatAtLenN,2,sum)
 	 projCatLenFreqS[y+1,,z]<-apply(tempCatAtLenS,2,sum)
+	
 
   #==============================================================
   # calculate the survey proportion at age (length) for assessment
