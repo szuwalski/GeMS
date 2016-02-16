@@ -47,6 +47,13 @@ DATA_SECTION
   init_number InitSmoothWeight
   init_number FisheryIndependentData
   init_number	GrowthSD
+  init_number FmortPen
+  init_number RecruitPen
+  init_number HarvestControl
+  init_number ConstantCatch
+  init_number ConstantF
+  init_number HCalpha
+  init_number HCbeta
   !!cout<<"steep"<<steepness<<endl;
   
   int ipass;
@@ -57,11 +64,10 @@ DATA_SECTION
 // =======================================================================
 PARAMETER_SECTION
 
-	init_bounded_number srv_q(.99,1.,-2)
-	init_bounded_number fish_sel50(1,maxAge,-2)
-	init_bounded_number fish_sel95(2,maxAge,-2)
-	init_bounded_number srv_sel50(1,maxAge,-2)
-	init_bounded_number srv_sel95(2,maxAge,-2)
+	init_bounded_number fish_sel50(0.01,maxAge,2)
+	init_bounded_number fish_sel95(1,maxAge,2)
+	init_bounded_number srv_sel50(0.01,maxAge,2)
+	init_bounded_number srv_sel95(1,maxAge,2)
 	init_bounded_vector stNatLen(1,maxAge,-10,20,1)		//using this instead of recruitments because the number of years that would be required for long lived species would be a lot
 	
 	init_bounded_number log_avg_fmort_dir(-5,5,1)
@@ -136,10 +142,10 @@ PARAMETER_SECTION
 PRELIMINARY_CALCS_SECTION
  int i,j;
  dvariable nn;
-  for(i=1;i<=maxAge;i++)
-   WeightAtAge(i) = weightPars(1) * pow(LengthBinsMid(i),weightPars(2));
+  // for(i=1;i<=maxAge;i++)
+   // WeightAtAge(i) = weightPars(1) * pow(LengthBinsMid(i),weightPars(2));
    
-
+  
 //make length frequencies from observed
     for(i=styr;i<=endyr;i++)
     {
@@ -161,12 +167,11 @@ PRELIMINARY_CALCS_SECTION
 
 // =============================================================
 INITIALIZATION_SECTION
-    fish_sel50 5.91
-    fish_sel95 7.83
-	srv_sel50 2.68
-    srv_sel95 4.365
-	mean_log_rec 15
-	log_avg_fmort_dir 1.5
+ fish_sel50 5.916511
+ fish_sel95 7.831472
+ srv_sel50 2.683375
+ srv_sel95 4.365736
+
 // ==========================================================================
 PROCEDURE_SECTION
   getselectivity();
@@ -199,7 +204,7 @@ FUNCTION getselectivity
 	  sel_fish(j)       =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-fish_sel50)/(fish_sel95-fish_sel50)));
       sel_srv(j)		   =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-srv_sel50)/(srv_sel95-srv_sel50)));
 	 } 
-	 
+
 // ==========================================================================
 FUNCTION getmaturity
  int j;
@@ -209,6 +214,7 @@ FUNCTION getmaturity
    {
     MatAtAge(j)       =  1./(1.+mfexp(-1.*log(19) *  (Ages(j)-maturity(1))/(maturity(2)-maturity(1))));
     LengthAtAge(j) = lengthPars(2)*(1-mfexp(-1*lengthPars(1)*(Ages(j)-lengthPars(3))));
+	WeightAtAge(j) = weightPars(1) * pow(LengthAtAge(j),weightPars(2));
    }
 
   // ==========================================================================
@@ -251,7 +257,7 @@ FUNCTION get_num_at_len_yr
   i = ipass;
 
   //==cpue index==
-   dummyN				= elem_prod(sel_fish,NatAge(i));
+   dummyN				    = elem_prod(sel_fish,NatAge(i));
    predCpueBioLen(i)	= elem_prod(dummyN,WeightAtAge);
    for(j=1;j<=maxAge;j++)
     predCpueBio(i)		+= predCpueBioLen(i,j);
@@ -304,7 +310,7 @@ FUNCTION get_num_at_len_yr
     predCatchAtAge(i)	=  elem_prod(NatAge(i),Baranov);
   // cout<<"Selfish"<<sel_fish<<endl;
   // cout<<"predCatchAtAge(i)"<<predCatchAtAge(i)<<endl;
-  
+
  //find probability of length at age for catch given variability
 	for(k=1;k<=maxAge;k++)
     for(j=1;j<=maxAge;j++)
@@ -318,9 +324,9 @@ FUNCTION get_num_at_len_yr
   // cout<<"dummyAllProbs2"<<dummyAllProbs<<endl;
   
   //make N at length for entire population	  
-	  predCatchLenFreq(i) = colsum(dummyAllProbs);
+	predCatchLenFreq(i) = colsum(dummyAllProbs);
   // cout<<"predCatchLenFreq(i)"<<predCatchLenFreq(i)<<endl;
-  predCatchLenFreq(i) = predCatchLenFreq(i)/sum(predCatchLenFreq(i));
+    predCatchLenFreq(i) = predCatchLenFreq(i)/sum(predCatchLenFreq(i));
   // cout<<"predCatchLenFreq(i)"<<predCatchLenFreq(i)<<endl;
 
  //==aggregate catch biomass==	
@@ -388,8 +394,8 @@ FUNCTION evaluate_the_objective_function
     // cout<<"CatchLen_like"<<CatchLen_like<<endl;	
 	
   initsmo_penal = InitSmoothWeight*(norm2(first_difference(stNatLen)));
-  Rec_pen = (norm2(first_difference(rec_dev)));
-  F_pen = (norm2(first_difference(fmort_dir_dev)));
+  Rec_pen = RecruitPen*(norm2(first_difference(rec_dev)));
+  F_pen = FmortPen*(norm2(first_difference(fmort_dir_dev)));
   
  f = 0;
  
@@ -470,7 +476,32 @@ FUNCTION Find_F35
 FUNCTION Find_OFL
   dvariable Fmsy,Rbar,nn,alpha,beta;
   int BMSY_Yr1, BMSY_Yr2,ii,Iyr,kk,jj;
+ 
+  if(HarvestControl==1)
+  {
+	FOFL = F35;
+   get_fut_mortality();
+   get_num_at_len_yr();
+   OFL = 0;
+   for(ii = 1;ii<=maxAge;ii++)
+    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ii);
+  }
+
+   if(HarvestControl==2)
+   OFL = ConstantCatch;
+
+  if(HarvestControl==3)
+  {
+  FOFL = ConstantF;
+   get_fut_mortality();
+   get_num_at_len_yr();
+   OFL = 0;
+   for(ii = 1;ii<=maxAge;ii++)
+    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ii);
+  }
   
+  if(HarvestControl==4)
+  {
   BMSY_Yr1 = 1;BMSY_Yr2 = endyr-8;
   alpha = 0.05;
   beta = 0.25;
@@ -530,7 +561,8 @@ FUNCTION Find_OFL
    OFL = 0;
    for(ii = 1;ii<=maxAge;ii++)
     OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ii);
-   // cout<<"OFL"<<OFL<<endl;
+  }
+  
 // ==========================================================
 
 REPORT_SECTION

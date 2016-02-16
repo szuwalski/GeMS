@@ -17,7 +17,7 @@
 #Fishery Independent data available? 
 1 
 #Length at age standard deviation 
-10 
+20 
 #smoothness on fishing mortality penalty 
 3 
 #smoothness on recruit penalty 
