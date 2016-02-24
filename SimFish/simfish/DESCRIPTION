@@ -1,0 +1,16 @@
+Package: simfish
+Title: Simulate a Fishery and Data
+Version: 0.1
+Authors@R: c(person("Dan", "Ovando", email = "dovando@bren.ucsb.edy", role = c("cre")),
+ person("Cody", "Szuwalski", email = "c.s.szuwalski@gmail.com ", role = c("aut")))
+Description: This package contains functions to simulate example fishery data.
+Depends:
+    R (>= 3.2.3)
+License: MIT
+LazyData: true
+Imports:
+    plyr,
+    dplyr,
+    ggplot2,
+    tidyr
+RoxygenNote: 5.0.1
