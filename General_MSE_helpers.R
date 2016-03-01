@@ -458,8 +458,9 @@ SurvSel<-1/( 1 + exp( -1*log(19)*(AgeBin-sel50surv)/(sel95surv-sel50surv)))
 FishSel<-1/( 1 + exp( -1*log(19)*(AgeBin-sel50fish)/(sel95fish-sel50fish)))
 
 trueSurvSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueSurvSelPar[1])/(trueSurvSelPar[2]-trueSurvSelPar[1])))
-plot(trueSurvSel~LengthBin,type="l",xlab="Age",ylab="Selectivity")
+#plot(trueSurvSel~LengthBin,type="l",xlab="Age",ylab="Selectivity")
 trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueFishSelPar[1])/(trueFishSelPar[2]-trueFishSelPar[1])))
+plot(FishSel~AgeBin,type="l",xlab="Age",ylab="Selectivity")
 
 lines(FishSel~AgeBin,lty=2,col=2)
 lines(SurvSel~AgeBin,lty=2,col=2)
@@ -554,6 +555,7 @@ ReadCTLfile<-function(input)
  OM$LenSampleS		<-TakeOut("LenSampleS",SearchPool)
  OM$GrowthSDn		<-TakeOut("GrowthSDn",SearchPool)
  OM$GrowthSDs		<-TakeOut("GrowthSDs",SearchPool)
+ OM$LengthBinN		<-TakeOut("LengthBinN",SearchPool)
 
  OM$DiffFlag		<-TakeOut("DiffFlag",SearchPool)
 
@@ -611,6 +613,8 @@ ReadCTLfile<-function(input)
  OM$InitSmooth		<-TakeOut("InitSmooth",SearchPool)
  OM$FmortPen		<-TakeOut("FmortPen",SearchPool)
  OM$RecruitPen		<-TakeOut("RecruitPen",SearchPool)
+ OM$EstM			<-TakeOut("EstM",SearchPool)
+ OM$TimeVaryM		<-TakeOut("TimeVaryM",SearchPool)
 
  list(OM=OM)
 }

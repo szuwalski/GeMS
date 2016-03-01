@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 
 #==source a file with helper functions
-source("C:/General-MSE/General MSE helpers.R")
+source("C:/General-MSE/General_MSE_helpers.R")
 
 #==this is where the output and files will be stored
 CurDir<-"C:/General-MSE/"
@@ -16,7 +16,7 @@ input<-"C:/General-MSE/CTLfile.csv"
 out<-ReadCTLfile(input)
 
 PlotYieldCurve<-0
-CalcFMSY<-1
+CalcFMSY<-0
 #=======================
 #==simulation controls==
 #=======================
@@ -33,7 +33,7 @@ depletion		<-out$OM$depletion		# model is conditioned to a specific depletion gi
 CatchShareN		<-out$OM$CatchShareN		# the amount of effort allocated to a given area
 CatchShareS		<-1-CatchShareN
 
-#==sampling uncertainty
+#==sampling uncertainty (change this to be time-varying as well)
 CatchCVn	<-out$OM$CatchCVn
 CatchCVs	<-out$OM$CatchCVs
 
@@ -77,9 +77,10 @@ for(i in 1:SimYear)
  LenAtAgeS[i,]<-LinfS[i]*(1-exp(-VonKs[i]*(Ages-t0s[i])))
 
 #==specify the number of length bins
- BinWidth<-(max(LenAtAgeS,LenAtAgeN)*1.05)/MaxAge
- LengthBins<-seq(0,max(LenAtAgeS,LenAtAgeN)*1.05,BinWidth)
- LengthBinsMid<-LengthBins[1:(length(LengthBins)-1)] + mean(LengthBins[1:2])
+ BinWidth		<-(max(LenAtAgeS,LenAtAgeN)*1.05)/(out$OM$LengthBinN)
+ LengthBins		<-seq(0,max(LenAtAgeS,LenAtAgeN)*1.05,BinWidth)
+ LengthBinsMid	<-LengthBins[1:(length(LengthBins)-1)] + mean(LengthBins[1:2])
+ LengthBinN		<-length(LengthBinsMid)
 
 #==maturity at age==========================
 mat50n	<-CleanInput(out$OM$mat50n,SimYear)
@@ -177,6 +178,9 @@ SmallNum		<-out$OM$SmalNum
 InitSmooth		<-out$OM$InitSmooth	
 FmortPen		<-out$OM$FmortPen
 RecruitPen		<-out$OM$RecruitPen		
+
+EstM			<-out$OM$EstM
+TimeVaryM		<-out$OM$TimeVaryM	
 
 #===================================================
 #==Virgin numbers at age, biomass, initial depletion, recruitment
@@ -376,16 +380,29 @@ projRecS	<-matrix(nrow=Nsim,ncol=SimYear)
 projFmortN	<-matrix(nrow=Nsim,ncol=SimYear)
 projFmortS	<-matrix(nrow=Nsim,ncol=SimYear)
 
-projCatLenFreqN	<-array(dim=c(SimYear,MaxAge,Nsim))
-projCatLenFreqS	<-array(dim=c(SimYear,MaxAge,Nsim))
-projSurvLenFreqN	<-array(dim=c(SimYear,MaxAge,Nsim))
-projSurvLenFreqS	<-array(dim=c(SimYear,MaxAge,Nsim))
+projCatLenFreqN	<-array(dim=c(SimYear,LengthBinN,Nsim))
+projCatLenFreqS	<-array(dim=c(SimYear,LengthBinN,Nsim))
+projSurvLenFreqN	<-array(dim=c(SimYear,LengthBinN,Nsim))
+projSurvLenFreqS	<-array(dim=c(SimYear,LengthBinN,Nsim))
+
+#=storage for the true quantities
+trueRec		<-matrix(ncol=SimYear,nrow=Nsim)
+trueCatch		<-matrix(ncol=SimYear,nrow=Nsim)
+trueFmort		<-matrix(ncol=SimYear,nrow=Nsim)
+for(x in 1:Nsim)
+ trueFmort[x,1:InitYear]<-HistoricalF
+
+trueSpbio		<-matrix(ncol=SimYear,nrow=Nsim)
+trueB35		<-matrix(ncol=SimYear,nrow=Nsim)
+trueSurvInd		<-matrix(ncol=SimYear,nrow=Nsim)
+trueCPUEind		<-matrix(ncol=SimYear,nrow=Nsim)
+
 
 #==============================================================
 # calculate the catch proportion at (length) for assessment
 #==============================================================
- tempCatAtLenN<-matrix(nrow=MaxAge,ncol=MaxAge)
- tempCatAtLenS<-matrix(nrow=MaxAge,ncol=MaxAge)
+ tempCatAtLenN<-matrix(nrow=LengthBinN,ncol=LengthBinN)
+ tempCatAtLenS<-matrix(nrow=LengthBinN,ncol=LengthBinN)
 
 for(x in 1:Nsim)
  for(y in 2:InitYear)
@@ -415,8 +432,8 @@ if(AssessmentData==1)
 #==============================================================
 # calculate the survey proportion at length for assessment
 #==============================================================
- tempSurvAtLenN<-matrix(nrow=MaxAge,ncol=MaxAge)
- tempSurvAtLenS<-matrix(nrow=MaxAge,ncol=MaxAge)
+ tempSurvAtLenN<-matrix(nrow=LengthBinN,ncol=LengthBinN)
+ tempSurvAtLenS<-matrix(nrow=LengthBinN,ncol=LengthBinN)
 for(x in 1:Nsim)
  for(y in 2:InitYear)
  {
@@ -465,6 +482,16 @@ for(x in 1:InitYear)
  projExpBs[,x]	<-sum(projNs[x,,1]*vulnS[1,]*WeightAtAgeS[1,])
 }
 
+#==fill in true storage arrays
+for(x in 1:Nsim)
+{
+trueRec[x,1:InitYear]		<-tempRecN+tempRecS		
+trueCatch[x,1:InitYear]		<-tempCatchN+tempCatchS		
+trueSpbio[x,1:InitYear]		<-projSSBn[x,1:InitYear]+projSSBs[x,1:InitYear]	
+trueSurvInd[x,1:InitYear]	<-projSurvN[x,1:InitYear]+projSurvS[x,1:InitYear]
+trueCPUEind[x,1:InitYear]	<-projExpBn[x,1:InitYear]+projExpBs[x,1:InitYear]	
+}
+
 CatchErrorN		<-matrix(rnorm(Nsim*SimYear,0,CatchCVn),nrow=Nsim,ncol=SimYear)
 CatchErrorS		<-matrix(rnorm(Nsim*SimYear,0,CatchCVs),nrow=Nsim,ncol=SimYear)
 CatchAssessN	<-projCatchN*exp(CatchErrorN)
@@ -488,17 +515,6 @@ TrueTAC<-matrix(nrow=Nsim,ncol=SimYear)
 CurBio<-matrix(nrow=Nsim,ncol=SimYear)
 EstBio<-matrix(nrow=Nsim,ncol=SimYear)
 
-#=storage for the true quantities
-trueRec		<-matrix(ncol=SimYear,nrow=Nsim)
-trueCatch		<-matrix(ncol=SimYear,nrow=Nsim)
-trueFmort		<-matrix(ncol=SimYear,nrow=Nsim)
-for(x in 1:Nsim)
- trueFmort[x,1:InitYear]<-HistoricalF
-
-trueSpbio		<-matrix(ncol=SimYear,nrow=Nsim)
-trueB35		<-matrix(ncol=SimYear,nrow=Nsim)
-trueSurvInd		<-matrix(ncol=SimYear,nrow=Nsim)
-trueCPUEind		<-matrix(ncol=SimYear,nrow=Nsim)
 
 #=================================================================================
 #==BEGIN PROJECTIONS===========================================================
@@ -571,6 +587,8 @@ for(z in 1:Nsim)
  cat(trueSurvInd[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#cpue index","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueCPUEind[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ #cat("#total allowable catch","\n",file="TrueQuantities.DAT",append=TRUE)
+ #cat(trueTAC[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
 
  selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
  selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
@@ -585,7 +603,9 @@ for(z in 1:Nsim)
  cat(c(alphaN[1],betaN[1]) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#length parameters","\n",file="SimAss.CTL",append=TRUE)
  cat(c(VonKn[1],LinfN[1],t0n[1]) ,"\n",file="SimAss.CTL",append=TRUE)
- cat("#natural mortality","\n",file="SimAss.CTL",append=TRUE)
+ cat("#estimate natural mortality? if positive, number indicates phase, if negative, not estimated","\n",file="SimAss.CTL",append=TRUE)
+ cat(2,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#natural mortality (used as starting value if estimated)","\n",file="SimAss.CTL",append=TRUE)
  cat(NatMn[length(NatMn)],"\n",file="SimAss.CTL",append=TRUE)
  cat("#maturity","\n",file="SimAss.CTL",append=TRUE)
  cat(c(mat50n[length(mat50n)],mat95n[length(mat95n)]) ,"\n",file="SimAss.CTL",append=TRUE)
@@ -614,7 +634,15 @@ for(z in 1:Nsim)
  cat(HCalpha,"\n",file="SimAss.CTL",append=TRUE)
  cat("#40 10 parameters for harvest control 4","\n",file="SimAss.CTL",append=TRUE)
  cat(HCbeta,"\n",file="SimAss.CTL",append=TRUE)
+
+ cat("#Number of length bins","\n",file="SimAss.CTL",append=TRUE)
+ cat(LengthBinN,"\n",file="SimAss.CTL",append=TRUE)
  
+ cat("#Estimate M?","\n",file="SimAss.CTL",append=TRUE)
+ cat(EstM,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#Allow M to vary over time?","\n",file="SimAss.CTL",append=TRUE)
+ cat(TimeVaryM,"\n",file="SimAss.CTL",append=TRUE)
+	
  #==.DAT file 
  file.create("SimAss.DAT")
  cat("#Simulated generalized assessment","\n",file="SimAss.DAT")

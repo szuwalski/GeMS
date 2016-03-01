@@ -29,7 +29,8 @@ class model_data : public ad_comm{
   data_matrix survLenNum;
   data_vector weightPars;
   data_vector lengthPars;
-  data_number NatM;
+  data_number EstM;
+  data_number NatMin;
   data_vector maturity;
   data_number steepness;
   data_number smallNum;
@@ -43,6 +44,7 @@ class model_data : public ad_comm{
   data_number ConstantF;
   data_number HCalpha;
   data_number HCbeta;
+  data_number LengthBinN;
   int ipass;
   int Nproj;
   int IsB0;
@@ -96,6 +98,7 @@ private:
   param_init_bounded_dev_vector fmort_dir_dev;
   param_init_bounded_number mean_log_rec;
   param_init_bounded_dev_vector rec_dev;
+  param_init_bounded_number NatM;
   param_number prior_function_value;
   param_number likelihood_function_value;
   objective_function_value f;

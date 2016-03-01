@@ -40,13 +40,14 @@ DATA_SECTION
   !! ad_comm::change_datafile_name("SimAss.ctl");
   init_vector weightPars(1,2)
   init_vector lengthPars(1,3)
-  init_number NatM
+  init_number EstM
+  init_number NatMin
   init_vector maturity(1,2)
   init_number steepness
   init_number smallNum
   init_number InitSmoothWeight
   init_number FisheryIndependentData
-  init_number	GrowthSD
+  init_number GrowthSD
   init_number FmortPen
   init_number RecruitPen
   init_number HarvestControl
@@ -54,6 +55,7 @@ DATA_SECTION
   init_number ConstantF
   init_number HCalpha
   init_number HCbeta
+  init_number LengthBinN
   !!cout<<"steep"<<steepness<<endl;
   
   int ipass;
@@ -75,6 +77,8 @@ PARAMETER_SECTION
 
 	init_bounded_number mean_log_rec(-5,25,1)
 	init_bounded_dev_vector rec_dev(styr,endyr,-20,20,1)
+	
+	init_bounded_number NatM(0.001,0.8,EstM)
    
    // init_bounded_number dummy(1,2)
   
@@ -150,18 +154,18 @@ PRELIMINARY_CALCS_SECTION
     for(i=styr;i<=endyr;i++)
     {
 	   nn =0;
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
        nn +=  catchLenNum(i,j);
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
 	  catchLenFreq(i,j) = catchLenNum(i,j)/nn;
     }
 
   for(i=styr;i<=endyr;i++)
     {
 	   nn =0;
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
        nn +=  survLenNum(i,j);
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
 	  survLenFreq(i,j) = survLenNum(i,j)/nn;
     }
 
@@ -171,7 +175,7 @@ INITIALIZATION_SECTION
  fish_sel95 7.831472
  srv_sel50 2.683375
  srv_sel95 4.365736
-
+ NatM NatMin
 // ==========================================================================
 PROCEDURE_SECTION
   getselectivity();
@@ -249,8 +253,8 @@ FUNCTION get_num_at_len_yr
  dvar_vector tempN(1,maxAge);
  dvar_vector dummyN(1,maxAge);
 
- dvar_matrix dummyAllProbs(1,maxAge,1,maxAge);
- dvar_vector nn(1,maxAge);
+ dvar_matrix dummyAllProbs(1,LengthBinN,1,LengthBinN);
+ dvar_vector nn(1,LengthBinN);
  dvariable pi;
  pi = 3.14159265;
  
@@ -277,14 +281,14 @@ FUNCTION get_num_at_len_yr
    
   //==survey length frequencies==
 	//find probability of length at age given variability
-	for(k=1;k<=maxAge;k++)
-    for(j=1;j<=maxAge;j++)
+	for(k=1;k<=LengthBinN;k++)
+    for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(k)))/(2*GrowthSD*GrowthSD));
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
 	  
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
- 	for(k=1;k<=maxAge;k++)
+ 	for(k=1;k<=LengthBinN;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predSurvNatAge(i,k);
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
 
@@ -312,14 +316,14 @@ FUNCTION get_num_at_len_yr
   // cout<<"predCatchAtAge(i)"<<predCatchAtAge(i)<<endl;
 
  //find probability of length at age for catch given variability
-	for(k=1;k<=maxAge;k++)
-    for(j=1;j<=maxAge;j++)
+	for(k=1;k<=LengthBinN;k++)
+    for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(k)))/(2*GrowthSD*GrowthSD));
   // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
 	
- 	for(k=1;k<=maxAge;k++)
+ 	for(k=1;k<=LengthBinN;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predCatchAtAge(i,k);
   // cout<<"dummyAllProbs2"<<dummyAllProbs<<endl;
   

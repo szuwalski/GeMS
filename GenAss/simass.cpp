@@ -66,7 +66,8 @@ cout<<"catchBiomass"<<catchBiomass<<endl;
  ad_comm::change_datafile_name("SimAss.ctl");
   weightPars.allocate(1,2,"weightPars");
   lengthPars.allocate(1,3,"lengthPars");
-  NatM.allocate("NatM");
+  EstM.allocate("EstM");
+  NatMin.allocate("NatMin");
   maturity.allocate(1,2,"maturity");
   steepness.allocate("steepness");
   smallNum.allocate("smallNum");
@@ -80,6 +81,7 @@ cout<<"catchBiomass"<<catchBiomass<<endl;
   ConstantF.allocate("ConstantF");
   HCalpha.allocate("HCalpha");
   HCbeta.allocate("HCbeta");
+  LengthBinN.allocate("LengthBinN");
 cout<<"steep"<<steepness<<endl;
  Nproj = 125;
 }
@@ -97,6 +99,7 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   fmort_dir_dev.allocate(styr,endyr,-20,20,1,"fmort_dir_dev");
   mean_log_rec.allocate(-5,25,1,"mean_log_rec");
   rec_dev.allocate(styr,endyr,-20,20,1,"rec_dev");
+  NatM.allocate(0.001,0.8,EstM,"NatM");
   f.allocate("f");
   prior_function_value.allocate("prior_function_value");
   likelihood_function_value.allocate("likelihood_function_value");
@@ -269,17 +272,17 @@ void model_parameters::preliminary_calculations(void)
     for(i=styr;i<=endyr;i++)
     {
 	   nn =0;
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
        nn +=  catchLenNum(i,j);
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
 	  catchLenFreq(i,j) = catchLenNum(i,j)/nn;
     }
   for(i=styr;i<=endyr;i++)
     {
 	   nn =0;
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
        nn +=  survLenNum(i,j);
-      for(j=1;j<=maxAge;j++)
+      for(j=1;j<=LengthBinN;j++)
 	  survLenFreq(i,j) = survLenNum(i,j)/nn;
     }
 }
@@ -290,6 +293,7 @@ void model_parameters::initializationfunction(void)
   fish_sel95.set_initial_value(7.831472);
   srv_sel50.set_initial_value(2.683375);
   srv_sel95.set_initial_value(4.365736);
+  NatM.set_initial_value(NatMin);
 }
 
 void model_parameters::userfunction(void)
@@ -377,8 +381,8 @@ void model_parameters::get_num_at_len_yr(void)
  dvariable temp;
  dvar_vector tempN(1,maxAge);
  dvar_vector dummyN(1,maxAge);
- dvar_matrix dummyAllProbs(1,maxAge,1,maxAge);
- dvar_vector nn(1,maxAge);
+ dvar_matrix dummyAllProbs(1,LengthBinN,1,LengthBinN);
+ dvar_vector nn(1,LengthBinN);
  dvariable pi;
  pi = 3.14159265;
   i = ipass;
@@ -401,13 +405,13 @@ void model_parameters::get_num_at_len_yr(void)
    // cout<<"WeightAtAge"<<WeightAtAge<<endl;
   //==survey length frequencies==
 	//find probability of length at age given variability
-	for(k=1;k<=maxAge;k++)
-    for(j=1;j<=maxAge;j++)
+	for(k=1;k<=LengthBinN;k++)
+    for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(k)))/(2*GrowthSD*GrowthSD));
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
- 	for(k=1;k<=maxAge;k++)
+ 	for(k=1;k<=LengthBinN;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predSurvNatAge(i,k);
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
   //make N at length for entire population	  
@@ -431,13 +435,13 @@ void model_parameters::get_num_at_len_yr(void)
   // cout<<"Selfish"<<sel_fish<<endl;
   // cout<<"predCatchAtAge(i)"<<predCatchAtAge(i)<<endl;
  //find probability of length at age for catch given variability
-	for(k=1;k<=maxAge;k++)
-    for(j=1;j<=maxAge;j++)
+	for(k=1;k<=LengthBinN;k++)
+    for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(k)))/(2*GrowthSD*GrowthSD));
   // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
- 	for(k=1;k<=maxAge;k++)
+ 	for(k=1;k<=LengthBinN;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predCatchAtAge(i,k);
   // cout<<"dummyAllProbs2"<<dummyAllProbs<<endl;
   //make N at length for entire population	  
