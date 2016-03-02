@@ -613,6 +613,7 @@ ReadCTLfile<-function(input)
  OM$InitSmooth		<-TakeOut("InitSmooth",SearchPool)
  OM$FmortPen		<-TakeOut("FmortPen",SearchPool)
  OM$RecruitPen		<-TakeOut("RecruitPen",SearchPool)
+ OM$Mpenalty		<-TakeOut("Mpenalty",SearchPool)
  OM$EstM			<-TakeOut("EstM",SearchPool)
  OM$TimeVaryM		<-TakeOut("TimeVaryM",SearchPool)
 
@@ -774,4 +775,45 @@ selAtAgeFunc<-function(inputLen,K,Linf,t0)
   selAtAge<-((log(1-inputLen/Linf)/-K))+t0
  return(selAtAge)
  }
+#####################################################################
+CheckRetro<-function(RetroPeels=6,DrawDir)
+{
+setwd(CurDir)
+predSpBioRetro	<-array(dim=c(RetroPeels,SimYear,Nsim))
+trueSpBioRetro    <-matrix(ncol=SimYear,nrow=Nsim)
+
+for(n in 1:Nsim)
+for(v in 0:(RetroPeels-1))
+{
+IndSimFolder<-paste(DrawDir,n,"/",SimYear-v,sep="")
+REP<-readLines(paste(CurDir,IndSimFolder,"/simass.rep",sep=""))
+DAT<-readLines(paste(CurDir,IndSimFolder,"/simass.DAT",sep=""))
+
+temp<-grep("survey years",DAT)[1]
+yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+temp<-grep("spawning biomass",REP)
+predSpBioRetro[(v+1),(1:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+
+}
+
+for(n in 1:Nsim)
+{
+IndSimFolder<-paste(DrawDir,n,"/",SimYear,sep="")
+TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
+temp<-grep("spawning biomass",TRU)
+trueSpBioRetro[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+}
+
+plotSegment<-predSpBioRetro[,((SimYear-RetroPeels-4):SimYear),1]
+dev.new()
+par(mar=c(4,5,1,1))
+plot(y=plotSegment[1,],x=((SimYear-RetroPeels-4):SimYear),type="l",ylim=c(min(plotSegment,na.rm=T),max(plotSegment,na.rm=T)),lty=2,las=1,
+ ylab="",xlab="Year")
+for(x in 2:RetroPeels)
+ lines(y=plotSegment[x,],x=((SimYear-RetroPeels-4):SimYear),lty=x+1)
+
+ lines(y=trueSpBioRetro[1,((SimYear-RetroPeels-4):SimYear)],x=((SimYear-RetroPeels-4):SimYear),col=2)
+
+legend("topleft",bty='n',lty=1,col=2,"Truth")
+}
 

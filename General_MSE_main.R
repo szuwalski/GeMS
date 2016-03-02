@@ -16,7 +16,7 @@ input<-"C:/General-MSE/CTLfile.csv"
 out<-ReadCTLfile(input)
 
 PlotYieldCurve<-0
-CalcFMSY<-0
+CalcFMSY<-1
 #=======================
 #==simulation controls==
 #=======================
@@ -177,7 +177,8 @@ HCbeta		<-out$OM$HCbeta
 SmallNum		<-out$OM$SmalNum
 InitSmooth		<-out$OM$InitSmooth	
 FmortPen		<-out$OM$FmortPen
-RecruitPen		<-out$OM$RecruitPen		
+RecruitPen		<-out$OM$RecruitPen	
+Mpenalty		<-out$OM$Mpenalty	
 
 EstM			<-out$OM$EstM
 TimeVaryM		<-out$OM$TimeVaryM	
@@ -604,9 +605,11 @@ for(z in 1:Nsim)
  cat("#length parameters","\n",file="SimAss.CTL",append=TRUE)
  cat(c(VonKn[1],LinfN[1],t0n[1]) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#estimate natural mortality? if positive, number indicates phase, if negative, not estimated","\n",file="SimAss.CTL",append=TRUE)
- cat(2,"\n",file="SimAss.CTL",append=TRUE)
+ cat(EstM,"\n",file="SimAss.CTL",append=TRUE)
  cat("#natural mortality (used as starting value if estimated)","\n",file="SimAss.CTL",append=TRUE)
  cat(NatMn[length(NatMn)],"\n",file="SimAss.CTL",append=TRUE)
+ cat("#Allow M to vary over time? 1 = yes, 0 = no","\n",file="SimAss.CTL",append=TRUE)
+ cat(TimeVaryM,"\n",file="SimAss.CTL",append=TRUE) 
  cat("#maturity","\n",file="SimAss.CTL",append=TRUE)
  cat(c(mat50n[length(mat50n)],mat95n[length(mat95n)]) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#steepness","\n",file="SimAss.CTL",append=TRUE)
@@ -623,6 +626,8 @@ for(z in 1:Nsim)
  cat(FmortPen,"\n",file="SimAss.CTL",append=TRUE)
  cat("#smoothness on recruit penalty","\n",file="SimAss.CTL",append=TRUE)
  cat(RecruitPen,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#smoothness on time-varying natural mortality penalty","\n",file="SimAss.CTL",append=TRUE)
+ cat(Mpenalty,"\n",file="SimAss.CTL",append=TRUE)
 
  cat("#harvest control rule selected","\n",file="SimAss.CTL",append=TRUE)
  cat(HarvestControl,"\n",file="SimAss.CTL",append=TRUE)
@@ -638,10 +643,7 @@ for(z in 1:Nsim)
  cat("#Number of length bins","\n",file="SimAss.CTL",append=TRUE)
  cat(LengthBinN,"\n",file="SimAss.CTL",append=TRUE)
  
- cat("#Estimate M?","\n",file="SimAss.CTL",append=TRUE)
- cat(EstM,"\n",file="SimAss.CTL",append=TRUE)
- cat("#Allow M to vary over time?","\n",file="SimAss.CTL",append=TRUE)
- cat(TimeVaryM,"\n",file="SimAss.CTL",append=TRUE)
+
 	
  #==.DAT file 
  file.create("SimAss.DAT")
@@ -909,6 +911,10 @@ dev.new()
 
 if(AssessmentType==2)
 {
+
+#CheckRetro(DrawDir="AgeAssOutputs/")
+#CheckRetro(DrawDir="NatMfixed/")
+
 #==predicted derived quantities storage
 predSpBio		<-matrix(ncol=SimYear-1,nrow=Nsim)
 predSurvBio		<-matrix(ncol=SimYear-1,nrow=Nsim)
@@ -957,22 +963,22 @@ LengthBin<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
 }
 
 temp<-grep("recruitment",TRU)
-trueRec[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueRecPlot[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 temp<-grep("Catch",TRU)
-trueCatch[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat+1)]
+trueCatchPlot[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat+1)]
 temp<-grep("survey selectivity",TRU)
-#trueSurvSelPar[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+#trueSurvSelParPlot[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 temp<-grep("fishery selectivity",TRU)
-#trueFishSelPar[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+#trueFishSelParPlot[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 temp<-grep("fishing mortality",TRU)
-#trueFmort[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+#trueFmortPlot[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 temp<-grep("spawning biomass",TRU)
-trueSpbio[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueSpbioPlot[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 
 temp<-grep("spawning biomass",REP)
 predSpBio[n,]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
 temp<-grep("B35",REP)
-trueB35[n,]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
+trueB35Plot[n,]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 
 temp<-grep("pred survey bio",REP)
 predSurvBio[n,]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
@@ -1018,7 +1024,7 @@ TotFdir[n,]<-exp(logFdir[n]+fmort_dir_dev[n,])
 
 #==plot the fitted data
 par(mfrow=c(3,1))
-PolygonPlots(Truth=trueCatch,Estimated=predCatchBio,Observed=obsCatchBio)
+PolygonPlots(Truth=trueCatchPlot,Estimated=predCatchBio,Observed=obsCatchBio)
 TruthCPUEind<-projExpBn+projExpBs
 PolygonPlots(Truth=TruthCPUEind[,1:(ncol(TruthCPUEind)-1)],Estimated=predCpueBio,Observed=obsCpueIndex)
 TruthSurvInd<-projSurvN+projSurvS
@@ -1026,8 +1032,8 @@ PolygonPlots(Truth=TruthSurvInd[,1:(ncol(TruthSurvInd)-1)],Estimated=predSurvBio
 
 
 #==plot the estimated processes
-PolygonPlots(Truth=trueRec,Estimated=TotRec)
-PolygonPlots(Truth=trueFmort,Estimated=TotFdir)
+PolygonPlots(Truth=trueRecPlot,Estimated=TotRec)
+PolygonPlots(Truth=trueFmortPlot,Estimated=TotFdir)
 
 #==SELECTIVITY==
  selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
