@@ -17,31 +17,38 @@ DATA_SECTION
   
   init_int catchLenYr
   init_ivector catchLenYears(1,survYr)
-  init_number catchSampN
+  init_vector catchSampN(styr,endyr)
   init_int survLenYr
   init_ivector survLenYears(1,survYr)
-  init_number survSampN
+  init_vector survSampN(styr,endyr)
  !!cout<<"SurvLenYear"<<survLenYears<<endl;
  
   init_vector survBiomass(1,survYr)
-  init_number survCV
+  init_vector survCV(styr,endyr)
   init_vector cpueIndex(1,cpueYr)
-  init_number cpueCV
+  init_vector cpueCV(styr,endyr)
   init_vector catchBiomass(1,survYr)
-  init_number catchCV
+  init_vector catchCV(styr,endyr)
   init_vector LengthBinsMid(1,maxAge)
   !!cout<<"catchBiomass"<<catchBiomass<<endl; 
   
   init_matrix catchLenNum(styr,endyr,1,maxAge)	
-  init_matrix survLenNum(styr,endyr,1,maxAge)			//insert when functionality exists
+  init_matrix survLenNum(styr,endyr,1,maxAge)			
 
 
   // .CTL file
   !! ad_comm::change_datafile_name("SimAss.ctl");
   init_vector weightPars(1,2)
-  init_vector lengthPars(1,3)
+  init_number EstGrowthK
+  init_number TimeVaryGrowthK
+  init_number EstLinf
+  init_number TimeVaryLinf
+  init_vector lengthParsIn(1,3)
   init_number EstM
   init_number NatMin
+  init_number TimeVaryM
+  init_number TimeVarySel50
+  init_number TimeVarySel95
   init_vector maturity(1,2)
   init_number steepness
   init_number smallNum
@@ -50,6 +57,8 @@ DATA_SECTION
   init_number GrowthSD
   init_number FmortPen
   init_number RecruitPen
+  init_number Mpenalty
+  init_number Growthpenalty
   init_number HarvestControl
   init_number ConstantCatch
   init_number ConstantF
@@ -62,12 +71,10 @@ DATA_SECTION
   int Nproj;
   int IsB0;                                                         // Set to 0 for B0
   !! Nproj = 125;
-
+  number logMaxAge;
+  !! logMaxAge = log(maxAge);
 // =======================================================================
 PARAMETER_SECTION
-
-	init_bounded_number fish_sel50(0.01,maxAge,2)
-	init_bounded_number fish_sel95(1,maxAge,2)
 	init_bounded_number srv_sel50(0.01,maxAge,2)
 	init_bounded_number srv_sel95(1,maxAge,2)
 	init_bounded_vector stNatLen(1,maxAge,-10,20,1)		//using this instead of recruitments because the number of years that would be required for long lived species would be a lot
@@ -78,8 +85,26 @@ PARAMETER_SECTION
 	init_bounded_number mean_log_rec(-5,25,1)
 	init_bounded_dev_vector rec_dev(styr,endyr,-20,20,1)
 	
-	init_bounded_number NatM(0.001,0.8,EstM)
-   
+	//  potentially time-varying processes
+	// natural mortality
+	init_bounded_number log_avg_NatM(-5,3,EstM)
+	init_bounded_dev_vector m_dev(styr,endyr,-20,20,TimeVaryM)
+  
+   // somatic growth (Length at age--parameters are VonBert; 1==K, 2==Linf)
+  	init_bounded_number log_avg_GrowthK(-5,2,EstGrowthK)
+  	init_bounded_number log_avg_Linf(0,8,EstLinf)
+	init_bounded_dev_vector GrowthK_dev(styr,endyr,-20,20,TimeVaryGrowthK)
+	init_bounded_dev_vector Linf_dev(styr,endyr,-20,20,TimeVaryLinf)
+	
+   // somatic growth (Length at age--parameters are VonBert; 1==K, 2==Linf)
+   //init_bounded_number log_avg_SelPars50(-5,logMaxAge,2)
+  	//init_bounded_number log_avg_SelPars95(0,logMaxAge,2)
+	init_bounded_number SelPars50(0.01,maxAge,2)
+	init_bounded_number SelPars95(1,maxAge,2)
+
+	init_bounded_dev_vector SelPars_dev50(styr,endyr,-20,20,TimeVarySel50)
+	init_bounded_dev_vector SelPars_dev95(styr,endyr,-20,20,TimeVarySel95)	
+	
    // init_bounded_number dummy(1,2)
   
    //end of estimated parameters///
@@ -90,11 +115,13 @@ PARAMETER_SECTION
   matrix survLenFreq(styr,endyr,1,maxAge)	
   
   //Biological processes
-  vector sel_fish(1,maxAge)											    // directed selectivity
+  matrix sel_fish(styr,endyr+Nproj,1,maxAge)			    // directed selectivity
   vector sel_srv(1,maxAge)            	                        		// Survey selectivity (do I need different eras?)
   vector MatAtAge(1,maxAge)
-  vector LengthAtAge(1,maxAge)
-   
+  matrix LengthAtAge(styr,endyr+Nproj,1,maxAge)
+  matrix WeightAtAge(styr,endyr+Nproj,1,maxAge)
+  vector NatM(styr,endyr+Nproj)
+  
   //fishing mortality and survival by area
   vector fmort_dir(styr,endyr+Nproj)								//Directed fully selected F 
   matrix F_dir(styr,endyr+Nproj,1,maxAge)
@@ -128,9 +155,9 @@ PARAMETER_SECTION
   number initsmo_penal
   number Rec_pen
   number F_pen
- 
-  //weight at length
-  vector WeightAtAge(1,maxAge)
+  number  M_pen
+  number Growth_pen1
+  number Growth_pen2
   
   //reference points
   number F35;                                                       // F35
@@ -171,11 +198,13 @@ PRELIMINARY_CALCS_SECTION
 
 // =============================================================
 INITIALIZATION_SECTION
- fish_sel50 5.916511
- fish_sel95 7.831472
+ // log_avg_SelPars50 1.7777
+ //log_avg_SelPars95 2.0580
  srv_sel50 2.683375
  srv_sel95 4.365736
- NatM NatMin
+ SelPars50 4
+ SelPars95 6
+ 
 // ==========================================================================
 PROCEDURE_SECTION
   getselectivity();
@@ -200,35 +229,62 @@ PROCEDURE_SECTION
   
 // ==========================================================================
 FUNCTION getselectivity
- int j;
+ int  i,j;
 
-  // logistic selectivity curves in terms of age
     for (j=1;j<=maxAge;j++)
-     { 
-	  sel_fish(j)       =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-fish_sel50)/(fish_sel95-fish_sel50)));
       sel_srv(j)		   =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-srv_sel50)/(srv_sel95-srv_sel50)));
-	 } 
-
+  
+ //calculate fishery selectivity by year
+  for(i=styr;i<=endyr;i++)
+    for (j=1;j<=maxAge;j++)
+	 sel_fish(i,j)       =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-(SelPars50+SelPars_dev50(i)))/((SelPars95+SelPars_dev95(i))-(SelPars50+SelPars_dev50(i)))));
+	 // sel_fish(i,j)       =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-mfexp(log_avg_SelPars50+SelPars_dev50(i)))/(mfexp(log_avg_SelPars95+SelPars_dev95(i))-mfexp(log_avg_SelPars50+SelPars_dev50(i)))));
+	
+  for(i=endyr+1;i<=endyr+Nproj;i++)
+	  sel_fish(i) = sel_fish(endyr);
+	 
 // ==========================================================================
 FUNCTION getmaturity
- int j;
-
+ int j,i;
+ 
+  //calculate length at age
+  for(i=styr;i<=endyr;i++)
+    for (j=1;j<=maxAge;j++)
+   {
+	if(EstGrowthK>0)
+        LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))));		
+	if(EstLinf>0)
+        LengthAtAge(i,j) = mfexp(log_avg_Linf+Linf_dev(i))*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));		
+	if(EstGrowthK<=0 & EstLinf<=0)
+	    LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));
+ 	WeightAtAge(i,j) = weightPars(1) * pow(LengthAtAge(i,j),weightPars(2));
+   }
+	
+	for(i=endyr+1;i<=endyr+Nproj;i++)
+	{
+	  LengthAtAge(i) = LengthAtAge(endyr);
+	  WeightAtAge(i) = WeightAtAge(endyr);
+	}	  
   // logistic maturity curves
    for (j=1;j<=maxAge;j++)
-   {
     MatAtAge(j)       =  1./(1.+mfexp(-1.*log(19) *  (Ages(j)-maturity(1))/(maturity(2)-maturity(1))));
-    LengthAtAge(j) = lengthPars(2)*(1-mfexp(-1*lengthPars(1)*(Ages(j)-lengthPars(3))));
-	WeightAtAge(j) = weightPars(1) * pow(LengthAtAge(j),weightPars(2));
-   }
 
   // ==========================================================================
 FUNCTION getmortality
  int i,j;
  for (i=styr;i<=endyr;i++)
  {
+	if(EstM>0)
+		NatM(i) = mfexp(log_avg_NatM + m_dev(i));
+	if(EstM<=0)
+		NatM(i) = NatMin;
    fmort_dir(i)     	= mfexp(log_avg_fmort_dir    + fmort_dir_dev(i));
-   F_dir(i) 			= sel_fish*fmort_dir(i);
+   F_dir(i) 			= sel_fish(i)*fmort_dir(i);
   }
+
+  for(j=endyr+1;j<=(endyr+Nproj);j++)
+	  NatM(j) = NatM(endyr);
+  
 
  // ==========================================================================
 FUNCTION get_num_at_len
@@ -261,15 +317,15 @@ FUNCTION get_num_at_len_yr
   i = ipass;
 
   //==cpue index==
-   dummyN				    = elem_prod(sel_fish,NatAge(i));
-   predCpueBioLen(i)	= elem_prod(dummyN,WeightAtAge);
+   dummyN				    = elem_prod(sel_fish(i),NatAge(i));
+   predCpueBioLen(i)	= elem_prod(dummyN,WeightAtAge(i));
    for(j=1;j<=maxAge;j++)
     predCpueBio(i)		+= predCpueBioLen(i,j);
   // cout<<"predCpueBio"<<predCpueBio<<endl;
   
   //==survey==
   predSurvNatAge(i) 	= elem_prod(sel_srv,NatAge(i));
-  predSurvBioLen		= elem_prod(predSurvNatAge(i),WeightAtAge);
+  predSurvBioLen		= elem_prod(predSurvNatAge(i),WeightAtAge(i));
    for(j=1;j<=maxAge;j++)
     predSurvBio(i)		+= predSurvBioLen(j);
   // cout<<"predSurvBio"<<predSurvBio<<endl;
@@ -283,7 +339,7 @@ FUNCTION get_num_at_len_yr
 	//find probability of length at age given variability
 	for(k=1;k<=LengthBinN;k++)
     for(j=1;j<=LengthBinN;j++)
- 	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(k)))/(2*GrowthSD*GrowthSD));
+ 	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(i,k)))/(2*GrowthSD*GrowthSD));
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
 	  
    //make a matrix for the N at length for each age given survey data
@@ -300,7 +356,7 @@ FUNCTION get_num_at_len_yr
 	  
  //==spawning biomass==
    dummyN					= elem_prod(NatAge(i),MatAtAge);
-   tempN						= elem_prod(dummyN,WeightAtAge);
+   tempN						= elem_prod(dummyN,WeightAtAge(i));
    Spbio(i) = 0;
    for(j=1;j<=maxAge;j++)
      Spbio(i)				+= tempN(j);
@@ -310,7 +366,7 @@ FUNCTION get_num_at_len_yr
   //==catch at length==
   Baranov = 0;
   for(j=1;j<=maxAge;j++)
-  	Baranov(j) = (F_dir(i,j)/(NatM+F_dir(i,j)))*(1-mfexp(-1.0*(F_dir(i,j)+NatM)));
+  	Baranov(j) = (F_dir(i,j)/(NatM(i)+F_dir(i,j)))*(1-mfexp(-1.0*(F_dir(i,j)+NatM(i))));
     predCatchAtAge(i)	=  elem_prod(NatAge(i),Baranov);
   // cout<<"Selfish"<<sel_fish<<endl;
   // cout<<"predCatchAtAge(i)"<<predCatchAtAge(i)<<endl;
@@ -318,7 +374,7 @@ FUNCTION get_num_at_len_yr
  //find probability of length at age for catch given variability
 	for(k=1;k<=LengthBinN;k++)
     for(j=1;j<=LengthBinN;j++)
- 	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(k)))/(2*GrowthSD*GrowthSD));
+ 	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(i,k)))/(2*GrowthSD*GrowthSD));
   // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
@@ -334,7 +390,7 @@ FUNCTION get_num_at_len_yr
   // cout<<"predCatchLenFreq(i)"<<predCatchLenFreq(i)<<endl;
 
  //==aggregate catch biomass==	
-    tempN					=	elem_prod(predCatchAtAge(i),WeightAtAge);	   
+    tempN					=	elem_prod(predCatchAtAge(i),WeightAtAge(i));	   
 	predCatchBio(i) = 0;
   for(j=1;j<=maxAge;j++)
    predCatchBio(i)		+= tempN(j);
@@ -342,8 +398,8 @@ FUNCTION get_num_at_len_yr
 		
   // ==some die....but everyone else has a birthday!
   for(j =2;j<=(maxAge-1);j++)
-   NatAge(i+1,j)			  = NatAge(i,j-1)*mfexp(-1*(NatM+F_dir(i,j-1)));
-  NatAge(i+1,maxAge)  = NatAge(i,maxAge)*mfexp(-1*(NatM+F_dir(i,maxAge))) + NatAge(i,maxAge-1)*mfexp(-1*(NatM+F_dir(i,maxAge-1)));
+   NatAge(i+1,j)			  = NatAge(i,j-1)*mfexp(-1*(NatM(i)+F_dir(i,j-1)));
+  NatAge(i+1,maxAge)  = NatAge(i,maxAge)*mfexp(-1*(NatM(i)+F_dir(i,maxAge))) + NatAge(i,maxAge-1)*mfexp(-1*(NatM(i)+F_dir(i,maxAge-1)));
 
   if(i <= endyr)
    NatAge(i+1,1) 			= mfexp(mean_log_rec + rec_dev(i));
@@ -366,17 +422,17 @@ FUNCTION evaluate_the_objective_function
 
   //CPUE biomass
    for(i=styr+1;i<=endyr;i++)
-	CpueBio_like +=  square(log(cpueIndex(i) + smallNum) - log(predCpueBio(i) + smallNum))  / ((log(survCV*survCV+ 1)  ));
+	CpueBio_like +=  square(log(cpueIndex(i) + smallNum) - log(predCpueBio(i) + smallNum))  / ((log(cpueCV(i)*cpueCV(i)+ 1)  ));
  
  //Survey biomass
 	for(i=styr;i<=endyr;i++)
-	 SurvBio_like +=  square(log(survBiomass(i) + smallNum) - log(predSurvBio(i) + smallNum))  / ((log(survCV*survCV+ 1)  ));
+	 SurvBio_like +=  square(log(survBiomass(i) + smallNum) - log(predSurvBio(i) + smallNum))  / ((log(survCV(i)*survCV(i)+ 1)  ));
 
     // cout<<"SurvBio"<<SurvBio_like<<endl;
  
   //catch biomass
    for(i=styr+1;i<=endyr;i++)
-  	Catch_like +=  square(log(catchBiomass(i) + smallNum) - log(predCatchBio(i) + smallNum))  / ((log(catchCV*catchCV+ 1)  ));
+  	Catch_like +=  square(log(catchBiomass(i) + smallNum) - log(predCatchBio(i) + smallNum))  / ((log(catchCV(i)*catchCV(i)+ 1)  ));
     // cout<<"Catch_like"<<Catch_like<<endl;	
 	
    // survey length frequencies
@@ -384,7 +440,7 @@ FUNCTION evaluate_the_objective_function
 	 for(j=1;j<=maxAge;j++)
 	 {
       if(survLenFreq(i,j)>0.001)
-	   SurvLen_like -= survSampN *survLenFreq(i,j) *log(predSurvLenFreq(i,j) +smallNum);
+	   SurvLen_like -= survSampN(i) *survLenFreq(i,j) *log(predSurvLenFreq(i,j) +smallNum);
 	 }
     // cout<<"SurvLen_like"<<SurvLen_like<<endl;	
 	
@@ -393,15 +449,17 @@ FUNCTION evaluate_the_objective_function
 	 for(j=1;j<=maxAge;j++)
 	 {
       if(catchLenFreq(i,j)>0.001)
-	   CatchLen_like -= survSampN *catchLenFreq(i,j) *log(predCatchLenFreq(i,j)+smallNum );		//same sample size for survey and catch right now...
+	   CatchLen_like -= catchSampN(i) *catchLenFreq(i,j) *log(predCatchLenFreq(i,j)+smallNum );		//same sample size for survey and catch right now...
       }  
     // cout<<"CatchLen_like"<<CatchLen_like<<endl;	
 	
   initsmo_penal = InitSmoothWeight*(norm2(first_difference(stNatLen)));
   Rec_pen = RecruitPen*(norm2(first_difference(rec_dev)));
   F_pen = FmortPen*(norm2(first_difference(fmort_dir_dev)));
-  
- f = 0;
+  M_pen = Mpenalty*(norm2(first_difference(m_dev)));
+  Growth_pen1 = Growthpenalty*(norm2(first_difference(GrowthK_dev)));
+  Growth_pen2= Growthpenalty*(norm2(first_difference(Linf_dev)));
+  f = 0;
  
  if(FisheryIndependentData==1)
  {
@@ -415,7 +473,10 @@ FUNCTION evaluate_the_objective_function
  f += initsmo_penal;
  f += Rec_pen;
  f += F_pen;
-
+ f += M_pen;
+ f += Growth_pen1;
+ f += Growth_pen2;
+  
  cout << current_phase() << " " << call_no << " " << f << endl;
  
  // ==========================================================================
@@ -430,7 +491,7 @@ FUNCTION get_fut_mortality
    else 
 	fmort_dir(i) = FutMort; 
 
-    F_dir(i) = sel_fish*fmort_dir(i);
+    F_dir(i) = sel_fish(i)*fmort_dir(i);
    }
  
 // ==========================================================================
@@ -488,7 +549,7 @@ FUNCTION Find_OFL
    get_num_at_len_yr();
    OFL = 0;
    for(ii = 1;ii<=maxAge;ii++)
-    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ii);
+    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ipass,ii);
   }
 
    if(HarvestControl==2)
@@ -501,7 +562,7 @@ FUNCTION Find_OFL
    get_num_at_len_yr();
    OFL = 0;
    for(ii = 1;ii<=maxAge;ii++)
-    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ii);
+    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ipass,ii);
   }
   
   if(HarvestControl==4)
@@ -564,7 +625,7 @@ FUNCTION Find_OFL
    get_num_at_len_yr();
    OFL = 0;
    for(ii = 1;ii<=maxAge;ii++)
-    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ii);
+    OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ipass,ii);
   }
   
 // ==========================================================
@@ -694,7 +755,8 @@ FINAL_SECTION
  cout<<"initsmo_penal"<<initsmo_penal<<endl;
  cout<<"F_pen"<<F_pen<<endl; 
  cout<<"Rec_pen"<<Rec_pen<<endl; 
- 
+ cout<<"M_pen"<<M_pen<<endl; 
+
  cout << endl << endl << "Starting time: " << ctime(&start);
  cout << "Finishing time: " << ctime(&finish);
  cout << "This run took: " << hour << " hours, " << minute << " minutes, " << second << " seconds." << endl << endl;
