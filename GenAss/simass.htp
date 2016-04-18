@@ -28,6 +28,7 @@ class model_data : public ad_comm{
   data_matrix catchLenNum;
   data_matrix survLenNum;
   data_vector weightPars;
+  data_number projectTimeVary;
   data_number EstGrowthK;
   data_number TimeVaryGrowthK;
   data_number EstLinf;
@@ -48,6 +49,7 @@ class model_data : public ad_comm{
   data_number RecruitPen;
   data_number Mpenalty;
   data_number Growthpenalty;
+  data_number SelPenalty;
   data_number HarvestControl;
   data_number ConstantCatch;
   data_number ConstantF;
@@ -154,6 +156,8 @@ private:
   param_number M_pen;
   param_number Growth_pen1;
   param_number Growth_pen2;
+  param_number Sel50_pen;
+  param_number Sel95_pen;
   param_number F35;
   param_number SBPRF35;
   param_number Bmsy;

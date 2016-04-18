@@ -65,6 +65,7 @@ cout<<"catchBiomass"<<catchBiomass<<endl;
   survLenNum.allocate(styr,endyr,1,maxAge,"survLenNum");
  ad_comm::change_datafile_name("SimAss.ctl");
   weightPars.allocate(1,2,"weightPars");
+  projectTimeVary.allocate("projectTimeVary");
   EstGrowthK.allocate("EstGrowthK");
   TimeVaryGrowthK.allocate("TimeVaryGrowthK");
   EstLinf.allocate("EstLinf");
@@ -85,6 +86,7 @@ cout<<"catchBiomass"<<catchBiomass<<endl;
   RecruitPen.allocate("RecruitPen");
   Mpenalty.allocate("Mpenalty");
   Growthpenalty.allocate("Growthpenalty");
+  SelPenalty.allocate("SelPenalty");
   HarvestControl.allocate("HarvestControl");
   ConstantCatch.allocate("ConstantCatch");
   ConstantF.allocate("ConstantF");
@@ -254,6 +256,14 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   #ifndef NO_AD_INITIALIZE
   Growth_pen2.initialize();
   #endif
+  Sel50_pen.allocate("Sel50_pen");
+  #ifndef NO_AD_INITIALIZE
+  Sel50_pen.initialize();
+  #endif
+  Sel95_pen.allocate("Sel95_pen");
+  #ifndef NO_AD_INITIALIZE
+  Sel95_pen.initialize();
+  #endif
   F35.allocate("F35");
   #ifndef NO_AD_INITIALIZE
   F35.initialize();
@@ -354,7 +364,8 @@ void model_parameters::userfunction(void)
 void model_parameters::getselectivity(void)
 {
   ofstream& post= *pad_post;
- int  i,j;
+ int  i,j,k;
+ dvar_vector tempSelProj(1,maxAge);
     for (j=1;j<=maxAge;j++)
       sel_srv(j)		   =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-srv_sel50)/(srv_sel95-srv_sel50)));
  //calculate fishery selectivity by year
@@ -362,30 +373,61 @@ void model_parameters::getselectivity(void)
     for (j=1;j<=maxAge;j++)
 	 sel_fish(i,j)       =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-(SelPars50+SelPars_dev50(i)))/((SelPars95+SelPars_dev95(i))-(SelPars50+SelPars_dev50(i)))));
 	 // sel_fish(i,j)       =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-mfexp(log_avg_SelPars50+SelPars_dev50(i)))/(mfexp(log_avg_SelPars95+SelPars_dev95(i))-mfexp(log_avg_SelPars50+SelPars_dev50(i)))));
+ if(TimeVarySel50>0  | TimeVarySel95>0)
+	{
+       for(k=1;k<=maxAge;k++)	
+	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
+			tempSelProj(k)+=sel_fish(j,k);
+        tempSelProj = tempSelProj/(projectTimeVary);
+	}
+ if(TimeVarySel50<0  & TimeVarySel50<0)
+   tempSelProj = sel_fish(endyr);
   for(i=endyr+1;i<=endyr+Nproj;i++)
-	  sel_fish(i) = sel_fish(endyr);
+   sel_fish(i) = tempSelProj;
 }
 
 void model_parameters::getmaturity(void)
 {
   ofstream& post= *pad_post;
- int j,i;
+ int j,i,k;
+  dvar_vector tempLenAtAge(1,maxAge);
+  dvar_vector tempWgtAtAge(1,maxAge);
   //calculate length at age
   for(i=styr;i<=endyr;i++)
     for (j=1;j<=maxAge;j++)
    {
-	if(EstGrowthK>0)
-        LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))));		
-	if(EstLinf>0)
+	  if(EstGrowthK>0)
+          LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))));		
+	  if(EstLinf>0)
         LengthAtAge(i,j) = mfexp(log_avg_Linf+Linf_dev(i))*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));		
-	if(EstGrowthK<=0 & EstLinf<=0)
+	  if(EstGrowthK<=0 & EstLinf<=0)
 	    LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));
- 	WeightAtAge(i,j) = weightPars(1) * pow(LengthAtAge(i,j),weightPars(2));
+	//  LengthAtAge(i,j) = Len1 + (Len2 - Len1)* ( (1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))))/(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(MaxAge-lengthParsIn(3))))
+	 WeightAtAge(i,j) = weightPars(1) * pow(LengthAtAge(i,j),weightPars(2));
    }
+  //==taking the average of the calculated values rather than the average of the parameters may introduce wonkiness
+ tempLenAtAge.initialize();
+ tempWgtAtAge.initialize(); 
+ if(TimeVaryGrowthK>0  | TimeVaryLinf>0)
+	{
+       for(k=1;k<=maxAge;k++)	
+	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
+			tempLenAtAge(k)+=LengthAtAge(j,k);
+           tempLenAtAge = tempLenAtAge/(projectTimeVary);
+       for(k=1;k<=maxAge;k++)	
+		  for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
+			tempWgtAtAge(k)+=WeightAtAge(j,k);
+           tempWgtAtAge = tempWgtAtAge/(projectTimeVary);		    
+	}
+ if(TimeVaryGrowthK<0  & TimeVaryLinf<0)
+	{
+	tempLenAtAge = LengthAtAge(endyr);
+	tempWgtAtAge = WeightAtAge(endyr);
+	}
 	for(i=endyr+1;i<=endyr+Nproj;i++)
 	{
-	  LengthAtAge(i) = LengthAtAge(endyr);
-	  WeightAtAge(i) = WeightAtAge(endyr);
+	  LengthAtAge(i) = tempLenAtAge;
+	  WeightAtAge(i) = tempWgtAtAge;
 	}	  
   // logistic maturity curves
    for (j=1;j<=maxAge;j++)
@@ -397,6 +439,7 @@ void model_parameters::getmortality(void)
 {
   ofstream& post= *pad_post;
  int i,j;
+ dvariable tempMproj;
  for (i=styr;i<=endyr;i++)
  {
 	if(EstM>0)
@@ -406,8 +449,16 @@ void model_parameters::getmortality(void)
    fmort_dir(i)     	= mfexp(log_avg_fmort_dir    + fmort_dir_dev(i));
    F_dir(i) 			= sel_fish(i)*fmort_dir(i);
   }
+   if(TimeVaryM>0 )
+	{
+	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
+			tempMproj+=NatM(j);
+        tempMproj = tempMproj/(projectTimeVary);
+	}
+   if(TimeVaryM<0 )
+   tempMproj = NatM(endyr);
   for(j=endyr+1;j<=(endyr+Nproj);j++)
-	  NatM(j) = NatM(endyr);
+	  NatM(j) = tempMproj;
  // ==========================================================================
 }
 
@@ -533,6 +584,11 @@ void model_parameters::evaluate_the_objective_function(void)
  initsmo_penal.initialize();
  F_pen.initialize();
  Rec_pen.initialize();
+ M_pen.initialize();
+ Growth_pen1.initialize(); 
+ Growth_pen2.initialize();
+ Sel50_pen.initialize(); 
+ Sel95_pen.initialize(); 
   //CPUE biomass
    for(i=styr+1;i<=endyr;i++)
 	CpueBio_like +=  square(log(cpueIndex(i) + smallNum) - log(predCpueBio(i) + smallNum))  / ((log(cpueCV(i)*cpueCV(i)+ 1)  ));
@@ -566,6 +622,8 @@ void model_parameters::evaluate_the_objective_function(void)
   M_pen = Mpenalty*(norm2(first_difference(m_dev)));
   Growth_pen1 = Growthpenalty*(norm2(first_difference(GrowthK_dev)));
   Growth_pen2= Growthpenalty*(norm2(first_difference(Linf_dev)));
+  Sel50_pen = SelPenalty*(norm2(first_difference(SelPars_dev50)));
+  Sel95_pen = SelPenalty*(norm2(first_difference(SelPars_dev95)));
   f = 0;
  if(FisheryIndependentData==1)
  {
@@ -581,6 +639,8 @@ void model_parameters::evaluate_the_objective_function(void)
  f += M_pen;
  f += Growth_pen1;
  f += Growth_pen2;
+ f += Sel50_pen;
+ f += Sel95_pen;
  cout << current_phase() << " " << call_no << " " << f << endl;
  // ==========================================================================
 }
