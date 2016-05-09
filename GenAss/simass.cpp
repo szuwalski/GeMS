@@ -332,10 +332,6 @@ void model_parameters::preliminary_calculations(void)
 
 void model_parameters::initializationfunction(void)
 {
-  srv_sel50.set_initial_value(2.683375);
-  srv_sel95.set_initial_value(4.365736);
-  SelPars50.set_initial_value(4);
-  SelPars95.set_initial_value(6);
 }
 
 void model_parameters::userfunction(void)

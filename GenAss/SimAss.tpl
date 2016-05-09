@@ -204,10 +204,10 @@ PRELIMINARY_CALCS_SECTION
 INITIALIZATION_SECTION
  // log_avg_SelPars50 1.7777
  //log_avg_SelPars95 2.0580
- srv_sel50 2.683375
- srv_sel95 4.365736
- SelPars50 4
- SelPars95 6
+ // srv_sel50 2.683375
+ // srv_sel95 4.365736
+ // SelPars50 4
+ // SelPars95 6
  
 // ==========================================================================
 PROCEDURE_SECTION
