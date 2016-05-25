@@ -173,12 +173,19 @@ FmortPen		<-out$OM$FmortPen
 RecruitPen		<-out$OM$RecruitPen	
 Mpenalty		<-out$OM$Mpenalty	
 Growthpenalty	<-out$OM$Growthpenalty	
+SelPenalty		<-out$OM$SelPenalty
 
 EstM			<-out$OM$EstM
 TimeVaryM		<-out$OM$TimeVaryM	
-EstGrowth		<-out$OM$EstGrowth
-TimeVaryGrowth	<-out$OM$TimeVaryGrowth
-TimeVarySel		<-out$OM$TimeVarySel
+EstGrowthK		<-out$OM$EstGrowthK
+TimeVaryGrowthK	<-out$OM$TimeVaryGrowthK
+EstLinf		<-out$OM$EstLinf
+TimeVaryLinf	<-out$OM$TimeVaryLinf
+TimeVarySel50	<-out$OM$TimeVarySel50
+TimeVarySel95	<-out$OM$TimeVarySel95
+ProjectTimeVary	<-out$OM$ProjectTimeVary
+InitValSig		<-out$OM$InitValSig
+
 #===================================================
 #==Virgin numbers at age, biomass, initial depletion, recruitment
 #===================================================
@@ -667,10 +674,16 @@ for(z in 1:Nsim)
  cat("#","\n",file="SimAss.CTL",append=TRUE)
  cat("#weight parameters","\n",file="SimAss.CTL",append=TRUE)
  cat(c(alphaN[1],betaN[1]) ,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#how many years to average over timevarying process for projectsion","\n",file="SimAss.CTL",append=TRUE)
+ cat(ProjectTimeVary,"\n",file="SimAss.CTL",append=TRUE)
  cat("#Estimate growth? if positive, indicates phase, no estimate if negative","\n",file="SimAss.CTL",append=TRUE)
- cat(EstGrowth ,"\n",file="SimAss.CTL",append=TRUE)
+ cat(EstGrowthK ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#growth time-varying?","\n",file="SimAss.CTL",append=TRUE)
- cat(TimeVaryGrowth ,"\n",file="SimAss.CTL",append=TRUE)
+ cat(TimeVaryGrowthK ,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#Estimate growth? if positive, indicates phase, no estimate if negative","\n",file="SimAss.CTL",append=TRUE)
+ cat(EstLinf ,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#growth time-varying?","\n",file="SimAss.CTL",append=TRUE)
+ cat(TimeVaryLinf ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#length parameters","\n",file="SimAss.CTL",append=TRUE)
  cat(c(VonKn[1],LinfN[1],t0n[1]) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#estimate natural mortality? if positive, number indicates phase, if negative, not estimated","\n",file="SimAss.CTL",append=TRUE)
@@ -679,8 +692,10 @@ for(z in 1:Nsim)
  cat(NatMn[length(NatMn)],"\n",file="SimAss.CTL",append=TRUE)
  cat("#Allow M to vary over time? 1 = yes, 0 = no","\n",file="SimAss.CTL",append=TRUE)
  cat(TimeVaryM,"\n",file="SimAss.CTL",append=TRUE) 
- cat("#selectivity time-varying?","\n",file="SimAss.CTL",append=TRUE)
- cat(TimeVarySel ,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#selectivity 50% time-varying?","\n",file="SimAss.CTL",append=TRUE)
+ cat(TimeVarySel50 ,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#selectivity 95% time-varying?","\n",file="SimAss.CTL",append=TRUE)
+ cat(TimeVarySel95 ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#maturity","\n",file="SimAss.CTL",append=TRUE)
  cat(c(mat50n[length(mat50n)],mat95n[length(mat95n)]) ,"\n",file="SimAss.CTL",append=TRUE)
  cat("#steepness","\n",file="SimAss.CTL",append=TRUE)
@@ -701,6 +716,8 @@ for(z in 1:Nsim)
  cat(Mpenalty,"\n",file="SimAss.CTL",append=TRUE)
  cat("#smoothness on time-varying growth penalty","\n",file="SimAss.CTL",append=TRUE)
  cat(Growthpenalty,"\n",file="SimAss.CTL",append=TRUE)
+ cat("#smoothness on time-varying selelctivity penalty","\n",file="SimAss.CTL",append=TRUE)
+ cat(SelPenalty,"\n",file="SimAss.CTL",append=TRUE)
 
  cat("#harvest control rule selected","\n",file="SimAss.CTL",append=TRUE)
  cat(HarvestControl,"\n",file="SimAss.CTL",append=TRUE)
@@ -715,6 +732,59 @@ for(z in 1:Nsim)
 
  cat("#Number of length bins","\n",file="SimAss.CTL",append=TRUE)
  cat(LengthBinN,"\n",file="SimAss.CTL",append=TRUE)
+
+#==write .PIN file to get initial values close for estimation
+ cat("# Simulated assessment pin file","\n",file="SimAss.PIN")
+ cat("#","\n",file="SimAss.PIN",append=TRUE)
+
+ InputSurvSel50S<-selAtAgeFunc(surv50s,VonKs,LinfS,t0s)
+ InputSurvSel50N<-selAtAgeFunc(surv50n,VonKn,LinfN,t0n)
+ InputSurvSel95S<-selAtAgeFunc(surv95s,VonKs,LinfS,t0s)
+ InputSurvSel95N<-selAtAgeFunc(surv95n,VonKn,LinfN,t0n)
+
+ cat("# srv_sel50","\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(c(InputSurvSel50S,InputSurvSel50N))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# srv_sel95","\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(c(InputSurvSel95S,InputSurvSel95N))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# stNatLen","\n",file="SimAss.PIN",append=TRUE)
+ cat(log(VirInitN+VirInitS)*rnorm(length(log(VirInitN+VirInitS)),1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# log_avg_fmort_dir","\n",file="SimAss.PIN",append=TRUE)
+ cat((log(mean(trueFmort,na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# fmort_dir_dev","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# mean_log_rec","\n",file="SimAss.PIN",append=TRUE)
+ cat((log(mean(trueRec,na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# log_avg_NatM","\n",file="SimAss.PIN",append=TRUE)
+ cat((log(mean(c(NatMs,NatMn),na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+
+ cat("# log_avg_GrowthK","\n",file="SimAss.PIN",append=TRUE)
+ cat((log(mean(c(VonKn,VonKs),na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# log_avg_Linf","\n",file="SimAss.PIN",append=TRUE)
+ cat((log(mean(c(LinfN,LinfS),na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+
+ cat("# GrowthK_dev","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# Linf_dev","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+
+ InputSel50S<-selAtAgeFunc(sel50s,VonKs,LinfS,t0s)
+ InputSel50N<-selAtAgeFunc(sel50n,VonKn,LinfN,t0n)
+ InputSel95S<-selAtAgeFunc(sel95s,VonKs,LinfS,t0s)
+ InputSel95N<-selAtAgeFunc(sel95n,VonKn,LinfN,t0n)
+
+ cat("# SelPars50","\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(c(InputSel50S,InputSel50N),na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# SelPars95","\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(c(InputSel95S,InputSel95N),na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+
+ cat("# SelPars_dev50","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# SelPars_dev95","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  	
  #==.DAT file 
  file.create("SimAss.DAT")

@@ -634,6 +634,9 @@ ReadCTLfile<-function(input)
  OM$Growthpenalty		<-TakeOut("Growthpenalty",SearchPool)
  OM$TimeVarySel50		<-TakeOut("TimeVarySel50",SearchPool)
  OM$TimeVarySel95		<-TakeOut("TimeVarySel95",SearchPool)
+ OM$SelPenalty		<-TakeOut("SelPenalty",SearchPool)
+ OM$ProjectTimeVary	<-TakeOut("ProjectTimeVary",SearchPool)
+ OM$InitValSig		<-TakeOut("InitValSig",SearchPool)
 
  list(OM=OM)
 }
@@ -768,7 +771,7 @@ HarvestControlRule<-function(FMSY,BMSY,ExploitBio,SpawnBio,alpha,beta,HarvestCon
 }
 #####################################################################
    
-PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F)
+PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,quantity=NA)
 {
  EstShape<-apply(Estimated[,1:(ncol(Estimated))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
  TrueShape<-apply(Truth[,1:(ncol(Truth))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
@@ -778,7 +781,14 @@ PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F)
  EstimateColor5<-"lightgrey"
  TruthColor<-"#FF000033"
 
+if(bottom==F)
+ plot(-100000000000,ylim=c(0,max(EstShape,TrueShape,Observed,na.rm=t)),xlim=c(1,SimYear),las=1,ylab="",xlab="Year",xaxt='n')
+if(bottom==T)
  plot(-100000000000,ylim=c(0,max(EstShape,TrueShape,Observed,na.rm=t)),xlim=c(1,SimYear),las=1,ylab="",xlab="Year")
+
+if(!is.na(quantity))
+ legend("bottomleft",bty='n',legend=quantity)
+
  if(length(Observed)>1)
  {
  if(AddLegend==T)
@@ -871,20 +881,64 @@ Gradients[v,n]<-as.numeric(GradientLine[length(GradientLine)])
 }
 return(Gradients)
 }
+#################################################
+CheckReferencePoints<-function(DrawDir,out)
+{
+Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
+SimYear		<-out$OM$SimYear			# total number of years in simulation
+InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available)
+
+B35	<-matrix(ncol=Nsim,nrow=SimYear)
+F35	<-matrix(ncol=Nsim,nrow=SimYear)
+OFL	<-matrix(ncol=Nsim,nrow=SimYear) 
+
+for(n in 1:Nsim)
+for(v in (InitYear+1):SimYear)
+{
+IndSimFolder<-paste(DrawDir,"/",n,"/",v,sep="")
+REP<-readLines(paste(CurDir,IndSimFolder,"/simass.REP",sep=""))
+
+temp<-grep("B35",REP)[1]
+B35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+
+temp<-grep("F35",REP)[2]
+F35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+
+temp<-grep("OFL",REP)[2]
+OFL[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+}
+list(B35,F35,OFL)
+}
 ###############################################################
-CalculateMohn<-function(RetroOuts)
+CalculateBias<-function(RetroOuts)
 {
  preds<-RetroOuts[[1]]
- MohnsRho<-matrix(ncol=dim(preds)[3],nrow=dim(preds)[1])
+ BiasSSB<-matrix(ncol=dim(preds)[3],nrow=dim(preds)[1])
  for(x in 1:dim(preds)[3])
   {
    tempPreds<-preds[,,x]
    tempTrue<-RetroOuts[[2]][x,]
   for(y in 1:dim(preds)[1])
-   MohnsRho[y,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
+   BiasSSB[y,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
+   }
+ return(BiasSSB)
+}
+
+###############################################################
+CalculateMohn<-function(RetroOuts)
+{
+ preds<-RetroOuts[[1]]
+ MohnsRho<-matrix(ncol=dim(preds)[3],nrow=(dim(preds)[1]-1))
+ for(x in 1:dim(preds)[3])
+  {
+   tempPreds<-preds[,,x]
+   tempTrue<-preds[1,,x]
+  for(y in 2:dim(preds)[1])
+   MohnsRho[y-1,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
    }
  return(MohnsRho)
 }
+
 
 ########################################################
 GeMSplots<-function(SourceFolder,out)
@@ -969,7 +1023,7 @@ MyBoxPlot<-function(Inputs,Title,bottomplot=0,refVal=0)
  legend("topleft",bty='n',legend=Title)
 }
 
- pdf(paste(SourceFolder,"/RelativeErrors.pdf",sep=""),height=8,width=4)
+pdf(paste(SourceFolder,"/RelativeErrors.pdf",sep=""),height=8,width=4)
 par(mfrow=c(4,1),mar=c(0.1,4,.1,1),oma=c(3,0,3,0))
 MyBoxPlot(REtac[,InitYear:SimYear],"Total allowable catch")
 MyBoxPlot(REbmsy[,InitYear:SimYear],"BMSY")
@@ -977,7 +1031,7 @@ MyBoxPlot(REfmsy[,InitYear:SimYear],"FMSY")
 MyBoxPlot(REbio[,InitYear:SimYear],"Estimated biomass",bottomplot=1)
 mtext(outer=T,side=3,"Relative error")
 
- pdf(paste(SourceFolder,"/YieldStats.pdf",sep=""),height=8,width=4)
+pdf(paste(SourceFolder,"/YieldStats.pdf",sep=""),height=8,width=4)
 par(mfrow=c(4,1),mar=c(0.1,4,.1,1),oma=c(3,0,0,0))
 MyBoxPlot(LostYield[,InitYear:SimYear],"Lost yield")
 MyBoxPlot(PercLostYield[,InitYear:SimYear],"Lost yield/yield")
@@ -989,8 +1043,6 @@ MyBoxPlot(PercOverfishedEst[,InitYear:SimYear],"Estimated B/BMSY",bottomplot=1,r
 if(AssessmentType==2)
 {
 
-#CheckRetro(DrawDir=CreateFolderName)
-#CheckRetro(DrawDir="NatMfixed/")
 
 #==predicted derived quantities storage
 predSpBio		<-matrix(ncol=SimYear-1,nrow=Nsim)
@@ -1009,6 +1061,7 @@ trueCatchPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
 trueSpbioPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
 trueCPUEindPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
 trueSurvIndPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
+trueFmortPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
 
 trueB35Plot		<-rep(0,Nsim)
 trueBMSYPlot	<-rep(0,Nsim)
@@ -1019,6 +1072,12 @@ predB35Plot		<-matrix(ncol=SimYear-1,nrow=Nsim)
 predBMSYPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
 predF35Plot		<-matrix(ncol=SimYear-1,nrow=Nsim)
 predFMSYPlot	<-matrix(ncol=SimYear-1,nrow=Nsim)
+
+predB35PlotEnd	<-rep(0,Nsim)
+predBMSYPlotEnd	<-rep(0,Nsim)
+predF35PlotEnd	<-rep(0,Nsim)
+predFMSYPlotEnd	<-rep(0,Nsim)
+
 
 #===parameters===
 meanREC		<-rep(0,Nsim)
@@ -1032,7 +1091,8 @@ sel95surv		<-rep(0,Nsim)
 sel50fish		<-rep(0,Nsim)
 sel95fish		<-rep(0,Nsim)
 
-
+OutFolder<-paste(CurDir,SourceFolder,sep="")
+pdf(paste(OutFolder,"/AgeStrucurePlots.pdf",sep=""))
 #==cycle through final .rep files, pull out data
 for(n in 1:Nsim)
 {
@@ -1059,12 +1119,8 @@ temp<-grep("recruitment",TRU)
 trueRecPlot[n,]		<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat)]
 temp<-grep("Catch",TRU)
 trueCatchPlot[n,]		<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat)]
-temp<-grep("survey selectivity",TRU)
-#trueSurvSelParPlot[n,]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
-temp<-grep("fishery selectivity",TRU)
-#trueFishSelParPlot[n,]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 temp<-grep("fishing mortality",TRU)
-#trueFmortPlot[n,]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueFmortPlot[n,]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat)]
 temp<-grep("spawning biomass",TRU)
 trueSpbioPlot[n,]		<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat)]
 temp<-grep("cpue index",TRU)
@@ -1074,19 +1130,19 @@ trueSurvIndPlot[n,]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yea
 
 #temp<-grep("B35",TRU)
 #trueB35Plot[n]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
-#temp<-grep("BMSY",TRU)
-#trueBMSYPlot[n]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 #temp<-grep("F35",TRU)
 #trueF35Plot[n]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
-#temp<-grep("FMSY",TRU)
-#trueFMSYPlot[n]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+temp<-grep("BMSY",TRU)
+trueBMSYPlot[n]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+temp<-grep("FMSY",TRU)
+trueFMSYPlot[n]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 
 temp<-grep("spawning biomass",REP)
 predSpBio[n,]	<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
 temp<-grep("B35",REP)
-predB35Plot[n,]	<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
+predB35PlotEnd[n]	<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 temp<-grep("F35",REP)[2]
-predF35Plot[n,]	<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
+predF35PlotEnd[n]	<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 
 temp<-grep("pred survey bio",REP)
 predSurvBio[n,]	<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
@@ -1132,20 +1188,20 @@ TotFdir[n,]<-exp(logFdir[n]+fmort_dir_dev[n,])
 
 #==plot the fitted data
 par(mfrow=c(3,1),mar=c(.1,3,.1,.1),oma=c(2,3,0,0))
-PolygonPlots(Truth=trueCatchPlot,Estimated=predCatchBio,Observed=obsCatchBio,AddLegend=T)
-PolygonPlots(Truth=trueCPUEindPlot,Estimated=predCpueBio,Observed=obsCpueIndex)
-PolygonPlots(Truth=trueSurvIndPlot,Estimated=predSurvBio,Observed=obsSurvBio)
+PolygonPlots(Truth=trueCatchPlot,Estimated=predCatchBio,Observed=obsCatchBio,AddLegend=T,quantity="Catch")
+PolygonPlots(Truth=trueCPUEindPlot,Estimated=predCpueBio,Observed=obsCpueIndex,quantity="CPUE")
+PolygonPlots(Truth=trueSurvIndPlot,Estimated=predSurvBio,Observed=obsSurvBio,quantity="Survey")
 
 #==plot the estimated processes
 par(mfrow=c(2,1),mar=c(.1,3,.1,.1),oma=c(2,3,0,0))
-PolygonPlots(Truth=trueRecPlot,Estimated=TotRec,AddLegend=T)
-PolygonPlots(Truth=trueFmortPlot,Estimated=TotFdir)
+PolygonPlots(Truth=trueRecPlot,Estimated=TotRec,AddLegend=T,quantity="Recruitment")
+PolygonPlots(Truth=trueFmortPlot,Estimated=TotFdir,quantity="Fishing mortality")
 
 #==SELECTIVITY==
- selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
- selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
- selAtAgeFunc(surv50n[1],VonKn[1],LinfN[1],t0n[1])
- selAtAgeFunc(surv95n[1],VonKn[1],LinfN[1],t0n[1])
+# selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
+# selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
+# selAtAgeFunc(surv50n[1],VonKn[1],LinfN[1],t0n[1])
+# selAtAgeFunc(surv95n[1],VonKn[1],LinfN[1],t0n[1])
 # pull pars from OM
 # translate to age with function
 # calculate
@@ -1153,18 +1209,20 @@ PolygonPlots(Truth=trueFmortPlot,Estimated=TotFdir)
 
 #==plot the reference points
 PolygonPlots(Truth=trueSpbioPlot,Estimated=predSpBio)
-  plot(trueRec~TruthSpBio,ylim=c(0,max(trueRec,na.rm=T)))
-## plot all of these
-# these are already calculated
-trueFMSY	
-trueUMSY	
-trueBMSY	
-trueMSY	
+  plot(trueRecPlot~trueSpbioPlot,ylim=c(0,max(trueRecPlot,na.rm=T)))
 
+#==errors in reference points
+REbmsy<-(predB35PlotEnd-trueBMSYPlot)/trueBMSYPlot
+REfmsy<-(predF35PlotEnd-trueFMSYPlot)/trueFMSYPlot
+par(mfrow=c(2,1),mar=c(.1,3,.1,.1),oma=c(2,3,0,0))
+boxplot(REbmsy)
+boxplot(REfmsy)
 ## relative errors in everything
 ## summary table to compare between other scenarios
-
-dev.new()
+PlotSel<-0
+if(PlotSel==1)
+{
+#dev.new()
 par(mfrow=c(4,1),mar=c(1,4,1,1),oma=c(3,1,1,1))
 #==plot estimated selectivities
 
@@ -1173,44 +1231,255 @@ sel50surv<-as.numeric(data2[cnt+1])
 cnt<-grep("srv_sel95",data2)
 sel95surv<-as.numeric(data2[cnt+1])
 
-cnt<-grep("fish_sel50",data2)
+cnt<-grep("SelPars50",data2)
 sel50fish<-as.numeric(data2[cnt+1])
-cnt<-grep("fish_sel95",data2)
+cnt<-grep("SelPars95",data2)
 sel95fish<-as.numeric(data2[cnt+1])
+
+trueSel50<-out$OM$sel50s
+trueSel95<-out$OM$sel95s
+trueSurv50<-out$OM$surv50s
+trueSurv95<-out$OM$surv95s
 
 SurvSel<-1/( 1 + exp( -1*log(19)*(AgeBin-sel50surv)/(sel95surv-sel50surv)))
 FishSel<-1/( 1 + exp( -1*log(19)*(AgeBin-sel50fish)/(sel95fish-sel50fish)))
 
-trueSurvSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueSurvSelPar[1])/(trueSurvSelPar[2]-trueSurvSelPar[1])))
-plot(trueSurvSel~LengthBin,type="l",xlab="Age",ylab="Selectivity")
-trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueFishSelPar[1])/(trueFishSelPar[2]-trueFishSelPar[1])))
+trueSurvSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueSurv50)/(trueSurv95-trueSurv50)))
+trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueSel50)/(trueSel95-trueSel50)))
+
+plot(trueSurvSel~LengthBin,type="l",xlab="Length",ylab="Selectivity")
 
 lines(FishSel~AgeBin,lty=2,col=2)
-lines(SurvSel~AgeBin,lty=2,col=2)
-lines(trueFishSel~LengthBin,lty=2,col=1)
+lines(SurvSel~AgeBin,lty=2,col=1)
+lines(trueFishSel~LengthBin,lty=1,col=2)
 legend("bottomright",bty='n',col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("True Survey","Est Survey","True Fishery","Est Fishery"))
+}
 
-dev.new()
+#dev.new()
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
 {
-plot(obsSurlen[i,],axes=F)
-lines(predSurlen[i,])
+plot(obsSurlen[i,,1],axes=F)
+lines(predSurlen[i,,1])
 }
 plot.new()
 legend("center","Survey")
-dev.new()
+#dev.new()
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
 {
-plot(obsCatchlen[i,],axes=F)
-lines(predCatchlen[i,])
+plot(obsCatchlen[i,,1],axes=F)
+lines(predCatchlen[i,,1])
 }
 plot.new()
 legend("center","Catch")
-
+dev.off()
 }
 
 }
+########################################################
+PullTimevary<-function(inFolders,out)
+{
+Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
+SimYear		<-out$OM$SimYear			# total number of years in simulation
+InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available)
+MaxAge		<-out$OM$MaxAge
+Ages			<-seq(1,MaxAge)
+t0			<-out$OM$t0s		# check this later when going to spatial
+
+Recruitment	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
+FishMort	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
+TrueRec	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
+TrueFmort	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
+
+NatMvary	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
+SelVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(inFolders))) 
+GrowthVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(inFolders)))
+TrueGrow	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(inFolders)))
+TrueSel	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(inFolders)))
+
+for(p in 1:length(inFolders))
+{
+DrawDir		<-CreateFolderNameList[p]
+Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[p],"_CTL.csv",sep=""))
+
+for(n in 1:Nsim)
+{
+IndSimFolder	<-paste(DrawDir,"/",n,"/",SimYear,sep="")
+PAR			<-readLines(paste(CurDir,IndSimFolder,"/simass.par",sep=""))
+TRU			<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
+
+#==fishing mortality
+temp		<-grep("log_avg_fmort_dir",PAR)[1]
+AvgF		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp		<-grep("fmort_dir_dev",PAR)[1]
+fDevs		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+FishMort[n,,p]<-exp(AvgF+fDevs)
+
+#==true
+temp		<-grep("fishing mortality",TRU)
+TrueFmort[n,,p]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(SimYear-1)]
+
+#==recruitment
+temp		<-grep("mean_log_rec",PAR)[1]
+AvgRec	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp		<-grep("rec_dev",PAR)[1]
+RecDevs	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Recruitment[n,,p]<-exp(AvgRec+RecDevs)
+
+temp		<-grep("recruitment",TRU)
+TrueRec[n,,p]	<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(SimYear-1)]
+
+
+
+#==timevary
+#==growth combos
+#==write a function already that pulls the variable...
+
+if(Inout$OM$TimeVaryLinf>0 & Inout$OM$TimeVaryGrowthK <=0)
+{
+temp			<-grep("log_avg_Linf",PAR)[1]
+log_avg_Linf	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("Linf_dev",PAR)[1]
+Linf_dev		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Linf			<-exp(log_avg_Linf+Linf_dev)
+
+GrowthK		<-rep(Inout$OM$VonKs,SimYear)
+}
+
+if(Inout$OM$TimeVaryLinf<=0 & Inout$OM$TimeVaryGrowthK >0)
+{
+temp			<-grep("log_avg_GrowthK",PAR)[1]
+log_avg_GrowthK	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("GrowthK_dev",PAR)[1]
+GrowthK_dev		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+GrowthK		<-exp(log_avg_GrowthK+GrowthK_dev)
+
+Linf			<-rep(Inout$OM$LinfS,SimYear)
+}
+
+if(Inout$OM$TimeVaryLinf>0 & Inout$OM$TimeVaryGrowthK>0)
+{
+temp			<-grep("log_avg_Linf",PAR)[1]
+log_avg_Linf	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("Linf_dev",PAR)[1]
+Linf_dev		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Linf			<-exp(log_avg_Linf+Linf_dev)
+
+temp			<-grep("log_avg_GrowthK",PAR)[1]
+log_avg_GrowthK	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("GrowthK_dev",PAR)[1]
+GrowthK_dev		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+GrowthK		<-exp(log_avg_GrowthK+GrowthK_dev)
+}
+
+if(Inout$OM$TimeVaryLinf<=0 & Inout$OM$TimeVaryGrowthK<=0)
+{
+Linf			<-rep(Inout$OM$LinfS,SimYear)
+GrowthK		<-rep(Inout$OM$VonKs,SimYear)
+}
+
+for(x in 1:SimYear)
+ GrowthVary[x,,n,p]<-Linf[x]*(1-exp(-GrowthK[x]*(Ages-t0)))
+
+#==natural mortality
+if(Inout$OM$TimeVaryM >0)
+{
+temp			<-grep("log_avg_NatM",PAR)[1]
+avgM			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("m_dev",PAR)[1]
+mDevs			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+NatMvary[n,,p]	<-exp(avgM+mDevs)
+}
+
+#==fishing selectivity combos
+# selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
+# selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
+
+
+if(Inout$OM$TimeVarySel50 >0 & Inout$OM$TimeVarySel95 <=0)
+{
+temp			<-grep("SelPars50",PAR)[1]
+SelPars50		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("SelPars_dev50",PAR)[1]
+SelPars_dev50	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Sel50			<-SelPars50+SelPars_dev50
+
+temp			<-grep("SelPars95",PAR)[1]
+SelPars95		<-rep(as.numeric(unlist(strsplit(PAR[temp+1],split=" "))),SimYear)
+}
+
+if(Inout$OM$TimeVarySel50 <=0 & Inout$OM$TimeVarySel95 >0)
+{
+temp			<-grep("SelPars95",PAR)[1]
+SelPars95		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("SelPars_dev95",PAR)[1]
+SelPars_dev95	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Sel95			<-SelPars95+SelPars_dev95
+
+temp			<-grep("SelPars50",PAR)[1]
+SelPars50		<-rep(as.numeric(unlist(strsplit(PAR[temp+1],split=" "))),SimYear)
+}
+
+if(Inout$OM$TimeVarySel50>0 & Inout$OM$TimeVarySel95 >0)
+{
+temp			<-grep("SelPars95",PAR)[1]
+SelPars95		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("SelPars_dev95",PAR)[1]
+SelPars_dev95	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Sel95			<-SelPars95+SelPars_dev95
+
+temp			<-grep("SelPars50",PAR)[1]
+SelPars50		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+temp			<-grep("SelPars_dev50",PAR)[1]
+SelPars_dev50	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
+Sel50			<-SelPars50+SelPars_dev50
+}
+
+if(Inout$OM$TimeVarySel50<=0 & Inout$OM$TimeVarySel95 <=0)
+{
+temp			<-grep("SelPars50",PAR)[1]
+Sel50		<-rep(as.numeric(unlist(strsplit(PAR[temp+1],split=" "))),SimYear)
+temp			<-grep("SelPars95",PAR)[1]
+Sel95		<-rep(as.numeric(unlist(strsplit(PAR[temp+1],split=" "))),SimYear)
+}
+
+for(x in 1:SimYear)
+ SelVary[x,,n,p]	<-1/( 1 + exp( -1*log(19)*(Ages-Sel50[x])/(Sel95[x]-Sel50[x])))
+
+}
+#==============================================
+# Pull the 'true' values for each process
+#==============================================
+tGrowthK		<-Inout$OM$VonKs
+if(length(tGrowthK)==1)
+ tGrowthK		<-rep(tGrowthK,SimYear)
+tLinf			<-Inout$OM$LinfS
+if(length(tLinf)==1)
+ tLinf		<-rep(tLinf,SimYear)
+
+for(x in 1:SimYear)
+ TrueGrow[x,,p]	<-tLinf[x]*(1-exp(-tGrowthK[x]*(Ages-t0)))
+
+tSel50		<-Inout$OM$sel50s
+if(length(tSel50)==1)
+ tSel50		<-rep(tSel50,SimYear)
+tSel95		<-Inout$OM$sel95s
+if(length(tSel95)==1)
+ tSel95		<-rep(tSel95,SimYear)
+
+for(x in 1:SimYear)
+ TrueSel[x,,p]	<-1/( 1 + exp( -1*log(19)*(Ages-tSel50[x])/(tSel95[x]-tSel50[x])))
+
+TrueM			<-Inout$OM$NatMs
+if(length(TrueM)==1)
+ TrueM		<-rep(TrueM,SimYear)
+}
+
+list(Recruitment,TrueRec,FishMort,TrueFmort,GrowthVary,TrueGrow,NatMvary,TrueM,SelVary,TrueSel)
+}
+
+
+
