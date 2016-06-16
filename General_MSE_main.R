@@ -189,7 +189,6 @@ InitValSig		<-out$OM$InitValSig
 #===================================================
 #==Virgin numbers at age, biomass, initial depletion, recruitment
 #===================================================
-
 VirInitN<-initialN(Rzero=RzeroN[1],NatM=NatMn[1],inAge=MaxAge)
 VirInitS<-initialN(Rzero=RzeroS[1],NatM=NatMs[1],inAge=MaxAge)
 
@@ -230,7 +229,7 @@ FmsyOut	<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vu
 				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS)
 trueFMSY	<-FmsyOut$par
 trueUMSY	<- 1-(exp(-trueFMSY))
-trueBMSY	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
+trueBMSY	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,vulnN=vulnN,
                      	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
 				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
 				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS)[[2]]
@@ -406,22 +405,35 @@ for(x in 1:Nsim)
  trueFmort[x,1:InitYear]<-HistoricalF
 
 trueSpbio		<-matrix(ncol=SimYear,nrow=Nsim)
-trueB35		<-matrix(ncol=SimYear,nrow=Nsim)
 trueSurvInd		<-matrix(ncol=SimYear,nrow=Nsim)
 trueCPUEind		<-matrix(ncol=SimYear,nrow=Nsim)
+trueB35		<-matrix(ncol=SimYear,nrow=Nsim)
+
+#======================================
+# calculate reference point proxies
+#======================================
+ConstRec	<-100000
+outsF35	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,inRec=ConstRec)
+
+trueB35[,InitYear]<-outsF35[[2]]*mean(tempRecS+tempRecN)  
+trueF35		<-outsF35[[1]]
 
 
 #==============================================================
 # calculate the catch proportion at (length) for assessment
 #==============================================================
- tempCatAtLenN<-matrix(nrow=LengthBinN,ncol=LengthBinN)
- tempCatAtLenS<-matrix(nrow=LengthBinN,ncol=LengthBinN)
+ tempCatAtLenN<-matrix(nrow=ncol(LenAtAgeN),ncol=LengthBinN)
+ tempCatAtLenS<-matrix(nrow=ncol(LenAtAgeS),ncol=LengthBinN)
 
 for(x in 1:Nsim)
  for(y in 2:InitYear)
  {
  #==make length frequencies for catch==
- for(w in 1:nrow(tempCatAtLenN))
+ for(w in 1:ncol(LenAtAgeN))
  {
   probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
   ProbN<-probtemp/sum(probtemp)
@@ -445,13 +457,13 @@ if(AssessmentData==1)
 #==============================================================
 # calculate the survey proportion at length for assessment
 #==============================================================
- tempSurvAtLenN<-matrix(nrow=LengthBinN,ncol=LengthBinN)
- tempSurvAtLenS<-matrix(nrow=LengthBinN,ncol=LengthBinN)
+ tempSurvAtLenN<-matrix(nrow=ncol(LenAtAgeN),ncol=LengthBinN)
+ tempSurvAtLenS<-matrix(nrow=ncol(LenAtAgeS),ncol=LengthBinN)
 for(x in 1:Nsim)
  for(y in 2:InitYear)
  {
  #==make length frequencies for s==
- for(w in 1:nrow(tempCatAtLenN))
+ for(w in 1:ncol(LenAtAgeS))
  {
   probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
   ProbN<-probtemp/sum(probtemp)
@@ -524,7 +536,7 @@ SurvAssessS		<-projSurvS*exp(SurvErrorS)
 FMSY<-matrix(nrow=Nsim,ncol=SimYear)
 BMSY<-matrix(nrow=Nsim,ncol=SimYear)
 TAC<-matrix(nrow=Nsim,ncol=SimYear)
-trueTAC<-matrix(nrow=Nsim,ncol=SimYear)
+trueOFL<-matrix(nrow=Nsim,ncol=SimYear)
 CurBio<-matrix(nrow=Nsim,ncol=SimYear)
 EstBio<-matrix(nrow=Nsim,ncol=SimYear)
 
@@ -662,11 +674,17 @@ for(z in 1:Nsim)
  cat(trueBMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#FMSY","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueFMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#B35","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueB35[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#F35","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueF35,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#OFL","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueOFL[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
 
- selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
- selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
- selAtAgeFunc(surv50n[1],VonKn[1],LinfN[1],t0n[1])
- selAtAgeFunc(surv95n[1],VonKn[1],LinfN[1],t0n[1])
+ #selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
+ #selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
+ #selAtAgeFunc(surv50n[1],VonKn[1],LinfN[1],t0n[1])
+ #selAtAgeFunc(surv95n[1],VonKn[1],LinfN[1],t0n[1])
 
  #==.CTL file  !!!!!!!!!!!!!!!!!how should we deal with space?!!!!!!!!!!!!!!!!!!!!!!
  file.create("SimAss.CTL")
@@ -729,9 +747,6 @@ for(z in 1:Nsim)
  cat(HCalpha,"\n",file="SimAss.CTL",append=TRUE)
  cat("#40 10 parameters for harvest control 4","\n",file="SimAss.CTL",append=TRUE)
  cat(HCbeta,"\n",file="SimAss.CTL",append=TRUE)
-
- cat("#Number of length bins","\n",file="SimAss.CTL",append=TRUE)
- cat(LengthBinN,"\n",file="SimAss.CTL",append=TRUE)
 
 #==write .PIN file to get initial values close for estimation
  cat("# Simulated assessment pin file","\n",file="SimAss.PIN")
@@ -798,6 +813,8 @@ for(z in 1:Nsim)
  cat(MaxAge,"\n",file="SimAss.DAT",append=TRUE)
  cat("#ages","\n",file="SimAss.DAT",append=TRUE)
  cat(seq(1,MaxAge),"\n",file="SimAss.DAT",append=TRUE)
+ cat("#Number of length bins","\n",file="SimAss.DAT",append=TRUE)
+ cat(LengthBinN,"\n",file="SimAss.DAT",append=TRUE)
 
  #==aggregate the index of abundance from two areas
  cat("#CPUE years","\n",file="SimAss.DAT",append=TRUE)
@@ -962,7 +979,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    trueSpbio[z,y]		<-projSSBn[z,y]+projSSBs[z,y]
 
   #==UPDATE CATCH LENGTH FREQS====
-    for(w in 1:nrow(tempCatAtLenN))
+    for(w in 1:ncol(LenAtAgeN))
 	 {
 	  probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
 	  ProbN<-probtemp/sum(probtemp)
@@ -978,7 +995,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
   # calculate the survey proportion at age (length) for assessment
   #==============================================================
 	 #==make length frequencies for s==
-   for(w in 1:nrow(tempCatAtLenN))
+   for(w in 1:ncol(LenAtAgeS))
     {
 	probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
 	ProbN<-probtemp/sum(probtemp)
@@ -1012,6 +1029,27 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    projNs[y,1,z]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[y],RzeroIN=RzeroS[y],RecErrIN=RecErrS[z,y],recType="BH",NatMin=NatMs[y],
 							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge)
    trueRec[z,y]		<-projNn[y,1,z]+projNs[y,1,z]
+
+ #==calculate true OFL
+
+ trueB35[z,y]<-outsF35[[2]]*trueRec[z,y]
+
+  #==find FOFL given spawning biomass
+  tempSpBio			<-EggsN+EggsS
+  FutMort			<-trueF35
+  if(tempSpBio<trueB35[z,y])
+  {
+   FutMort<-0
+   if(tempSpBio>HCbeta*trueB35[z,y])
+    FutMort = trueF35*(tempSpBio/trueB35[z,y]-HCalpha)/(1-HCalpha);
+   }
+  #==find the catch for the FOFL
+   trueCatchAtAgeN	<-((vulnN[y,]*FutMort)/(vulnN[y,]*FutMort+NatMn[y])) * (1-exp(-(vulnN[y,]*FutMort+NatMn[y]))) * projNn[y-1,,z]
+   trueCatchN		<-sum(trueCatchAtAgeN*WeightAtAgeN[y,])
+
+   trueCatchAtAgeS	<-((vulnS[y,]*FutMort)/(vulnS[y,]*FutMort+NatMs[y])) * (1-exp(-(vulnS[y,]*FutMort+NatMs[y]))) * projNs[y-1,,z]
+   trueCatchS		<-sum(trueCatchAtAgeS*WeightAtAgeS[y,])
+   trueOFL[z,y]		<-trueCatchS+trueCatchN
 
   print(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,sep=""))
 

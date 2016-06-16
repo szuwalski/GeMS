@@ -224,13 +224,13 @@ if(SRouts[[1]][1]=="Average")
 
 ###############################################################
 #==produces population and yield from a given fishing mortality
-ProjPopDym<-function(fmort,MaxAge,VirInitN,VirInitS,vulnN,vulnS,NatMn,NatMs,matureN,matureS,WeightAtAgeN,
- WeightAtAgeS,steepnessN,steepnessS,RzeroN,RzeroS,LenAtAgeN,LenAtAgeS)
+ProjPopDym<-function(fmort,MaxAge,vulnN,vulnS,NatMn,NatMs,matureN,matureS,WeightAtAgeN,
+ WeightAtAgeS,steepnessN,steepnessS,RzeroN,RzeroS,LenAtAgeN,LenAtAgeS,ProxyRec=0)
 {
 tempNn		<-matrix(ncol=MaxAge,nrow=100)
-tempNn[1,]		<-VirInitN
+tempNn[1,]		<-initialN(Rzero=RzeroN[length(RzeroN)],NatM=NatMn[length(NatMn)],inAge=MaxAge)
 tempNs		<-matrix(ncol=MaxAge,nrow=100)
-tempNs[1,]		<-VirInitS
+tempNs[1,]		<-initialN(Rzero=RzeroS[length(RzeroS)],NatM=NatMs[length(NatMs)],inAge=MaxAge)
 tempCatchN		<-rep(0,100)
 tempCatchS		<-rep(0,100)
 tempRecN		<-rep(0,100)
@@ -245,28 +245,35 @@ for (j in 2:100)
 {
  for (i in 2:(MaxAge-1))
   {
-   tempNn[j,i]		<-tempNn[j-1,i-1]*exp(-inFn*vulnN[1,i-1])*exp(-NatMn[1])
-   tempNs[j,i]		<-tempNs[j-1,i-1]*exp(-inFs*vulnS[1,i-1])*exp(-NatMs[1])
+   tempNn[j,i]		<-tempNn[j-1,i-1]*exp(-inFn*vulnN[nrow(vulnN),i-1])*exp(-NatMn[length(NatMn)])
+   tempNs[j,i]		<-tempNs[j-1,i-1]*exp(-inFs*vulnS[nrow(vulnS),i-1])*exp(-NatMs[length(NatMs)])
 
   }
-   tempNn[j,MaxAge]	<-(tempNn[j-1,(MaxAge-1)])*exp(-inFn*vulnN[1,MaxAge])*exp(-NatMn[1])+ tempNn[j-1,MaxAge]*exp(-inFn*vulnN[1,MaxAge])*exp(-NatMn[1])
-   tempNs[j,MaxAge]	<-(tempNs[j-1,(MaxAge-1)])*exp(-inFs*vulnS[1,MaxAge])*exp(-NatMs[1])+ tempNs[j-1,MaxAge]*exp(-inFs*vulnS[1,MaxAge])*exp(-NatMs[1])
+   tempNn[j,MaxAge]	<-(tempNn[j-1,(MaxAge-1)])*exp(-inFn*vulnN[nrow(vulnN),MaxAge])*exp(-NatMn[length(NatMn)])+ tempNn[j-1,MaxAge]*exp(-inFn*vulnN[nrow(vulnN),MaxAge])*exp(-NatMn[length(NatMn)])
+   tempNs[j,MaxAge]	<-(tempNs[j-1,(MaxAge-1)])*exp(-inFs*vulnS[nrow(vulnS),MaxAge])*exp(-NatMs[length(NatMs)])+ tempNs[j-1,MaxAge]*exp(-inFs*vulnS[nrow(vulnS),MaxAge])*exp(-NatMs[length(NatMs)])
 
-   EggsN			<-sum(tempNn[j-1,]*matureN[1,]*WeightAtAgeN[1,])
-   EggsS			<-sum(tempNs[j-1,]*matureS[1,]*WeightAtAgeS[1,])
-
-   tempNn[j,1]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=0,recType="BH",NatMin=NatMn[1],
-							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,],MaxAge)
-   tempNs[j,1]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[1],RzeroIN=RzeroS[1],RecErrIN=0,recType="BH",NatMin=NatMs[1],
-							vulnIN=vulnS[1,],matureIN=matureS[1,],weightIN=WeightAtAgeS[1,],LenAtAgeIN=LenAtAgeS[1,],MaxAge)
+   EggsN			<-sum(tempNn[j-1,]*matureN[nrow(matureN),]*WeightAtAgeN[nrow(WeightAtAgeN),])
+   EggsS			<-sum(tempNs[j-1,]*matureS[nrow(matureS),]*WeightAtAgeS[nrow(WeightAtAgeS),])
+if(ProxyRec==0)
+{
+   tempNn[j,1]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[length(steepnessN)],RzeroIN=RzeroN[length(RzeroN)],RecErrIN=0,recType="BH",NatMin=NatMn[length(NatMn)],
+							vulnIN=vulnN[nrow(vulnN),],matureIN=matureN[nrow(matureN),],weightIN=WeightAtAgeN[nrow(WeightAtAgeN),],LenAtAgeIN=LenAtAgeN[nrow(LenAtAgeN),],MaxAge)
+   tempNs[j,1]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[length(steepnessS)],RzeroIN=RzeroS[length(RzeroS)],RecErrIN=0,recType="BH",NatMin=NatMs[length(NatMs)],
+							vulnIN=vulnS[nrow(vulnS),],matureIN=matureS[nrow(matureS),],weightIN=WeightAtAgeS[nrow(WeightAtAgeS),],LenAtAgeIN=LenAtAgeS[nrow(LenAtAgeS),],MaxAge)
+}
+if(ProxyRec>0)
+{
+   tempNn[j,1]		<-ProxyRec
+   tempNs[j,1]		<-ProxyRec
+}
    tempRecN[j]		<-tempNn[j,1]
    tempRecS[j]		<-tempNs[j,1]
 
-   tempCatchAtAgeN[j,]	<-((vulnN[1,]*inFn)/(vulnN[1,]*inFn+NatMn[1])) * (1-exp(-(vulnN[1,]*inFn+NatMn[1]))) * tempNn[j-1,]
-   tempCatchN[j]		<-sum(tempCatchAtAgeN[j,]*WeightAtAgeN[1,])
+   tempCatchAtAgeN[j,]	<-((vulnN[nrow(vulnN),]*inFn)/(vulnN[nrow(vulnN),]*inFn+NatMn[length(NatMn)])) * (1-exp(-(vulnN[nrow(vulnN),]*inFn+NatMn[length(NatMn)]))) * tempNn[j-1,]
+   tempCatchN[j]		<-sum(tempCatchAtAgeN[j,]*WeightAtAgeN[nrow(WeightAtAgeN),])
 
-   tempCatchAtAgeS[j,]	<-((vulnS[1,]*inFs)/(vulnS[1,]*inFs+NatMs[1])) * (1-exp(-(vulnS[1,]*inFs+NatMs[1]))) * tempNs[j-1,]
-   tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[1,])
+   tempCatchAtAgeS[j,]	<-((vulnS[nrow(vulnS),]*inFs)/(vulnS[nrow(vulnS),]*inFs+NatMs[length(NatMs)])) * (1-exp(-(vulnS[nrow(vulnS),]*inFs+NatMs[length(NatMs)]))) * tempNs[j-1,]
+   tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[nrow(WeightAtAgeS),])
 
  }
  outYield	<-tempCatchS[j]+tempCatchN[j]
@@ -322,7 +329,73 @@ for (j in 2:100)
  }
 return(-1*(tempCatchS[j]+tempCatchN[j]))
 }
+#================================================================================
+#==calculates F35%
+FindF35<-function(MaxAge,vulnN,vulnS,NatMn,NatMs,matureN,matureS,WeightAtAgeN,
+ WeightAtAgeS,steepnessN,steepnessS,RzeroN,RzeroS,LenAtAgeN,LenAtAgeS,inRec)
+{
+tempNn		<-matrix(ncol=MaxAge,nrow=100)
+tempNn[1,]		<-initialN(Rzero=RzeroN[length(RzeroN)],NatM=NatMn[length(NatMn)],inAge=MaxAge)
+tempNs		<-matrix(ncol=MaxAge,nrow=100)
+tempNs[1,]		<-initialN(Rzero=RzeroS[length(RzeroS)],NatM=NatMs[length(NatMs)],inAge=MaxAge)
+tempCatchN		<-rep(0,100)
+tempCatchS		<-rep(0,100)
+tempRecN		<-rep(0,100)
+tempRecS		<-rep(0,100)
+tempCatchAtAgeN	<-matrix(ncol=MaxAge,nrow=100)
+tempCatchAtAgeS	<-matrix(ncol=MaxAge,nrow=100)
 
+Target<-0.35
+Bzero			<-ProjPopDym(fmort=0,MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,ProxyRec=inRec)[[2]]
+
+maxF	<-3
+minF	<-0.01
+for(k in 1:20)
+{
+inFn	<-(maxF+minF)/2
+inFs	<-(maxF+minF)/2
+for (j in 2:100)
+{
+ for (i in 2:(MaxAge-1))
+  {
+   tempNn[j,i]		<-tempNn[j-1,i-1]*exp(-inFn*vulnN[nrow(vulnN),i-1])*exp(-NatMn[length(NatMn)])
+   tempNs[j,i]		<-tempNs[j-1,i-1]*exp(-inFs*vulnS[nrow(vulnS),i-1])*exp(-NatMs[length(NatMn)])
+  }
+   tempNn[j,MaxAge]	<-(tempNn[j-1,(MaxAge-1)])*exp(-inFn*vulnN[nrow(vulnN),MaxAge])*exp(-NatMn[length(NatMn)])+ tempNn[j-1,MaxAge]*exp(-inFn*vulnN[nrow(vulnN),MaxAge])*exp(-NatMn[length(NatMn)])
+   tempNs[j,MaxAge]	<-(tempNs[j-1,(MaxAge-1)])*exp(-inFs*vulnS[nrow(vulnS),MaxAge])*exp(-NatMs[length(NatMn)])+ tempNs[j-1,MaxAge]*exp(-inFs*vulnS[nrow(vulnS),MaxAge])*exp(-NatMs[length(NatMn)])
+
+   EggsN			<-sum(tempNn[j-1,]*matureN[nrow(matureN),]*WeightAtAgeN[nrow(WeightAtAgeN),])
+   EggsS			<-sum(tempNs[j-1,]*matureS[nrow(matureS),]*WeightAtAgeS[nrow(WeightAtAgeS),])
+
+#  tempNn[j,1]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[length(steepnessN)],RzeroIN=RzeroN[length(RzeroN)],RecErrIN=0,recType="BH",NatMin=NatMn[length(NatMn)],
+#							vulnIN=vulnN[nrow(vulnN),],matureIN=matureN[nrow(matureN),],weightIN=WeightAtAgeN[nrow(WeightAtAgeN),],LenAtAgeIN=LenAtAgeN[nrow(LenAtAgeN),],MaxAge=MaxAge)
+#  tempNs[j,1]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[length(steepnessS)],RzeroIN=RzeroS[length(RzeroS)],RecErrIN=0,recType="BH",NatMin=NatMs[length(NatMn)],
+#							vulnIN=vulnS[nrow(vulnS),],matureIN=matureS[nrow(matureS),],weightIN=WeightAtAgeS[nrow(WeightAtAgeS),],LenAtAgeIN=LenAtAgeS[nrow(LenAtAgeN),],MaxAge=MaxAge)
+   tempNn[j,1]		<-inRec
+   tempNs[j,1]		<-inRec
+
+   tempRecN[j]		<-tempNn[j,1]
+   tempRecS[j]		<-tempNs[j,1]
+
+   tempCatchAtAgeN[j,]	<-((vulnN[nrow(vulnN),]*inFn)/(vulnN[nrow(vulnN),]*inFn+NatMn[length(NatMn)])) * (1-exp(-(vulnN[nrow(vulnN),]*inFn+NatMn[length(NatMn)]))) * tempNn[j-1,]
+   tempCatchN[j]		<-sum(tempCatchAtAgeN[j,]*WeightAtAgeN[nrow(WeightAtAgeN),])
+
+   tempCatchAtAgeS[j,]	<-((vulnS[nrow(vulnS),]*inFs)/(vulnS[nrow(vulnS),]*inFs+NatMs[length(NatMn)])) * (1-exp(-(vulnS[nrow(vulnS),]*inFs+NatMs[length(NatMn)]))) * tempNs[j-1,]
+   tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[nrow(WeightAtAgeS),])
+
+ }
+if(EggsN+EggsS>Target*Bzero)
+ minF	<-inFs
+if(EggsN+EggsS<Target*Bzero)
+ maxF	<-inFs
+}
+
+list(inFs,(EggsN+EggsS)/(inRec*2))
+}
 
 ##############################################################
 ProdMod<-function(x,CatchData,IndexData)
@@ -891,12 +964,15 @@ InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of yea
 B35	<-matrix(ncol=Nsim,nrow=SimYear)
 F35	<-matrix(ncol=Nsim,nrow=SimYear)
 OFL	<-matrix(ncol=Nsim,nrow=SimYear) 
+tB35	<-matrix(ncol=Nsim,nrow=SimYear)
+tOFL	<-matrix(ncol=Nsim,nrow=SimYear)
 
 for(n in 1:Nsim)
 for(v in (InitYear+1):SimYear)
 {
 IndSimFolder<-paste(DrawDir,"/",n,"/",v,sep="")
 REP<-readLines(paste(CurDir,IndSimFolder,"/simass.REP",sep=""))
+TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
 
 temp<-grep("B35",REP)[1]
 B35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
@@ -906,8 +982,21 @@ F35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
 
 temp<-grep("OFL",REP)[2]
 OFL[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+
+if(v==SimYear)
+{
+temp<-grep("B35",TRU)
+tB35[,n] <-as.numeric((unlist(strsplit(TRU[temp+1],split=" "))))
+
+temp<-grep("OFL",TRU)
+tOFL[,n]<-as.numeric((unlist(strsplit(TRU[temp+1],split=" ")))) 
 }
-list(B35,F35,OFL)
+temp<-grep("F35",TRU)
+tF35 <-as.numeric((unlist(strsplit(TRU[temp+1],split=" ")))) 
+
+
+}
+list(B35,F35,OFL,tB35,tF35,tOFL)
 }
 ###############################################################
 CalculateBias<-function(RetroOuts)
@@ -1463,12 +1552,13 @@ if(length(tLinf)==1)
 for(x in 1:SimYear)
  TrueGrow[x,,p]	<-tLinf[x]*(1-exp(-tGrowthK[x]*(Ages-t0)))
 
-tSel50		<-Inout$OM$sel50s
+ tSel50<-selAtAgeFunc(Inout$OM$sel50s,Inout$OM$VonKs,Inout$OM$LinfS,Inout$OM$t0s)
+ tSel95<-selAtAgeFunc(Inout$OM$sel95s,Inout$OM$VonKs,Inout$OM$LinfS,Inout$OM$t0s)
+
 if(length(tSel50)==1)
- tSel50		<-rep(tSel50,SimYear)
-tSel95		<-Inout$OM$sel95s
+ tSel50		<-rep(tSel50,Inout$OM$SimYear)
 if(length(tSel95)==1)
- tSel95		<-rep(tSel95,SimYear)
+ tSel95		<-rep(tSel95,Inout$OM$SimYear)
 
 for(x in 1:SimYear)
  TrueSel[x,,p]	<-1/( 1 + exp( -1*log(19)*(Ages-tSel50[x])/(tSel95[x]-tSel50[x])))
