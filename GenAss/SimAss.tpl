@@ -10,6 +10,7 @@ DATA_SECTION
   init_int endyr															//end year of the model
   init_int maxAge														//maximum age class
   init_vector Ages(1,maxAge)
+  init_int LengthBinN
   init_int cpueYr
   init_ivector cpueYears(1,cpueYr)
   init_int survYr
@@ -29,11 +30,11 @@ DATA_SECTION
   init_vector cpueCV(styr,endyr)
   init_vector catchBiomass(1,survYr)
   init_vector catchCV(styr,endyr)
-  init_vector LengthBinsMid(1,maxAge)
+  init_vector LengthBinsMid(1,LengthBinN)
   !!cout<<"catchBiomass"<<catchBiomass<<endl; 
   
-  init_matrix catchLenNum(styr,endyr,1,maxAge)	
-  init_matrix survLenNum(styr,endyr,1,maxAge)			
+  init_matrix catchLenNum(styr,endyr,1,LengthBinN)	
+  init_matrix survLenNum(styr,endyr,1,LengthBinN)			
 
 
   // .CTL file
@@ -66,7 +67,7 @@ DATA_SECTION
   init_number ConstantF
   init_number HCalpha
   init_number HCbeta
-  init_number LengthBinN
+
   !!cout<<"steep"<<steepness<<endl;
   
   int ipass;
@@ -78,7 +79,7 @@ DATA_SECTION
 // =======================================================================
 PARAMETER_SECTION
 	init_bounded_number srv_sel50(0.01,maxAge,2)
-	init_bounded_number srv_sel95(1,maxAge,2)
+	init_bounded_number srv_sel95(0.5,maxAge,2)
 	init_bounded_vector stNatLen(1,maxAge,-10,20,1)		//using this instead of recruitments because the number of years that would be required for long lived species would be a lot
 	
 	init_bounded_number log_avg_fmort_dir(-5,5,1)
@@ -102,7 +103,7 @@ PARAMETER_SECTION
    //init_bounded_number log_avg_SelPars50(-5,logMaxAge,2)
   	//init_bounded_number log_avg_SelPars95(0,logMaxAge,2)
 	init_bounded_number SelPars50(0.01,maxAge,2)
-	init_bounded_number SelPars95(1,maxAge,2)
+	init_bounded_number SelPars95(0.5,maxAge,2)
 
 	init_bounded_dev_vector SelPars_dev50(styr,endyr,-20,20,TimeVarySel50)
 	init_bounded_dev_vector SelPars_dev95(styr,endyr,-20,20,TimeVarySel95)	
@@ -113,8 +114,8 @@ PARAMETER_SECTION
    objective_function_value f
  
   //storage for calculation of length frequencies
-  matrix catchLenFreq(styr,endyr,1,maxAge)	
-  matrix survLenFreq(styr,endyr,1,maxAge)	
+  matrix catchLenFreq(styr,endyr,1,LengthBinN)	
+  matrix survLenFreq(styr,endyr,1,LengthBinN)	
   
   //Biological processes
   matrix sel_fish(styr,endyr+Nproj,1,maxAge)			    // directed selectivity
@@ -137,16 +138,16 @@ PARAMETER_SECTION
  //predicted total numbers in the survey
    vector predSurvBio(styr,endyr+Nproj)
    vector predCpueBio(styr,endyr+Nproj)
-   matrix predCpueBioLen(styr,endyr+Nproj,1,maxAge)
+   matrix predCpueBioAge(styr,endyr+Nproj,1,maxAge)
    matrix predSurvNatAge(styr,endyr+Nproj,1,maxAge)
    matrix predSurvAgeFreq(styr,endyr+Nproj,1,maxAge)
-   matrix predSurvLenFreq(styr,endyr+Nproj,1,maxAge)   
+   matrix predSurvLenFreq(styr,endyr+Nproj,1,LengthBinN)   
    
   //predicted catches, discards and bycatches at length
   matrix predCatchAtAge(styr,endyr+Nproj,1,maxAge)
   sdreport_vector predCatchBio(styr,endyr+Nproj);  
   matrix predCatchAgeFreq(styr,endyr+Nproj,1,maxAge)
-  matrix predCatchLenFreq(styr,endyr+Nproj,1,maxAge)
+  matrix predCatchLenFreq(styr,endyr+Nproj,1,LengthBinN)
   
   //likelihood components
   number CpueBio_like
@@ -179,8 +180,7 @@ PRELIMINARY_CALCS_SECTION
  dvariable nn;
   // for(i=1;i<=maxAge;i++)
    // WeightAtAge(i) = weightPars(1) * pow(LengthBinsMid(i),weightPars(2));
-   
-  
+   cout<<LengthBinN<<endl;
 //make length frequencies from observed
     for(i=styr;i<=endyr;i++)
     {
@@ -199,7 +199,7 @@ PRELIMINARY_CALCS_SECTION
       for(j=1;j<=LengthBinN;j++)
 	  survLenFreq(i,j) = survLenNum(i,j)/nn;
     }
-
+  cout<<"Out"<<endl;
 // =============================================================
 INITIALIZATION_SECTION
  // log_avg_SelPars50 1.7777
@@ -363,14 +363,14 @@ FUNCTION get_num_at_len
 	// ==========================================================================
 FUNCTION get_num_at_len_yr
  int i,j,k,sex;
- dvar_vector predSurvBioLen(1,maxAge);
+ dvar_vector predSurvBioAge(1,maxAge);
  dvar_vector expRate(1,maxAge);
  dvariable temp;
  dvar_vector tempN(1,maxAge);
  dvar_vector dummyN(1,maxAge);
 
- dvar_matrix dummyAllProbs(1,LengthBinN,1,LengthBinN);
- dvar_vector nn(1,LengthBinN);
+ dvar_matrix dummyAllProbs(1,maxAge,1,LengthBinN);
+ dvar_vector nn(1,maxAge);
  dvariable pi;
  pi = 3.14159265;
  
@@ -378,33 +378,34 @@ FUNCTION get_num_at_len_yr
 
   //==cpue index==
    dummyN				    = elem_prod(sel_fish(i),NatAge(i));
-   predCpueBioLen(i)	= elem_prod(dummyN,WeightAtAge(i));
+   predCpueBioAge(i)	= elem_prod(dummyN,WeightAtAge(i));
    for(j=1;j<=maxAge;j++)
-    predCpueBio(i)		+= predCpueBioLen(i,j);
+    predCpueBio(i)		+= predCpueBioAge(i,j);
   // cout<<"predCpueBio"<<predCpueBio<<endl;
   
   //==survey==
   predSurvNatAge(i) 	= elem_prod(sel_srv,NatAge(i));
-  predSurvBioLen		= elem_prod(predSurvNatAge(i),WeightAtAge(i));
+  predSurvBioAge		= elem_prod(predSurvNatAge(i),WeightAtAge(i));
    for(j=1;j<=maxAge;j++)
-    predSurvBio(i)		+= predSurvBioLen(j);
+    predSurvBio(i)		+= predSurvBioAge(j);
   // cout<<"predSurvBio"<<predSurvBio<<endl;
    // cout<<"LengthAtAge"<<LengthAtAge<<endl;
    // cout<<"LengthBinsMid"<<LengthBinsMid<<endl;
    // cout<<"sel_srv"<<sel_srv<<endl;
    // cout<<"NatAge(i)"<<NatAge(i)<<endl;
    // cout<<"WeightAtAge"<<WeightAtAge<<endl;
-   
+
   //==survey length frequencies==
 	//find probability of length at age given variability
-	for(k=1;k<=LengthBinN;k++)
+	for(k=1;k<=maxAge;k++)
     for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(i,k)))/(2*GrowthSD*GrowthSD));
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
-	  
+
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
- 	for(k=1;k<=LengthBinN;k++)
+
+ 	for(k=1;k<=maxAge;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predSurvNatAge(i,k);
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
 
@@ -432,14 +433,14 @@ FUNCTION get_num_at_len_yr
   // cout<<"predCatchAtAge(i)"<<predCatchAtAge(i)<<endl;
 
  //find probability of length at age for catch given variability
-	for(k=1;k<=LengthBinN;k++)
+	for(k=1;k<=maxAge;k++)
     for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(i,k)))/(2*GrowthSD*GrowthSD));
   // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
 	
- 	for(k=1;k<=LengthBinN;k++)
+ 	for(k=1;k<=maxAge;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predCatchAtAge(i,k);
   // cout<<"dummyAllProbs2"<<dummyAllProbs<<endl;
   
@@ -502,7 +503,7 @@ FUNCTION evaluate_the_objective_function
 	
    // survey length frequencies
 	for(i=styr+1;i<=endyr;i++)
-	 for(j=1;j<=maxAge;j++)
+	 for(j=1;j<=LengthBinN;j++)
 	 {
       if(survLenFreq(i,j)>0.001)
 	   SurvLen_like -= survSampN(i) *survLenFreq(i,j) *log(predSurvLenFreq(i,j) +smallNum);
@@ -511,7 +512,7 @@ FUNCTION evaluate_the_objective_function
 	
    //catch length frequencies
 	for(i=styr+1;i<=endyr;i++)
-	 for(j=1;j<=maxAge;j++)
+	 for(j=1;j<=LengthBinN;j++)
 	 {
       if(catchLenFreq(i,j)>0.001)
 	   CatchLen_like -= catchSampN(i) *catchLenFreq(i,j) *log(predCatchLenFreq(i,j)+smallNum );		//same sample size for survey and catch right now...
@@ -637,7 +638,7 @@ FUNCTION Find_OFL
   
   if(HarvestControl==4)
   {
-  BMSY_Yr1 = 1;BMSY_Yr2 = endyr-8;
+  BMSY_Yr1 = 1;BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
   alpha = 0.05;
   beta = 0.25;
   
@@ -683,6 +684,7 @@ FUNCTION Find_OFL
       for (ii=1;ii<=10;ii++)
        {
         FutMort = Fmsy*(Spbio(ipass)/Bmsy-alpha)/(1-alpha);
+		cout<<"FutMOrt"<<FutMort<<endl;
         get_fut_mortality();
         get_num_at_len_yr();
        }

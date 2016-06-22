@@ -1,25 +1,33 @@
 #Simulated assessment control file 
 # 
 #weight parameters 
-1.7e-06 3 
+6.8e-06 3.1 
+#how many years to average over timevarying process for projectsion 
+5 
 #Estimate growth? if positive, indicates phase, no estimate if negative 
--2 
+-1 
 #growth time-varying? 
-0 
+-1 
+#Estimate growth? if positive, indicates phase, no estimate if negative 
+-1 
+#growth time-varying? 
+-1 
 #length parameters 
-0.2 200 0.9 
+0.2 132 0.1784 
 #estimate natural mortality? if positive, number indicates phase, if negative, not estimated 
 -2 
 #natural mortality (used as starting value if estimated) 
-0.24 
+0.2 
 #Allow M to vary over time? 1 = yes, 0 = no 
-0 
-# Allow selectivity to vary over time?
--1
+-2 
+#selectivity 50% time-varying? 
+-1 
+#selectivity 95% time-varying? 
+-1 
 #maturity 
-6 8 
+1.8867 2.5039 
 #steepness 
-0.7 
+0.65 
 #small number 
 1e-04 
 #initial smoothness weight 
@@ -33,9 +41,11 @@
 #smoothness on recruit penalty 
 3 
 #smoothness on time-varying natural mortality penalty 
-1 
+3 
 #smoothness on time-varying growth penalty 
-1 
+3 
+#smoothness on time-varying selelctivity penalty 
+3 
 #harvest control rule selected 
 4 
 #Constantcatch if harvest control ==2, set catch level 
@@ -46,5 +56,3 @@
 0.05 
 #40 10 parameters for harvest control 4 
 0.5 
-#Number of length bins 
-30 
