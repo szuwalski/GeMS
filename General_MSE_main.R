@@ -40,13 +40,8 @@ GrowthSDn	<-CleanInput(out$OM$GrowthSDn,SimYear)
 GrowthSDs	<-CleanInput(out$OM$GrowthSDs,SimYear)
 
 #==========================================================
-#=================population dynamics======================
-#=========================================================
-#==When making dynamics time-varying, only make them vary after
-#=='InitYear'.  The idea is that this simulates a relatively steady
-#==environment until climate change, then things change. MEH.
-#===========================================================
-#===========================================================
+#=================population dynamics processes============
+#==============================================+===========
 MaxAge<-out$OM$MaxAge
 Ages<-seq(1,MaxAge)
 
@@ -156,11 +151,13 @@ steepnessS	<-CleanInput(out$OM$steepnessS,SimYear)
 sigmaRs	<-CleanInput(out$OM$sigmaRs,SimYear)
 RzeroS	<-CleanInput(out$OM$RzeroS,SimYear)
 
-RecErrN	<-matrix(rnorm(SimYear*Nsim,0,sigmaRn[1]),ncol=SimYear)
-RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs[1]),ncol=SimYear)
+#==needs to be changed to allow for all 
+RecErrN	<-matrix(rnorm(SimYear*Nsim,0,sigmaRn),ncol=SimYear,byrow=T)
+RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs),ncol=SimYear,byrow=T)
 
 #==historic fishing mortality
 HistoricalF		<-CleanInput(out$OM$HistoricalF,SimYear)[1:InitYear]
+PastFsd		<-out$OM$PastFsd
 HarvestControl	<-out$OM$HarvestControl
 ConstantCatch	<-out$OM$ConstantCatch
 ConstantF		<-out$OM$ConstantF
@@ -186,189 +183,74 @@ TimeVarySel95	<-out$OM$TimeVarySel95
 ProjectTimeVary	<-out$OM$ProjectTimeVary
 InitValSig		<-out$OM$InitValSig
 
+InitBzeroMod	<-out$OM$InitBzeroMod
+InitGrowthRate	<-out$OM$InitGrowthRate
+
+#==expand historical fishing mortality==
+
 #===================================================
 #==Virgin numbers at age, biomass, initial depletion, recruitment
 #===================================================
-VirInitN<-initialN(Rzero=RzeroN[1],NatM=NatMn[1],inAge=MaxAge)
-VirInitS<-initialN(Rzero=RzeroS[1],NatM=NatMs[1],inAge=MaxAge)
+VirInitN		<-initialN(Rzero=RzeroN[1],NatM=NatMn[1],inAge=MaxAge)
+VirInitS		<-initialN(Rzero=RzeroS[1],NatM=NatMs[1],inAge=MaxAge)
 
-VirBioN<-sum(VirInitN*matureN[1,]*WeightAtAgeN[1,])
-VirBioS<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
+VirBioN		<-sum(VirInitN*matureN[1,]*WeightAtAgeN[1,])
+VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 
-ExploitBioN<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
-ExploitBioS<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
-
-#========================================================================
-# FIND MSY FOR THE POPULATION 
-#========================================================================
-if(PlotYieldCurve==1)
-{
-SearchFmort		<-seq(0.01,3*NatMn[1],(NatMn[1]-0.01)/100)
-SearchYield		<-rep(0,length(SearchFmort))
-SearchBiomass	<-rep(0,length(SearchFmort))
-for(p in 1:length(SearchFmort))
-{
-tempOut<-ProjPopDym(SearchFmort[p])
-SearchYield[p]<-tempOut[[1]]
-SearchBiomass[p]<-tempOut[[2]]
-}
-dev.new()
-par(mfrow=c(1,2))
-plot(SearchYield~SearchFmort)
-plot(SearchYield~SearchBiomass)
-}
-
-FindFMSYin<-1
-
-if(FindFMSYin==1)
-{
-x<-0.3
-FmsyOut	<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS)
-trueFMSY	<-FmsyOut$par
-trueUMSY	<- 1-(exp(-trueFMSY))
-trueBMSY	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS)[[2]]
-trueMSY	<- -FmsyOut$objective
-}
+ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
+ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
 
 #=========================================================================
 # INITALIZE THE POPULATION
-# Option 1: Set the initial conditions by scaling the specified F series
-# that will put the population at the designated depletion 
-#
-# Option 2: Set depletion to 0 and use the input time series of F to 
-# initialize the population
 #==========================================================================
-if(depletion>0)
+tempNn		<-array(dim=c(InitYear,MaxAge,Nsim))
+tempNn[1,,]		<-VirInitN
+tempNs		<-array(dim=c(InitYear,MaxAge,Nsim))
+tempNs[1,,]		<-VirInitS
+tempCatchN		<-matrix(ncol=InitYear,nrow=Nsim)
+tempCatchS		<-matrix(ncol=InitYear,nrow=Nsim)
+tempRecN		<-matrix(ncol=InitYear,nrow=Nsim)
+tempRecS		<-matrix(ncol=InitYear,nrow=Nsim)
+tempCatchAtAgeN	<-array(dim=c(InitYear,MaxAge,Nsim))
+tempCatchAtAgeS	<-array(dim=c(InitYear,MaxAge,Nsim))
+
+#==Make a matrix of past Fs based on a sd and an input time series==
+HistoricalFs<-matrix(HistoricalF,ncol=InitYear,nrow=Nsim,byrow=T)
+HistoricalFn<-matrix(HistoricalF,ncol=InitYear,nrow=Nsim,byrow=T)
+Ferr<-matrix(rnorm(InitYear*Nsim,1,PastFsd),ncol=InitYear)
+HistoricalFs<-HistoricalFs*Ferr
+HistoricalFn<-HistoricalFn*Ferr
+
+for(k in 1:Nsim)
 {
-targetDep	<-(VirBioN+VirBioS)*depletion
-maxExp	<-0.999
-minExp	<-0.001
-
-#==defines the exploitation pattern
-ExpSeries	<-HistoricalF
-
-#==finds an exploitation rate that returns a given depletion at the end of the 
-#==INCORPORATE THE CATCHSHARE BY AREA INTO THIS CHUNK OF CODE============
-for(x in 1:30)
-{
-tempNn	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempNn[1,]	<-VirInitN
-
-tempNs	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempNs[1,]	<-VirInitS
-
-tempCatchN	<-rep(0,InitYear)
-tempCatchS	<-rep(0,InitYear)
-
-tempRecN	<-rep(0,InitYear)
-tempRecS	<-rep(0,InitYear)
-
-tempCatchAtAgeN	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempCatchAtAgeS	<-matrix(ncol=MaxAge,nrow=InitYear)
-
-tempExp	<-(maxExp+minExp)/2
-tempF		<- -log(1-tempExp)
-tempFsrsN	<-ExpSeries*tempF
-tempFsrsS	<-ExpSeries*tempF
-
-for (j in 2:InitYear)
-{
- for (i in 2:(MaxAge-1))
+ for (j in 2:InitYear)
+ {
+  for (i in 2:(MaxAge-1))
   {
-   tempNn[j,i]		<-tempNn[j-1,i-1]*exp(-tempFsrsN[j]*vulnN[1,i-1])*exp(-NatMn[1])
-   tempNs[j,i]		<-tempNs[j-1,i-1]*exp(-tempFsrsS[j]*vulnS[1,i-1])*exp(-NatMs[1])
-
+   tempNn[j,i,k]		<-tempNn[j-1,i-1,k]*exp(-HistoricalFn[k,j]*vulnN[1,i-1])*exp(-NatMn[j])
+   tempNs[j,i,k]		<-tempNs[j-1,i-1,k]*exp(-HistoricalFs[k,j]*vulnS[1,i-1])*exp(-NatMs[j])
   }
-   tempNn[j,MaxAge]	<-(tempNn[j-1,(MaxAge-1)])*exp(-tempFsrsN[j]*vulnN[1,MaxAge])*exp(-NatMn[1])+ tempNn[j-1,MaxAge]*exp(-tempFsrsN[j]*vulnN[1,MaxAge])*exp(-NatMn[1])
-   tempNs[j,MaxAge]	<-(tempNs[j-1,(MaxAge-1)])*exp(-tempFsrsS[j]*vulnS[1,MaxAge])*exp(-NatMs[1])+ tempNs[j-1,MaxAge]*exp(-tempFsrsS[j]*vulnS[1,MaxAge])*exp(-NatMs[1])
+   #tempNn[,,k]
+   tempNn[j,MaxAge,k]	<-(tempNn[j-1,(MaxAge-1),k])*exp(-HistoricalFn[k,j]*vulnN[j,MaxAge])*exp(-NatMn[j])+ tempNn[j-1,MaxAge,k]*exp(-HistoricalFn[k,j]*vulnN[j,MaxAge])*exp(-NatMn[j])
+   tempNs[j,MaxAge,k]	<-(tempNs[j-1,(MaxAge-1),k])*exp(-HistoricalFs[k,j]*vulnS[j,MaxAge])*exp(-NatMs[j])+ tempNs[j-1,MaxAge,k]*exp(-HistoricalFs[k,j]*vulnS[j,MaxAge])*exp(-NatMs[j])
 
-   EggsN			<-sum(tempNn[j-1,]*matureN[1,]*WeightAtAgeN[1,])
-   EggsS			<-sum(tempNs[j-1,]*matureS[1,]*WeightAtAgeS[1,])
+   EggsN			<-sum(tempNn[j-1,,k]*matureN[j,]*WeightAtAgeN[j,])
+   EggsS			<-sum(tempNs[j-1,,k]*matureS[j,]*WeightAtAgeS[j,])
 
-   tempNn[j,1]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=RecErrN[1,j],recType="BH",NatMin=NatMn[1],
-							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,])
-   tempNs[j,1]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[1],RzeroIN=RzeroS[1],RecErrIN=RecErrS[1,j],recType="BH",NatMin=NatMs[1],
-							vulnIN=vulnS[1,],matureIN=matureS[1,],weightIN=WeightAtAgeS[1,],LenAtAgeIN=LenAtAgeS[1,])
-   tempRecN[j]		<-tempNn[j,1]
-   tempRecS[j]		<-tempNs[j,1]
+   tempNn[j,1,k]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[j],RzeroIN=RzeroN[j],RecErrIN=RecErrN[k,j],recType="BH",NatMin=NatMn[j],
+							vulnIN=vulnN[j,],matureIN=matureN[j,],weightIN=WeightAtAgeN[j,],LenAtAgeIN=LenAtAgeN[j,],MaxAge=MaxAge,sigmaRin=sigmaRn[j])
+   tempNs[j,1,k]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[j],RzeroIN=RzeroS[j],RecErrIN=RecErrS[k,j],recType="BH",NatMin=NatMs[j],
+							vulnIN=vulnS[j,],matureIN=matureS[j,],weightIN=WeightAtAgeS[j,],LenAtAgeIN=LenAtAgeS[j,],MaxAge=MaxAge,sigmaRin=sigmaRs[j])
+   tempRecN[k,j]		<-tempNn[j,1,k]
+   tempRecS[k,j]		<-tempNs[j,1,k]
 
-   tempCatchAtAgeN[j,]	<-((vulnN[1,]*tempFsrsN[j])/(vulnN[1,]*tempFsrsN[j]+NatMn[1])) * (1-exp(-(vulnN[1,]*tempFsrsN[j]+NatMn[1]))) * tempNn[j-1,]
-   tempCatchN[j]		<-sum(tempCatchAtAgeN[j,]*WeightAtAgeN[1,])
+   tempCatchAtAgeN[j,,k]<-((vulnN[j,]*HistoricalFn[k,j])/(vulnN[j,]*HistoricalFn[k,j]+NatMn[j])) * (1-exp(-(vulnN[j,]*HistoricalFn[k,j]+NatMn[j]))) * tempNn[j-1,,k]
+   tempCatchN[k,j]	<-sum(tempCatchAtAgeN[j,,k]*WeightAtAgeN[j,])
 
-   tempCatchAtAgeS[j,]	<-((vulnS[1,]*tempFsrsS[j])/(vulnS[1,]*tempFsrsS[j]+NatMs[1])) * (1-exp(-(vulnS[1,]*tempFsrsS[j]+NatMs[1]))) * tempNs[j-1,]
-   tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[1,])
-
- }
-
-tempDepN	<-sum(tempNn[InitYear,]*matureN[1,]*WeightAtAgeN[1,])
-tempDepS	<-sum(tempNs[InitYear,]*matureS[1,]*WeightAtAgeS[1,])
-tempDep	<-tempDepN+tempDepS
-
-if(tempDep>targetDep)
- minExp	<-tempExp
-if(tempDep<targetDep)
- maxExp	<-tempExp
-initExp	<-tempExp
-}
-HistoricalF<-ExpSeries*tempExp
-print(c("Final Depletion",tempDep))
-}
-
-if(depletion==0)
-{
-tempNn	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempNn[1,]	<-VirInitN
-tempNs	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempNs[1,]	<-VirInitS
-tempCatchN	<-rep(0,InitYear)
-tempCatchS	<-rep(0,InitYear)
-tempRecN	<-rep(0,InitYear)
-tempRecS	<-rep(0,InitYear)
-tempCatchAtAgeN	<-matrix(ncol=MaxAge,nrow=InitYear)
-tempCatchAtAgeS	<-matrix(ncol=MaxAge,nrow=InitYear)
-
-HistoricalFs<-HistoricalF
-HistoricalFn<-HistoricalF
-
-for (j in 2:InitYear)
-{
- for (i in 2:(MaxAge-1))
-  {
-   tempNn[j,i]		<-tempNn[j-1,i-1]*exp(-HistoricalFn[j]*vulnN[1,i-1])*exp(-NatMn[j])
-   tempNs[j,i]		<-tempNs[j-1,i-1]*exp(-HistoricalFs[j]*vulnS[1,i-1])*exp(-NatMs[j])
-
-  }
-   tempNn[j,MaxAge]	<-(tempNn[j-1,(MaxAge-1)])*exp(-HistoricalFn[j]*vulnN[1,MaxAge])*exp(-NatMn[j])+ tempNn[j-1,MaxAge]*exp(-HistoricalFn[j]*vulnN[1,MaxAge])*exp(-NatMn[j])
-   tempNs[j,MaxAge]	<-(tempNs[j-1,(MaxAge-1)])*exp(-HistoricalFs[j]*vulnS[1,MaxAge])*exp(-NatMs[j])+ tempNs[j-1,MaxAge]*exp(-HistoricalFs[j]*vulnS[1,MaxAge])*exp(-NatMs[j])
-
-   EggsN			<-sum(tempNn[j-1,]*matureN[1,]*WeightAtAgeN[1,])
-   EggsS			<-sum(tempNs[j-1,]*matureS[1,]*WeightAtAgeS[1,])
-
-   tempNn[j,1]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=RecErrN[1,j],recType="BH",NatMin=NatMn[j],
-							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,],MaxAge=MaxAge)
-   tempNs[j,1]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[1],RzeroIN=RzeroS[1],RecErrIN=RecErrS[1,j],recType="BH",NatMin=NatMs[j],
-							vulnIN=vulnS[1,],matureIN=matureS[1,],weightIN=WeightAtAgeS[1,],LenAtAgeIN=LenAtAgeS[1,],MaxAge=MaxAge)
-   tempRecN[j]		<-tempNn[j,1]
-   tempRecS[j]		<-tempNs[j,1]
-
-   tempCatchAtAgeN[j,]	<-((vulnN[1,]*HistoricalFn[j])/(vulnN[1,]*HistoricalFn[j]+NatMn[j])) * (1-exp(-(vulnN[1,]*HistoricalFn[j]+NatMn[j]))) * tempNn[j-1,]
-   tempCatchN[j]		<-sum(tempCatchAtAgeN[j,]*WeightAtAgeN[1,])
-
-   tempCatchAtAgeS[j,]	<-((vulnS[1,]*HistoricalFs[j])/(vulnS[1,]*HistoricalFs[j]+NatMs[j])) * (1-exp(-(vulnS[1,]*HistoricalFs[j]+NatMs[j]))) * tempNs[j-1,]
-   tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[1,])
-
+   tempCatchAtAgeS[j,,k]<-((vulnS[j,]*HistoricalFs[k,j])/(vulnS[j,]*HistoricalFs[k,j]+NatMs[j])) * (1-exp(-(vulnS[j,]*HistoricalFs[k,j]+NatMs[j]))) * tempNs[j-1,,k]
+   tempCatchS[k,j]	<-sum(tempCatchAtAgeS[j,,k]*WeightAtAgeS[j,])
  }
 }
-
-#if(LifeHistoryPlots==1)
-# PlotLifeHistory()
-
 #===============================================================
 # BEGIN SIMULATION OF ASSESSMENT AND HARVEST
 #===============================================================
@@ -407,7 +289,49 @@ for(x in 1:Nsim)
 trueSpbio		<-matrix(ncol=SimYear,nrow=Nsim)
 trueSurvInd		<-matrix(ncol=SimYear,nrow=Nsim)
 trueCPUEind		<-matrix(ncol=SimYear,nrow=Nsim)
-trueB35		<-matrix(ncol=SimYear,nrow=Nsim)
+
+#========================================================================
+# FIND REFERENCE POINTS FOR THE POPULATION 
+#========================================================================
+if(PlotYieldCurve==1)
+{
+SearchFmort		<-seq(0.01,3*NatMn[1],(NatMn[1]-0.01)/100)
+SearchYield		<-rep(0,length(SearchFmort))
+SearchBiomass	<-rep(0,length(SearchFmort))
+for(p in 1:length(SearchFmort))
+{
+tempOut<-ProjPopDym(SearchFmort[p])
+SearchYield[p]<-tempOut[[1]]
+SearchBiomass[p]<-tempOut[[2]]
+}
+dev.new()
+par(mfrow=c(1,2))
+plot(SearchYield~SearchFmort)
+plot(SearchYield~SearchBiomass)
+}
+
+#============================================
+# calculate 'true' reference points
+# figure out a way to determine when to do this for all sims and when for just 1
+# as long as population parametesr are from the same control file, this should be the same 
+# for all populations regardless of fishing history or recruitment
+#===================================
+FindFMSYin<-1
+if(FindFMSYin==1)
+{
+x<-0.3
+FmsyOut	<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs)
+trueFMSY	<-FmsyOut$par
+trueUMSY	<- 1-(exp(-trueFMSY))
+trueBMSY	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs)[[2]]
+trueMSY	<- -FmsyOut$objective
+}
 
 #======================================
 # calculate reference point proxies
@@ -419,15 +343,20 @@ outsF35	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
 				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
 				LenAtAgeS=LenAtAgeS,inRec=ConstRec)
 
-trueB35[,InitYear]<-outsF35[[2]]*mean(tempRecS+tempRecN)  
-trueF35		<-outsF35[[1]]
+ 
+trueF35	<-outsF35[[1]]
+trueB35	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs)[[2]]
 
 
 #==============================================================
 # calculate the catch proportion at (length) for assessment
 #==============================================================
- tempCatAtLenN<-matrix(nrow=ncol(LenAtAgeN),ncol=LengthBinN)
- tempCatAtLenS<-matrix(nrow=ncol(LenAtAgeS),ncol=LengthBinN)
+ tempCatAtLenN<-array(dim=c(ncol(LenAtAgeN),LengthBinN,Nsim))
+ tempCatAtLenS<-array(dim=c(ncol(LenAtAgeN),LengthBinN,Nsim))
 
 for(x in 1:Nsim)
  for(y in 2:InitYear)
@@ -437,13 +366,13 @@ for(x in 1:Nsim)
  {
   probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
   ProbN<-probtemp/sum(probtemp)
-  tempCatAtLenN[w,]<-tempCatchAtAgeN[y,w]*ProbN
+  tempCatAtLenN[w,,x]<-tempCatchAtAgeN[y,w,x]*ProbN
   probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeS[y,w],sd=GrowthSDs[y])
   ProbS<-probtemp/sum(probtemp)
-  tempCatAtLenS[w,]<-tempCatchAtAgeS[y,w]*ProbS
+  tempCatAtLenS[w,,x]<-tempCatchAtAgeS[y,w,x]*ProbS
  }
- projCatLenFreqN[y,,x]<-apply(tempCatAtLenN,2,sum)
- projCatLenFreqS[y,,x]<-apply(tempCatAtLenS,2,sum)
+ projCatLenFreqN[y,,x]<-apply(tempCatAtLenN[,,x],2,sum)
+ projCatLenFreqS[y,,x]<-apply(tempCatAtLenS[,,x],2,sum)
 }
 
 if(AssessmentData==1)
@@ -457,8 +386,9 @@ if(AssessmentData==1)
 #==============================================================
 # calculate the survey proportion at length for assessment
 #==============================================================
- tempSurvAtLenN<-matrix(nrow=ncol(LenAtAgeN),ncol=LengthBinN)
- tempSurvAtLenS<-matrix(nrow=ncol(LenAtAgeS),ncol=LengthBinN)
+ tempSurvAtLenN<-array(dim=c(ncol(LenAtAgeN),LengthBinN,Nsim))
+ tempSurvAtLenS<-array(dim=c(ncol(LenAtAgeN),LengthBinN,Nsim))
+
 for(x in 1:Nsim)
  for(y in 2:InitYear)
  {
@@ -467,13 +397,13 @@ for(x in 1:Nsim)
  {
   probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
   ProbN<-probtemp/sum(probtemp)
-  tempSurvAtLenN[w,]<-tempNn[y,w]*survSelN[y,w]*ProbN
+  tempSurvAtLenN[w,,x]<-tempNn[y,w,x]*survSelN[y,w]*ProbN
   probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeS[y,w],sd=GrowthSDs[y])
   ProbS<-probtemp/sum(probtemp)
-  tempSurvAtLenS[w,]<-tempNs[y,w]*survSelS[y,w]*ProbS
+  tempSurvAtLenS[w,,x]<-tempNs[y,w,x]*survSelS[y,w]*ProbS
  }
- projSurvLenFreqN[y,,x]<-apply(tempSurvAtLenN,2,sum)
- projSurvLenFreqS[y,,x]<-apply(tempSurvAtLenS,2,sum)
+ projSurvLenFreqN[y,,x]<-apply(tempSurvAtLenN[,,x],2,sum)
+ projSurvLenFreqS[y,,x]<-apply(tempSurvAtLenS[,,x],2,sum)
 }
 
 if(AssessmentData==1)
@@ -487,31 +417,32 @@ if(AssessmentData==1)
 #==transfer historical time series from above
 for(x in 1:Nsim)
 {
-projNn[1:InitYear,,x]			<-tempNn
-projNs[1:InitYear,,x]			<-tempNs
-projCatchN[x,1:InitYear]		<-tempCatchN
-projCatchS[x,1:InitYear]		<-tempCatchS
-projRecN[x,1:InitYear]			<-tempRecN
-projRecS[x,1:InitYear]			<-tempRecS
-projFmortN[x,1:InitYear]		<-HistoricalF
-projFmortS[x,1:InitYear]		<-HistoricalF
-projSurvN[x,1:InitYear]			<-apply(tempNn*survSelN[1:InitYear,]*WeightAtAgeN[1:InitYear,],1,sum)
-projSurvS[x,1:InitYear]			<-apply(tempNs*survSelS[1:InitYear,]*WeightAtAgeS[1:InitYear,],1,sum)
+projNn[1:InitYear,,x]			<-tempNn[,,x]
+projNs[1:InitYear,,x]			<-tempNs[,,x]
+projCatchN[x,1:InitYear]		<-tempCatchN[x,]
+projCatchS[x,1:InitYear]		<-tempCatchS[x,]
+projRecN[x,1:InitYear]			<-tempRecN[x,]
+projRecS[x,1:InitYear]			<-tempRecS[x,]
+projFmortN[x,1:InitYear]		<-HistoricalFn[x,]
+projFmortS[x,1:InitYear]		<-HistoricalFs[x,]
+projSurvN[x,1:InitYear]			<-apply(tempNn[,,x]*survSelN[1:InitYear,]*WeightAtAgeN[1:InitYear,],1,sum)
+projSurvS[x,1:InitYear]			<-apply(tempNs[,,x]*survSelS[1:InitYear,]*WeightAtAgeS[1:InitYear,],1,sum)
+
+for(y in 1:InitYear)
+{
+ projSSBn[x,y]	<-sum(projNn[y,,x]*matureN[y,]*WeightAtAgeN[y,])
+ projSSBs[x,y]	<-sum(projNs[y,,x]*matureS[y,]*WeightAtAgeS[y,])
+ projExpBn[x,y]	<-sum(projNn[y,,x]*vulnN[y,]*WeightAtAgeN[y,])
+ projExpBs[x,y]	<-sum(projNs[y,,x]*vulnS[y,]*WeightAtAgeS[y,])
+}
 }
 
-for(x in 1:InitYear)
-{
- projSSBn[,x]	<-sum(projNn[x,,1]*matureN[1,]*WeightAtAgeN[1,])
- projSSBs[,x]	<-sum(projNs[x,,1]*matureS[1,]*WeightAtAgeS[1,])
- projExpBn[,x]	<-sum(projNn[x,,1]*vulnN[1,]*WeightAtAgeN[1,])
- projExpBs[,x]	<-sum(projNs[x,,1]*vulnS[1,]*WeightAtAgeS[1,])
-}
 
 #==fill in true storage arrays
 for(x in 1:Nsim)
 {
-trueRec[x,1:InitYear]		<-tempRecN+tempRecS		
-trueCatch[x,1:InitYear]		<-tempCatchN+tempCatchS		
+trueRec[x,1:InitYear]		<-tempRecN[x,]+tempRecS	[x,]	
+trueCatch[x,1:InitYear]		<-tempCatchN[x,]+tempCatchS[x,]		
 trueSpbio[x,1:InitYear]		<-projSSBn[x,1:InitYear]+projSSBs[x,1:InitYear]	
 trueSurvInd[x,1:InitYear]	<-projSurvN[x,1:InitYear]+projSurvS[x,1:InitYear]
 trueCPUEind[x,1:InitYear]	<-projExpBn[x,1:InitYear]+projExpBs[x,1:InitYear]	
@@ -519,28 +450,28 @@ trueCPUEind[x,1:InitYear]	<-projExpBn[x,1:InitYear]+projExpBs[x,1:InitYear]
 
 CatchErrorN		<-matrix(rnorm(Nsim*SimYear,0,CatchCVn),nrow=Nsim,ncol=SimYear)
 CatchErrorS		<-matrix(rnorm(Nsim*SimYear,0,CatchCVs),nrow=Nsim,ncol=SimYear)
-CatchAssessN	<-projCatchN*exp(CatchErrorN)
-CatchAssessS	<-projCatchS*exp(CatchErrorS)
+CatchAssessN	<-projCatchN*exp(CatchErrorN-(CatchCVn^2/2))
+CatchAssessS	<-projCatchS*exp(CatchErrorS-(CatchCVs^2/2))
 
 CPUEErrorN		<-matrix(rnorm(Nsim*SimYear,0,IndexCVn),nrow=Nsim,ncol=SimYear)
 CPUEErrorS		<-matrix(rnorm(Nsim*SimYear,0,IndexCVs),nrow=Nsim,ncol=SimYear)
-CPUEAssessN		<-projExpBn*exp(CPUEErrorN)
-CPUEAssessS		<-projExpBs*exp(CPUEErrorS)
+CPUEAssessN		<-projExpBn*exp(CPUEErrorN-(IndexCVn^2/2))
+CPUEAssessS		<-projExpBs*exp(CPUEErrorS-(IndexCVs^2/2))
 
 SurvErrorN		<-matrix(rnorm(Nsim*SimYear,0,IndexCVn),nrow=Nsim,ncol=SimYear)
 SurvErrorS		<-matrix(rnorm(Nsim*SimYear,0,IndexCVs),nrow=Nsim,ncol=SimYear)
-SurvAssessN		<-projSurvN*exp(SurvErrorN)
-SurvAssessS		<-projSurvS*exp(SurvErrorS)
+SurvAssessN		<-projSurvN*exp(SurvErrorN-(IndexCVn^2/2))
+SurvAssessS		<-projSurvS*exp(SurvErrorS-(IndexCVs^2/2))
 
 #==storage for management and assessment quantities
-FMSY<-matrix(nrow=Nsim,ncol=SimYear)
-BMSY<-matrix(nrow=Nsim,ncol=SimYear)
-TAC<-matrix(nrow=Nsim,ncol=SimYear)
-trueTAC<-matrix(nrow=Nsim,ncol=SimYear)
-trueOFL<-matrix(nrow=Nsim,ncol=SimYear)
-CurBio<-matrix(nrow=Nsim,ncol=SimYear)
-EstBio<-matrix(nrow=Nsim,ncol=SimYear)
-
+FMSY		<-matrix(nrow=Nsim,ncol=SimYear)
+BMSY		<-matrix(nrow=Nsim,ncol=SimYear)
+TAC		<-matrix(nrow=Nsim,ncol=SimYear)
+trueTAC	<-matrix(nrow=Nsim,ncol=SimYear)
+trueOFL	<-matrix(nrow=Nsim,ncol=SimYear)
+CurBio	<-matrix(nrow=Nsim,ncol=SimYear)
+EstBio	<-matrix(nrow=Nsim,ncol=SimYear)
+Converge	<-matrix(nrow=Nsim,ncol=SimYear)
 
 #=================================================================================
 #==BEGIN PROJECTIONS===========================================================
@@ -564,12 +495,14 @@ for(z in 1:Nsim)
  setwd(CurDir)
  dir.create(CreateFolderName)
  setwd(CreateFolderName)
-
+# InitBzeroMod<-1
+# InitGrowthRate<-.2
  if(y==(InitYear+1))
-  x		<-c(1.2*(VirBioN+VirBioS),0.3)	#initial values
+  x		<-c(InitBzeroMod*(VirBioN+VirBioS),InitGrowthRate)	#initial values
  if(y>(InitYear+1))
   x		<-outs$par
  outs		<-nlminb(start=x,objective=ProdMod,CatchData=CatchData[2:(y-1)],IndexData=CPUEData[2:(y-1)])
+ Converge[z,y]<-outs$convergence
  PredBio	<-ProdModPlot(outs$par,CatchData[2:(y-1)],CPUEData[2:(y-1)],plots=EstimationPlots)
  FMSY[z,y] 	<-abs(outs$par[2])/2
  BMSY[z,y]	<-abs(outs$par[1])/2
@@ -632,12 +565,64 @@ for(z in 1:Nsim)
 
  cat("#data cpue","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
- cat(CPUEData[m,],"\n",file=inFile,append=TRUE)
+ cat(CPUEData,"\n",file=inFile,append=TRUE)
 
  }
 }
 
- #==Age-structured model
+#==Projection based model--no assessment
+ if(AssessmentType == 0)
+ {
+ #==make folder if it isn't there
+ setwd(CurDir)
+ dir.create(CreateFolderName)
+ dir.create(paste(CreateFolderName,"/",z,sep=""))
+ IndSimFolder<-paste(CreateFolderName,"/",z,"/",y,sep="")
+ dir.create(IndSimFolder)
+
+ #==write the true values
+ setwd(IndSimFolder)
+ file.create("TrueQuantities.DAT")
+ cat("#True quantities","\n",file="TrueQuantities.DAT")
+ cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#recruitment","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
+ cat(trueRec[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#Catch","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
+ cat(trueCatch[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#fishing mortality","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
+ cat(trueFmort[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#spawning biomass","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
+ cat(trueSpbio[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#survey index","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
+ cat(trueSurvInd[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#cpue index","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
+ cat(trueCPUEind[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ #cat("#total allowable catch","\n",file="TrueQuantities.DAT",append=TRUE)
+ #cat(trueTAC[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#BMSY","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueBMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#FMSY","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueFMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#B35","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueB35,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#F35","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueF35,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#OFL","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueOFL[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+
+ #==calculate the TAC based on a SRR or a proxy, depending on data
+ #==allow this to be a user defined function of any of the things that can be input
+ TAC[z,y]	<-trueSpbio[z,y-1]*(1-exp(-ConstantF))
+ }
+
+ #==Age-structured assessment model for setting the TAC
  if(AssessmentType == 2)
  {
  #==make folder if it isn't there
@@ -657,16 +642,22 @@ for(z in 1:Nsim)
  cat("#True quantities","\n",file="TrueQuantities.DAT")
  cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#recruitment","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
  cat(trueRec[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#Catch","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
  cat(trueCatch[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#fishing mortality","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
  cat(trueFmort[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#spawning biomass","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
  cat(trueSpbio[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#survey index","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
  cat(trueSurvInd[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#cpue index","\n",file="TrueQuantities.DAT",append=TRUE)
+ for(z in 1:Nsim)
  cat(trueCPUEind[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
  #cat("#total allowable catch","\n",file="TrueQuantities.DAT",append=TRUE)
  #cat(trueTAC[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
@@ -676,7 +667,7 @@ for(z in 1:Nsim)
  cat("#FMSY","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueFMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#B35","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueB35[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueB35,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#F35","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueF35,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#OFL","\n",file="TrueQuantities.DAT",append=TRUE)
@@ -935,8 +926,6 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
  }
  ApplyF	<- -log(1-tempExp)
 
- #ApplyFn	<-ApplyF*CatchShareN
- #ApplyFs	<-ApplyF*CatchShareS
  ApplyFn	<-ApplyF
  ApplyFs	<-ApplyF
  }
@@ -966,16 +955,16 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    projSurvS[z,y]	<-sum(projNs[y-1,,z]*survSelS[y,]*WeightAtAgeS[y,])
 
    trueCatch[z,y]		<-projCatchN[z,y]+projCatchS[z,y]
-   CatchAssessN[z,y]	<-projCatchN[z,y]*exp(CatchErrorN[z,y])
-   CatchAssessS[z,y]	<-projCatchS[z,y]*exp(CatchErrorS[z,y])
+   CatchAssessN[z,y]	<-projCatchN[z,y]*exp(CatchErrorN[z,y]-(CatchCVn[y]^2/2))
+   CatchAssessS[z,y]	<-projCatchS[z,y]*exp(CatchErrorS[z,y]-(CatchCVs[y]^2/2))
 
    trueCPUEind[z,y]	<-projExpBn[z,y]+projExpBs[z,y]
-   CPUEAssessN[z,y]	<-projExpBn[z,y]*exp(CPUEErrorN[z,y])
-   CPUEAssessS[z,y]	<-projExpBs[z,y]*exp(CPUEErrorS[z,y])
+   CPUEAssessN[z,y]	<-projExpBn[z,y]*exp(CPUEErrorN[z,y]-(IndexCVn[y]^2/2))
+   CPUEAssessS[z,y]	<-projExpBs[z,y]*exp(CPUEErrorS[z,y]-(IndexCVs[y]^2/2))
 
    trueSurvInd[z,y]	<-projSurvN[z,y]+projSurvS[z,y]
-   SurvAssessN[z,y]	<-projSurvN[z,y]*exp(SurvErrorN[z,y])
-   SurvAssessS[z,y]	<-projSurvS[z,y]*exp(SurvErrorS[z,y])
+   SurvAssessN[z,y]	<-projSurvN[z,y]*exp(SurvErrorN[z,y]-(IndexCVn[y]^2/2))
+   SurvAssessS[z,y]	<-projSurvS[z,y]*exp(SurvErrorS[z,y]-(IndexCVs[y]^2/2))
    
    trueSpbio[z,y]		<-projSSBn[z,y]+projSSBs[z,y]
 
@@ -984,13 +973,13 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 	 {
 	  probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
 	  ProbN<-probtemp/sum(probtemp)
-	  tempCatAtLenN[w,]<-projCatchAtAgeN[y,w,z]*ProbN
+	  tempCatAtLenN[w,,z]<-projCatchAtAgeN[y,w,z]*ProbN
 	  probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeS[y,w],sd=GrowthSDs[y])
 	  ProbS<-probtemp/sum(probtemp)
-	  tempCatAtLenS[w,]<-projCatchAtAgeS[y,w,z]*ProbS
+	  tempCatAtLenS[w,,z]<-projCatchAtAgeS[y,w,z]*ProbS
 	 }
-	 projCatLenFreqN[y,,z]<-apply(tempCatAtLenN,2,sum)
-	 projCatLenFreqS[y,,z]<-apply(tempCatAtLenS,2,sum)
+	 projCatLenFreqN[y,,z]<-apply(tempCatAtLenN[,,z],2,sum)
+	 projCatLenFreqS[y,,z]<-apply(tempCatAtLenS[,,z],2,sum)
 
   #==============================================================
   # calculate the survey proportion at age (length) for assessment
@@ -1000,17 +989,17 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
     {
 	probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeN[y,w],sd=GrowthSDn[y])
 	ProbN<-probtemp/sum(probtemp)
-	tempSurvAtLenN[w,]<-projNn[y-1,w,z]*survSelN[y,w]*ProbN
+	tempSurvAtLenN[w,,z]<-projNn[y-1,w,z]*survSelN[y,w]*ProbN
 	probtemp<-dnorm(LengthBinsMid,mean=LenAtAgeS[y,w],sd=GrowthSDs[y])
 	ProbS<-probtemp/sum(probtemp)
-	tempSurvAtLenS[w,]<-projNs[y-1,w,z]*survSelS[y,w]*ProbS
+	tempSurvAtLenS[w,,z]<-projNs[y-1,w,z]*survSelS[y,w]*ProbS
      }
 
-    projSurvLenFreqN[y,,z]<-apply(tempSurvAtLenN,2,sum)
-    projSurvLenFreqS[y,,z]<-apply(tempSurvAtLenS,2,sum)
+    projSurvLenFreqN[y,,z]<-apply(tempSurvAtLenN[,,z],2,sum)
+    projSurvLenFreqS[y,,z]<-apply(tempSurvAtLenS[,,z],2,sum)
 
-    sum(projSurvLenFreqN[y,,z])
-    sum(projNn[y,,z])
+   # sum(projSurvLenFreqN[y,,z])
+   # sum(projNn[y,,z])
 
  #==apply F that would take a calculated TAC====================================================
  #==update population dynamics
@@ -1026,23 +1015,20 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    EggsS				<-sum(projNs[y-1,,z]*matureS[y,]*WeightAtAgeS[y,])
 
    projNn[y,1,z]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[y],RzeroIN=RzeroN[y],RecErrIN=RecErrN[z,y],recType="BH",NatMin=NatMn[y],
-							vulnIN=vulnN[y,],matureIN=matureN[y,],weightIN=WeightAtAgeN[y,],LenAtAgeIN=LenAtAgeN[y,],MaxAge=MaxAge)
+							vulnIN=vulnN[y,],matureIN=matureN[y,],weightIN=WeightAtAgeN[y,],LenAtAgeIN=LenAtAgeN[y,],MaxAge=MaxAge,sigmaRin=sigmaRn[y])
    projNs[y,1,z]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[y],RzeroIN=RzeroS[y],RecErrIN=RecErrS[z,y],recType="BH",NatMin=NatMs[y],
-							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge)
+							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge,sigmaRin=sigmaRs[y])
    trueRec[z,y]		<-projNn[y,1,z]+projNs[y,1,z]
 
  #==calculate true OFL
-
- trueB35[z,y]<-outsF35[[2]]*trueRec[z,y]
-
-  #==find FOFL given spawning biomass
+ #==find FOFL given spawning biomass
   tempSpBio			<-EggsN+EggsS
   FutMort			<-trueF35
-  if(tempSpBio<trueB35[z,y])
+  if(tempSpBio<trueB35)
   {
    FutMort<-0
-   if(tempSpBio>HCbeta*trueB35[z,y])
-    FutMort = trueF35*(tempSpBio/trueB35[z,y]-HCalpha)/(1-HCalpha);
+   if(tempSpBio>HCbeta*trueB35)
+    FutMort = trueF35*(tempSpBio/trueB35-HCalpha)/(1-HCalpha);
    }
   #==find the catch for the FOFL
    trueCatchAtAgeN	<-((vulnN[y,]*FutMort)/(vulnN[y,]*FutMort+NatMn[y])) * (1-exp(-(vulnN[y,]*FutMort+NatMn[y]))) * projNn[y-1,,z]
@@ -1059,8 +1045,4 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 
 } # end of GeMS
 
-
-#============================================================================
-#==Plot a bunch of stuff====================================================
-#===========================================================================
 
