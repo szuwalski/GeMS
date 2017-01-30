@@ -14,30 +14,38 @@ GeMS<-function(out,CreateFolderName)
 #=======================
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
-InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available)
-AssessmentType	<-out$OM$AssessmentType		# this can be "Production" or "Non-spatial age" ("Spatial age" and "Time-varying production" in the works)
+InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available for initial assessment)
+AssessmentType	<-out$OM$AssessmentType		# 0 = projection only, 1 = production, 2= agestructured
 FisheryIndepenDat <-out$OM$FisheryIndepenDat
 LifeHistoryPlots	<-out$OM$LifeHistoryPlots
 EstimationPlots	<-out$OM$EstimationPlots	# this plots the diagnostics for each run of the estimation model (will be a lot of plots!)
 AssessmentData	<-out$OM$AssessmentData		# this plots the diagnostics for each run of the estimation model (will be a lot of plots!)
 PlotYieldCurve	<-out$OM$PlotYieldCurve
+TwoPop		<-out$OM$TwoPop
 
-depletion		<-out$OM$depletion		# model is conditioned to a specific depletion given a trajectory of effort
-CatchShareN		<-out$OM$CatchShareN		# the amount of effort allocated to a given area
-CatchShareS		<-1-CatchShareN
+PlotFolder<-paste(CurDir,"/plots",sep="")
+dir.create(PlotFolder)
 
-#==sampling uncertainty (change this to be time-varying as well)
+#==sampling uncertainty 
 CatchCVn	<-CleanInput(out$OM$CatchCVn,SimYear)
-CatchCVs	<-CleanInput(out$OM$CatchCVs,SimYear)
+CatchCVs	<-CatchCVn
+if(TwoPop>0) 
+ CatchCVs	<-CleanInput(out$OM$CatchCVs,SimYear)
 
 IndexCVn	<-CleanInput(out$OM$IndexCVn,SimYear)
-IndexCVs	<-CleanInput(out$OM$IndexCVs,SimYear)
+IndexCVs	<-IndexCVn
+if(TwoPop>0) 
+ IndexCVs	<-CleanInput(out$OM$IndexCVs,SimYear)
 
 LenSampleN	<-CleanInput(out$OM$LenSampleN,SimYear)
-LenSampleS	<-CleanInput(out$OM$LenSampleS,SimYear)
+LenSampleS	<-LenSampleN
+if(TwoPop>0) 
+ LenSampleS	<-CleanInput(out$OM$LenSampleS,SimYear)
 
 GrowthSDn	<-CleanInput(out$OM$GrowthSDn,SimYear)
-GrowthSDs	<-CleanInput(out$OM$GrowthSDs,SimYear)
+GrowthSDs	<-GrowthSDn
+if(TwoPop>0) 
+ GrowthSDs	<-CleanInput(out$OM$GrowthSDs,SimYear)
 
 #==========================================================
 #=================population dynamics processes============
@@ -46,23 +54,38 @@ MaxAge<-out$OM$MaxAge
 Ages<-seq(1,MaxAge)
 
 #==natural mortality================
- NatMn		<-CleanInput(out$OM$NatMn,SimYear)
- NatMs		<-CleanInput(out$OM$NatMn,SimYear)
+ NatMn	<-CleanInput(out$OM$NatMn,SimYear)
+ NatMs	<-NatMn
+if(TwoPop>0) 
+ NatMs	<-CleanInput(out$OM$NatMn,SimYear)
 
 #==Length at age====================
 VonKn		<-CleanInput(out$OM$VonKn,SimYear)
 LinfN		<-CleanInput(out$OM$LinfN,SimYear)
 t0n		<-CleanInput(out$OM$t0n,SimYear)
 LenAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
-for(i in 1:SimYear)
- LenAtAgeN[i,]<-LinfN[i]*(1-exp(-VonKn[i]*(Ages-t0n[i])))
 
+LenAtAgeN[1,]<-LinfN[1]*(1-exp(-VonKn[1]*(Ages-t0n[1])))
+LenAtAgeN[,1]<-LenAtAgeN[1,1]
+for(i in 2:SimYear)
+ for(j in 2:MaxAge)
+  LenAtAgeN[i,j]<-LenAtAgeN[i-1,j-1]+(LinfN[i]-LenAtAgeN[i-1,j-1])*(1-exp(-VonKn[i]))
+
+LenAtAgeS<-LenAtAgeN
+
+if(TwoPop>0)
+{ 
 VonKs		<-CleanInput(out$OM$VonKs,SimYear)
 LinfS		<-CleanInput(out$OM$LinfS,SimYear)
 t0s		<-CleanInput(out$OM$t0s,SimYear)
 LenAtAgeS	<-matrix(nrow=SimYear,ncol=MaxAge)
-for(i in 1:SimYear)
- LenAtAgeS[i,]<-LinfS[i]*(1-exp(-VonKs[i]*(Ages-t0s[i])))
+
+LenAtAgeS[1,]<-LinfS[1]*(1-exp(-VonKs[1]*(Ages-t0s[1])))
+LenAtAgeS[,1]<-LenAtAgeS[1,1]
+for(i in 2:SimYear)
+ for(j in 2:MaxAge)
+  LenAtAgeS[i,j]<-LenAtAgeS[i-1,j-1]+(LinfS[i]-LenAtAgeS[i-1,j-1])*(1-exp(-VonKs[i]))
+}
 
 #==specify the number of length bins
  BinWidth		<-(max(LenAtAgeS,LenAtAgeN)*1.05)/(out$OM$LengthBinN)
@@ -77,11 +100,16 @@ matureN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  matureN[i,]<-1/(1+exp(-1*log(19)*(Ages-mat50n[i])/(mat95n[i]-mat50n[i])))
 
+matureS	<-matureN
+
+if(TwoPop>0) 
+{
 mat50s	<-CleanInput(out$OM$mat50s,SimYear)
 mat95s	<-CleanInput(out$OM$mat95s,SimYear)
 matureS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  matureS[i,]<-1/(1+exp(-1*log(19)*(Ages-mat50s[i])/(mat95s[i]-mat50s[i])))
+}
 
 #=====================================
 #==fishery selectivitiy============== 
@@ -92,7 +120,9 @@ for(i in 1:SimYear)
  vulnN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-sel50n[i])/(sel95n[i]-sel50n[i])))
 
 vulnN[vulnN<0.01]<-0
-
+vulnS		<-vulnN
+if(TwoPop>0) 
+{
 sel50s	<-CleanInput(out$OM$sel50s,SimYear)
 sel95s	<-CleanInput(out$OM$sel95s,SimYear)
 vulnS		<-matrix(nrow=SimYear,ncol=MaxAge)
@@ -100,7 +130,7 @@ for(i in 1:SimYear)
  vulnS[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-sel50s[i])/(sel95s[i]-sel50s[i])))
 
 vulnS[vulnS<0.01]<-0
-
+}
 #==index selectivity=====================
 surv50n	<-CleanInput(out$OM$surv50n,SimYear)
 surv95n	<-CleanInput(out$OM$surv95n,SimYear)
@@ -108,11 +138,15 @@ survSelN		<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  survSelN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50n[i])/(surv95n[i]-surv50n[i])))
 
+survSelS	<-survSelN
+if(TwoPop>0) 
+{
 surv50s	<-CleanInput(out$OM$surv50s,SimYear)
 surv95s	<-CleanInput(out$OM$surv95s,SimYear)
 survSelS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  survSelS[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50s[i])/(surv95s[i]-surv50s[i])))
+}
 
 #==weight at age==========================
 alphaN		<-CleanInput(out$OM$alphaN,SimYear)
@@ -121,11 +155,15 @@ WeightAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  WeightAtAgeN[i,]	<-alphaN[i]*LenAtAgeN[i,]^betaN[i]
 
+WeightAtAgeS	<-WeightAtAgeN
+if(TwoPop>0) 
+{
 alphaS		<-CleanInput(out$OM$alphaS,SimYear)
 betaS			<-CleanInput(out$OM$betaS,SimYear)
 WeightAtAgeS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  WeightAtAgeS[i,]	<-alphaS[i]*LenAtAgeS[i,]^betaS[i]
+}
 
 #==movement from box to box==
 MaxMovingN	<-CleanInput(out$OM$MaxMovingN,SimYear)
@@ -135,34 +173,66 @@ MovementN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  MovementN[i,]	<-MaxMovingN[i]/(1+exp(-1*log(19)*(Ages-Move50n[i])/(Move95n[i]-Move50n[i])))
 
+MovementS	<-MovementN
+if(TwoPop>0) 
+{
 MaxMovingS	<-CleanInput(out$OM$MaxMovingS,SimYear)
 Move50s	<-CleanInput(out$OM$Move50s,SimYear)
 Move95s	<-CleanInput(out$OM$Move95s,SimYear)
 MovementS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  MovementS[i,]	<-MaxMovingS[i]/(1+exp(-1*log(19)*(Ages-Move50s[i])/(Move95s[i]-Move50s[i])))
+}
+
+if(sum(MovementS)>0 | sum(MovementN)>0) 
+ {print("Movement is occuring between populations")}
 
 #==recruitment parameters==
 steepnessN	<-CleanInput(out$OM$steepnessN,SimYear)
 sigmaRn	<-CleanInput(out$OM$sigmaRn,SimYear)
 RzeroN	<-CleanInput(out$OM$RzeroN,SimYear)
 
+steepnessS	<-steepnessN
+sigmaRs	<-sigmaRn
+RzeroS	<-RzeroN
+
+if(TwoPop>0)
+{
 steepnessS	<-CleanInput(out$OM$steepnessS,SimYear)
 sigmaRs	<-CleanInput(out$OM$sigmaRs,SimYear)
 RzeroS	<-CleanInput(out$OM$RzeroS,SimYear)
+}
 
-#==needs to be changed to allow for all 
 RecErrN	<-matrix(rnorm(SimYear*Nsim,0,sigmaRn),ncol=SimYear,byrow=T)
 RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs),ncol=SimYear,byrow=T)
 
 #==historic fishing mortality
-HistoricalF		<-CleanInput(out$OM$HistoricalF,SimYear)[1:InitYear]
-PastFsd		<-out$OM$PastFsd
-HarvestControl	<-out$OM$HarvestControl
-ConstantCatch	<-out$OM$ConstantCatch
-ConstantF		<-out$OM$ConstantF
-HCalpha		<-out$OM$HCalpha
-HCbeta		<-out$OM$HCbeta
+HistoricalFn	<-CleanInput(out$OM$HistoricalFn,SimYear)[1:InitYear]
+PastFsdN		<-out$OM$PastFsdN
+HarvestControlN	<-out$OM$HarvestControlN
+ConstantCatchN	<-out$OM$ConstantCatchN
+ConstantFn		<-out$OM$ConstantFn
+HCalphaN		<-out$OM$HCalphaN
+HCbetaN		<-out$OM$HCbetaN
+
+HistoricalFs	<-HistoricalFn
+PastFsdS		<-PastFsdN
+HarvestControlS	<-HarvestControlN
+ConstantCatchS	<-ConstantCatchN
+ConstantFs		<-ConstantFn
+HCalphaS		<-HCalphaN
+HCbetaS		<-HCbetaN
+
+if(TwoPop>0)
+{
+HistoricalFs	<-CleanInput(out$OM$HistoricalFs,SimYear)[1:InitYear]
+PastFsdS		<-out$OM$PastFsdS
+HarvestControlS	<-out$OM$HarvestControlS
+ConstantCatchS	<-out$OM$ConstantCatchS
+ConstantFs		<-out$OM$ConstantFs
+HCalphaS		<-out$OM$HCalphaS
+HCbetaS		<-out$OM$HCbetaS
+}
 
 SmallNum		<-out$OM$SmalNum
 InitSmooth		<-out$OM$InitSmooth	
@@ -186,10 +256,8 @@ InitValSig		<-out$OM$InitValSig
 InitBzeroMod	<-out$OM$InitBzeroMod
 InitGrowthRate	<-out$OM$InitGrowthRate
 
-#==expand historical fishing mortality==
-
 #===================================================
-#==Virgin numbers at age, biomass, initial depletion, recruitment
+#==Virgin numbers at age, biomass, recruitment
 #===================================================
 VirInitN		<-initialN(Rzero=RzeroN[1],NatM=NatMn[1],inAge=MaxAge)
 VirInitS		<-initialN(Rzero=RzeroS[1],NatM=NatMs[1],inAge=MaxAge)
@@ -199,6 +267,13 @@ VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
+
+pdf(paste(PlotFolder,"/LifeHistory_",CreateFolderName,".pdf",sep=""))
+par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
+PlotLifeHistory(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSelS,WeightAtAgeN,
+	WeightAtAgeS,MovementN,MovementS,NatMs,NatMn,VirBioN,VirBioS,RzeroN,RecErrN,steepnessN,steepnessS,
+	RzeroS,RecErrS,sigmaRn,sigmaRs,HistoricalFn,HistoricalFs,SimYear,MaxAge)
+dev.off()
 
 #=========================================================================
 # INITALIZE THE POPULATION
@@ -215,11 +290,12 @@ tempCatchAtAgeN	<-array(dim=c(InitYear,MaxAge,Nsim))
 tempCatchAtAgeS	<-array(dim=c(InitYear,MaxAge,Nsim))
 
 #==Make a matrix of past Fs based on a sd and an input time series==
-HistoricalFs<-matrix(HistoricalF,ncol=InitYear,nrow=Nsim,byrow=T)
-HistoricalFn<-matrix(HistoricalF,ncol=InitYear,nrow=Nsim,byrow=T)
-Ferr<-matrix(rnorm(InitYear*Nsim,1,PastFsd),ncol=InitYear)
-HistoricalFs<-HistoricalFs*Ferr
-HistoricalFn<-HistoricalFn*Ferr
+HistoricalFsInit	<-matrix(HistoricalFs,ncol=InitYear,nrow=Nsim,byrow=T)
+HistoricalFnInit	<-matrix(HistoricalFn,ncol=InitYear,nrow=Nsim,byrow=T)
+FerrN			<-matrix(rnorm(InitYear*Nsim,1,PastFsdN),ncol=InitYear)
+FerrS			<-matrix(rnorm(InitYear*Nsim,1,PastFsdS),ncol=InitYear)
+HistoricalFsIn	<-HistoricalFsInit*FerrN
+HistoricalFnIn	<-HistoricalFnInit*FerrS
 
 for(k in 1:Nsim)
 {
@@ -227,12 +303,17 @@ for(k in 1:Nsim)
  {
   for (i in 2:(MaxAge-1))
   {
-   tempNn[j,i,k]		<-tempNn[j-1,i-1,k]*exp(-HistoricalFn[k,j]*vulnN[1,i-1])*exp(-NatMn[j])
-   tempNs[j,i,k]		<-tempNs[j-1,i-1,k]*exp(-HistoricalFs[k,j]*vulnS[1,i-1])*exp(-NatMs[j])
+   tempNn[j,i,k]		<-tempNn[j-1,i-1,k]*exp(-HistoricalFnIn[k,j]*vulnN[1,i-1])*exp(-NatMn[j])
+   tempNs[j,i,k]		<-tempNs[j-1,i-1,k]*exp(-HistoricalFsIn[k,j]*vulnS[1,i-1])*exp(-NatMs[j])
   }
-   #tempNn[,,k]
-   tempNn[j,MaxAge,k]	<-(tempNn[j-1,(MaxAge-1),k])*exp(-HistoricalFn[k,j]*vulnN[j,MaxAge])*exp(-NatMn[j])+ tempNn[j-1,MaxAge,k]*exp(-HistoricalFn[k,j]*vulnN[j,MaxAge])*exp(-NatMn[j])
-   tempNs[j,MaxAge,k]	<-(tempNs[j-1,(MaxAge-1),k])*exp(-HistoricalFs[k,j]*vulnS[j,MaxAge])*exp(-NatMs[j])+ tempNs[j-1,MaxAge,k]*exp(-HistoricalFs[k,j]*vulnS[j,MaxAge])*exp(-NatMs[j])
+   tempNn[j,MaxAge,k]	<-(tempNn[j-1,(MaxAge-1),k])*exp(-HistoricalFnIn[k,j]*vulnN[j,MaxAge])*exp(-NatMn[j])+ tempNn[j-1,MaxAge,k]*exp(-HistoricalFnIn[k,j]*vulnN[j,MaxAge])*exp(-NatMn[j])
+   tempNs[j,MaxAge,k]	<-(tempNs[j-1,(MaxAge-1),k])*exp(-HistoricalFsIn[k,j]*vulnS[j,MaxAge])*exp(-NatMs[j])+ tempNs[j-1,MaxAge,k]*exp(-HistoricalFsIn[k,j]*vulnS[j,MaxAge])*exp(-NatMs[j])
+
+   moveFromN		<-tempNn[j,,k]*MovementN[j,]
+   moveFromS		<-tempNs[j,,k]*MovementS[j,]
+
+   tempNn[j,,k]		<-tempNn[j,,k]-moveFromN+moveFromS
+   tempNs[j,,k]		<-tempNs[j,,k]-moveFromS+moveFromN
 
    EggsN			<-sum(tempNn[j-1,,k]*matureN[j,]*WeightAtAgeN[j,])
    EggsS			<-sum(tempNs[j-1,,k]*matureS[j,]*WeightAtAgeS[j,])
@@ -244,10 +325,10 @@ for(k in 1:Nsim)
    tempRecN[k,j]		<-tempNn[j,1,k]
    tempRecS[k,j]		<-tempNs[j,1,k]
 
-   tempCatchAtAgeN[j,,k]<-((vulnN[j,]*HistoricalFn[k,j])/(vulnN[j,]*HistoricalFn[k,j]+NatMn[j])) * (1-exp(-(vulnN[j,]*HistoricalFn[k,j]+NatMn[j]))) * tempNn[j-1,,k]
+   tempCatchAtAgeN[j,,k]<-((vulnN[j,]*HistoricalFnIn[k,j])/(vulnN[j,]*HistoricalFnIn[k,j]+NatMn[j])) * (1-exp(-(vulnN[j,]*HistoricalFnIn[k,j]+NatMn[j]))) * tempNn[j-1,,k]
    tempCatchN[k,j]	<-sum(tempCatchAtAgeN[j,,k]*WeightAtAgeN[j,])
 
-   tempCatchAtAgeS[j,,k]<-((vulnS[j,]*HistoricalFs[k,j])/(vulnS[j,]*HistoricalFs[k,j]+NatMs[j])) * (1-exp(-(vulnS[j,]*HistoricalFs[k,j]+NatMs[j]))) * tempNs[j-1,,k]
+   tempCatchAtAgeS[j,,k]<-((vulnS[j,]*HistoricalFsIn[k,j])/(vulnS[j,]*HistoricalFsIn[k,j]+NatMs[j])) * (1-exp(-(vulnS[j,]*HistoricalFsIn[k,j]+NatMs[j]))) * tempNs[j-1,,k]
    tempCatchS[k,j]	<-sum(tempCatchAtAgeS[j,,k]*WeightAtAgeS[j,])
  }
 }
@@ -280,36 +361,54 @@ projSurvLenFreqN	<-array(dim=c(SimYear,LengthBinN,Nsim))
 projSurvLenFreqS	<-array(dim=c(SimYear,LengthBinN,Nsim))
 
 #=storage for the true quantities
-trueRec		<-matrix(ncol=SimYear,nrow=Nsim)
-trueCatch		<-matrix(ncol=SimYear,nrow=Nsim)
-trueFmort		<-matrix(ncol=SimYear,nrow=Nsim)
-for(x in 1:Nsim)
- trueFmort[x,1:InitYear]<-HistoricalF
+trueRecN		<-matrix(ncol=SimYear,nrow=Nsim)
+trueCatchN		<-matrix(ncol=SimYear,nrow=Nsim)
 
-trueSpbio		<-matrix(ncol=SimYear,nrow=Nsim)
-trueSurvInd		<-matrix(ncol=SimYear,nrow=Nsim)
-trueCPUEind		<-matrix(ncol=SimYear,nrow=Nsim)
+trueRecS		<-matrix(ncol=SimYear,nrow=Nsim)
+trueCatchS		<-matrix(ncol=SimYear,nrow=Nsim)
+
+trueFmortN		<-matrix(ncol=SimYear,nrow=Nsim)
+for(x in 1:Nsim)
+ trueFmortN[x,1:InitYear]<-HistoricalFn
+trueFmortS		<-matrix(ncol=SimYear,nrow=Nsim)
+for(x in 1:Nsim)
+ trueFmortS[x,1:InitYear]<-HistoricalFn
+
+trueSpbioN		<-matrix(ncol=SimYear,nrow=Nsim)
+trueSurvIndN	<-matrix(ncol=SimYear,nrow=Nsim)
+trueCPUEindN	<-matrix(ncol=SimYear,nrow=Nsim)
+
+trueSpbioS		<-matrix(ncol=SimYear,nrow=Nsim)
+trueSurvIndS	<-matrix(ncol=SimYear,nrow=Nsim)
+trueCPUEindS	<-matrix(ncol=SimYear,nrow=Nsim)
 
 #========================================================================
 # FIND REFERENCE POINTS FOR THE POPULATION 
 #========================================================================
 if(PlotYieldCurve==1)
 {
+pdf(paste(PlotFolder,"/PlotYieldCurve_",CreateFolderName,".pdf",sep=""))
 SearchFmort		<-seq(0.01,3*NatMn[1],(NatMn[1]-0.01)/100)
 SearchYield		<-rep(0,length(SearchFmort))
 SearchBiomass	<-rep(0,length(SearchFmort))
+print("Plotting yield curve")
 for(p in 1:length(SearchFmort))
 {
-tempOut<-ProjPopDym(SearchFmort[p])
+tempOut<-ProjPopDym(fmortN=SearchFmort[p],MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear)
+
 SearchYield[p]<-tempOut[[1]]
 SearchBiomass[p]<-tempOut[[2]]
 }
-dev.new()
+print("Yield curve plotted")
 par(mfrow=c(1,2))
 plot(SearchYield~SearchFmort)
 plot(SearchYield~SearchBiomass)
+dev.off()
 }
-
 #============================================
 # calculate 'true' reference points
 # figure out a way to determine when to do this for all sims and when for just 1
@@ -319,38 +418,74 @@ plot(SearchYield~SearchBiomass)
 FindFMSYin<-1
 if(FindFMSYin==1)
 {
-x<-0.3
-FmsyOut	<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
+#==Find reference points for the initial year of projection
+x			<-0.3
+FmsyOut		<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
                      	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
 				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs)
-trueFMSY	<-FmsyOut$par
-trueUMSY	<- 1-(exp(-trueFMSY))
-trueBMSY	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,vulnN=vulnN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
+				sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)
+trueFMSYbegin	<-FmsyOut$par
+trueUMSYbegin	<- 1-(exp(-trueFMSYbegin))
+trueBMSYbegin	<-ProjPopDym(fmortN=trueFMSYbegin,MaxAge=MaxAge,vulnN=vulnN,
                      	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
 				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs)[[2]]
-trueMSY	<- -FmsyOut$objective
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
+				sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)[[2]]
+trueMSYbegin	<- -FmsyOut$objective
+
+#==find the reference points associated with the final year of projection
+FmsyOut		<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
+				sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,MovementN=MovementN,MovementS=MovementS)
+trueFMSYend		<-FmsyOut$par
+trueUMSYend		<- 1-(exp(-trueFMSYend))
+trueBMSYend		<-ProjPopDym(fmortN=trueFMSYend,MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,
+				MovementN=MovementN,MovementS=MovementS)[[2]]
+trueMSYend		<- -FmsyOut$objective
 }
 
 #======================================
 # calculate reference point proxies
+# MIGHT NEED TWO OF THESE
 #======================================
 ConstRec	<-100000
-outsF35	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
+outsF35in	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
                      	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
 				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
 				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,inRec=ConstRec)
+				LenAtAgeS=LenAtAgeS,inRec=ConstRec,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)
 
  
-trueF35	<-outsF35[[1]]
-trueB35	<-ProjPopDym(fmort=trueFMSY,MaxAge=MaxAge,vulnN=vulnN,
+trueF35in	<-outsF35in[[1]]
+trueB35in	<-ProjPopDym(fmortN=trueF35in,MaxAge=MaxAge,vulnN=vulnN,
                      	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
 				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
 				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs)[[2]]
+				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,
+				MovementN=MovementN,MovementS=MovementS)[[2]]
 
+outsF35out	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,inRec=ConstRec,RefYear=SimYear,
+				MovementN=MovementN,MovementS=MovementS)
+
+ 
+trueF35out	<-outsF35out[[1]]
+trueB35out	<-ProjPopDym(fmortN=trueF35out,MaxAge=MaxAge,vulnN=vulnN,
+                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,
+				MovementN=MovementN,MovementS=MovementS)[[2]]
 
 #==============================================================
 # calculate the catch proportion at (length) for assessment
@@ -377,10 +512,11 @@ for(x in 1:Nsim)
 
 if(AssessmentData==1)
  {
- dev.new()
+ pdf(paste(PlotFolder,"/CatchLengthProportions_",CreateFolderName,".pdf",sep=""))
  par(mfrow=c(ceiling(sqrt(InitYear)),ceiling(sqrt(InitYear))),mar=c(.1,.1,.1,.1))
  for(i in 2:InitYear)
   barplot(rbind(projCatLenFreqN[i,,1],projCatLenFreqS[i,,1]),beside=T,xaxt='n',yaxt='n')
+ dev.off()
  }
 
 #==============================================================
@@ -408,10 +544,11 @@ for(x in 1:Nsim)
 
 if(AssessmentData==1)
  {
- dev.new()
+ pdf(paste(PlotFolder,"/SurveyLengthProportions_",CreateFolderName,".pdf",sep=""))
  par(mfrow=c(ceiling(sqrt(InitYear)),ceiling(sqrt(InitYear))),mar=c(.1,.1,.1,.1))
  for(i in 2:InitYear)
   barplot(rbind(projSurvLenFreqN[i,,1],projSurvLenFreqS[i,,1]),beside=T,xaxt='n',yaxt='n')
+dev.off()
  }
 
 #==transfer historical time series from above
@@ -423,8 +560,8 @@ projCatchN[x,1:InitYear]		<-tempCatchN[x,]
 projCatchS[x,1:InitYear]		<-tempCatchS[x,]
 projRecN[x,1:InitYear]			<-tempRecN[x,]
 projRecS[x,1:InitYear]			<-tempRecS[x,]
-projFmortN[x,1:InitYear]		<-HistoricalFn[x,]
-projFmortS[x,1:InitYear]		<-HistoricalFs[x,]
+projFmortN[x,1:InitYear]		<-HistoricalFnInit[x,]
+projFmortS[x,1:InitYear]		<-HistoricalFsInit[x,]
 projSurvN[x,1:InitYear]			<-apply(tempNn[,,x]*survSelN[1:InitYear,]*WeightAtAgeN[1:InitYear,],1,sum)
 projSurvS[x,1:InitYear]			<-apply(tempNs[,,x]*survSelS[1:InitYear,]*WeightAtAgeS[1:InitYear,],1,sum)
 
@@ -437,15 +574,22 @@ for(y in 1:InitYear)
 }
 }
 
+projCatchN[,1]		<-0
+projCatchS[,1]		<-0
 
 #==fill in true storage arrays
 for(x in 1:Nsim)
 {
-trueRec[x,1:InitYear]		<-tempRecN[x,]+tempRecS	[x,]	
-trueCatch[x,1:InitYear]		<-tempCatchN[x,]+tempCatchS[x,]		
-trueSpbio[x,1:InitYear]		<-projSSBn[x,1:InitYear]+projSSBs[x,1:InitYear]	
-trueSurvInd[x,1:InitYear]	<-projSurvN[x,1:InitYear]+projSurvS[x,1:InitYear]
-trueCPUEind[x,1:InitYear]	<-projExpBn[x,1:InitYear]+projExpBs[x,1:InitYear]	
+trueRecN[x,1:InitYear]			<-tempRecN[x,]
+trueCatchN[x,1:InitYear]		<-tempCatchN[x,]		
+trueSpbioN[x,1:InitYear]		<-projSSBn[x,1:InitYear]
+trueSurvIndN[x,1:InitYear]		<-projSurvN[x,1:InitYear]
+trueCPUEindN[x,1:InitYear]		<-projExpBn[x,1:InitYear]
+trueRecS[x,1:InitYear]			<-tempRecS[x,]	
+trueCatchS[x,1:InitYear]		<-tempCatchS[x,]		
+trueSpbioS[x,1:InitYear]		<-projSSBs[x,1:InitYear]	
+trueSurvIndS[x,1:InitYear]		<-projSurvS[x,1:InitYear]
+trueCPUEindS[x,1:InitYear]		<-projExpBs[x,1:InitYear]
 }
 
 CatchErrorN		<-matrix(rnorm(Nsim*SimYear,0,CatchCVn),nrow=Nsim,ncol=SimYear)
@@ -481,9 +625,13 @@ for(z in 1:Nsim)
  for(y in (InitYear+1):SimYear)
  {
  #==pull data for assessment
- CatchData<-CatchAssessN[z,!is.na(CatchAssessN[z,])] + CatchAssessS[z,!is.na(CatchAssessS[z,])]
- CPUEData<-CPUEAssessN[z,!is.na(CPUEAssessN[z,])] + CPUEAssessS[z,!is.na(CPUEAssessS[z,])] 
- SurvData<-SurvAssessN[z,!is.na(SurvAssessN[z,])] + SurvAssessS[z,!is.na(SurvAssessS[z,])] 
+ CatchDataN	<- CatchAssessN[z,!is.na(CatchAssessN[z,])]
+ CPUEDataN	<- CPUEAssessN[z,!is.na(CPUEAssessN[z,])]
+ SurvDataN	<- SurvAssessN[z,!is.na(SurvAssessN[z,])] 
+
+ CatchDataS	<- CatchAssessS[z,!is.na(CatchAssessS[z,])]
+ CPUEDataS	<- CPUEAssessS[z,!is.na(CPUEAssessS[z,])] 
+ SurvDataS	<- SurvAssessS[z,!is.na(SurvAssessS[z,])] 
 
  #=================================================================================
  #===ASSESS THE STOCK, CHOOSE A METHOD IN CTL FILE=================================
@@ -495,26 +643,36 @@ for(z in 1:Nsim)
  setwd(CurDir)
  dir.create(CreateFolderName)
  setwd(CreateFolderName)
-# InitBzeroMod<-1
-# InitGrowthRate<-.2
  if(y==(InitYear+1))
-  x		<-c(InitBzeroMod*(VirBioN+VirBioS),InitGrowthRate)	#initial values
+  x		<-c(InitBzeroMod*(VirBioN),InitGrowthRate)	
  if(y>(InitYear+1))
   x		<-outs$par
- outs		<-nlminb(start=x,objective=ProdMod,CatchData=CatchData[2:(y-1)],IndexData=CPUEData[2:(y-1)])
+
+ inCatch	<-CatchDataN[2:(y-1)]
+ inCPUE	<-CPUEDataN[2:(y-1)]
+ outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE)
+
  Converge[z,y]<-outs$convergence
- PredBio	<-ProdModPlot(outs$par,CatchData[2:(y-1)],CPUEData[2:(y-1)],plots=EstimationPlots)
+ PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots)
  FMSY[z,y] 	<-abs(outs$par[2])/2
  BMSY[z,y]	<-abs(outs$par[1])/2
  MSY		<-BMSY[z,y]*FMSY[z,y]
  CurBio[z,y]<-PredBio[length(PredBio)-1]
- inBio	<-projExpBn[z,y-1]+projExpBs[z,y-1]
+ inBio	<-projExpBn[z,y-1]
  TAC[z,y]	<-HarvestControlRule(FMSY=FMSY[z,y],BMSY=BMSY[z,y],ExploitBio=CurBio[z,y],SpawnBio=CurBio[z,y],
-			alpha=HCalpha,beta=HCbeta,HarvestControl=HarvestControl,ConstantCatch=ConstantCatch,
-  			ConstantF=ConstantF)
- trueTAC[z,y]<-HarvestControlRule(FMSY=trueFMSY,BMSY=trueBMSY,ExploitBio=inBio,SpawnBio=inBio,
-			alpha=HCalpha,beta=HCbeta,HarvestControl=HarvestControl,ConstantCatch=ConstantCatch,
-  			ConstantF=ConstantF)
+			alpha=HCalphaN,beta=HCbetaN,HarvestControl=HarvestControlN,ConstantCatch=ConstantCatchN,
+  			ConstantF=ConstantFn)
+ trueTAC[z,y]<-HarvestControlRule(FMSY=trueFMSYend,BMSY=trueBMSYend,ExploitBio=inBio,SpawnBio=inBio,
+			alpha=HCalphaN,beta=HCbetaN,HarvestControl=HarvestControlN,ConstantCatch=ConstantCatchN,
+  			ConstantF=ConstantFn)
+
+ if(EstimationPlots==1 & AssessmentType == 1)
+ {
+  lines(BMSY[z,],col=3,lty=3)
+  legend("topright",bty='n',col=c(NA,1,2,3),pch=c(15,NA,NA,NA),lty=c(NA,1,2,3),
+          legend=c("Index obs","Index est","Catch","BMSY"))
+ }
+
  if(y==SimYear)
  {
   EstBio[z,1:length(PredBio)]<-PredBio
@@ -528,25 +686,27 @@ for(z in 1:Nsim)
  cat("#","\n",file=inFile,append=TRUE)
  cat("#true Catch","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
- cat(trueCatch[m,],"\n",file=inFile,append=TRUE)
+ cat(trueCatchN[m,],"\n",file=inFile,append=TRUE)
  cat("#true fishing mortality","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
- cat(trueFmort[m,],"\n",file=inFile,append=TRUE)
+ cat(trueFmortN[m,],"\n",file=inFile,append=TRUE)
  cat("#true spawning biomass","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
- cat(trueSpbio[m,],"\n",file=inFile,append=TRUE)
+ cat(trueSpbioN[m,],"\n",file=inFile,append=TRUE)
  cat("#true CPUE","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
- cat(trueCPUEind[m,],"\n",file=inFile,append=TRUE)
+ cat(trueCPUEindN[m,],"\n",file=inFile,append=TRUE)
  cat("#true total allowable catch","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
  cat(trueTAC[m,],"\n",file=inFile,append=TRUE)
- cat("#true BMSY","\n",file=inFile,append=TRUE)
- for(m in 1:Nsim)
- cat(trueBMSY,"\n",file=inFile,append=TRUE)
- cat("#true FMSY","\n",file=inFile,append=TRUE)
- for(m in 1:Nsim)
- cat(trueFMSY,"\n",file=inFile,append=TRUE)
+ cat("#true BMSY begin","\n",file=inFile,append=TRUE)
+ cat(trueBMSYbegin,"\n",file=inFile,append=TRUE)
+ cat("#true BMSY end","\n",file=inFile,append=TRUE)
+ cat(trueBMSYend,"\n",file=inFile,append=TRUE)
+ cat("#true FMSY begin","\n",file=inFile,append=TRUE)
+ cat(trueFMSYbegin,"\n",file=inFile,append=TRUE)
+ cat("#true FMSY end","\n",file=inFile,append=TRUE)
+ cat(trueFMSYend,"\n",file=inFile,append=TRUE)
  cat("#est cpue ind","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
  cat(EstBio[m,],"\n",file=inFile,append=TRUE)
@@ -565,8 +725,7 @@ for(z in 1:Nsim)
 
  cat("#data cpue","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
- cat(CPUEData,"\n",file=inFile,append=TRUE)
-
+ cat(CPUEDataN,"\n",file=inFile,append=TRUE)
  }
 }
 
@@ -586,36 +745,41 @@ for(z in 1:Nsim)
  cat("#True quantities","\n",file="TrueQuantities.DAT")
  cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#recruitment","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueRec[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueRecN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#Catch","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueCatch[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueCatchN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#fishing mortality","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueFmort[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueFmortN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#spawning biomass","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueSpbio[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueSpbioN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#survey index","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueSurvInd[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueSurvIndN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#cpue index","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueCPUEind[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueCPUEindN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  #cat("#total allowable catch","\n",file="TrueQuantities.DAT",append=TRUE)
- #cat(trueTAC[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ #cat(trueTACn[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#BMSY","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueBMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#FMSY","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueFMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#BMSY begin","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueBMSYbegin,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#FMSY begin","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueFMSYbegin,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#BMSY end","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueBMSYend,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#FMSY end","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueFMSYend,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#B35","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueB35,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#F35","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueF35,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#OFL","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueOFL[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueOFL[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
 
  #==calculate the TAC based on a SRR or a proxy, depending on data
  #==allow this to be a user defined function of any of the things that can be input
@@ -642,36 +806,45 @@ for(z in 1:Nsim)
  cat("#True quantities","\n",file="TrueQuantities.DAT")
  cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#recruitment","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueRec[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueRecN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#Catch","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueCatch[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueCatchN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#fishing mortality","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueFmort[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueFmortN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#spawning biomass","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueSpbio[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueSpbioN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#survey index","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueSurvInd[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueSurvIndN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#cpue index","\n",file="TrueQuantities.DAT",append=TRUE)
- for(z in 1:Nsim)
- cat(trueCPUEind[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueCPUEindN[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  #cat("#total allowable catch","\n",file="TrueQuantities.DAT",append=TRUE)
- #cat(trueTAC[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ #cat(trueTAC[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#","\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#BMSY","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueBMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#FMSY","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueFMSY,"\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#B35","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueB35,"\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#F35","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueF35,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#BMSY begin","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueBMSYbegin,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#FMSY begin","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueFMSYbegin,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#BMSY end","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueBMSYend,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#FMSY end","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueFMSYend,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#B35in","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueB35in,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#F35in","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueF35in,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#B35out","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueB35out,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat("#F35out","\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueF35out,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#OFL","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueOFL[z,],"\n",file="TrueQuantities.DAT",append=TRUE)
+ for(q in 1:Nsim)
+ cat(trueOFL[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
 
  #selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
  #selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
@@ -730,15 +903,15 @@ for(z in 1:Nsim)
  cat(SelPenalty,"\n",file="SimAss.CTL",append=TRUE)
 
  cat("#harvest control rule selected","\n",file="SimAss.CTL",append=TRUE)
- cat(HarvestControl,"\n",file="SimAss.CTL",append=TRUE)
+ cat(HarvestControlN,"\n",file="SimAss.CTL",append=TRUE)
  cat("#Constantcatch if harvest control ==2, set catch level","\n",file="SimAss.CTL",append=TRUE)
- cat(ConstantCatch,"\n",file="SimAss.CTL",append=TRUE)
+ cat(ConstantCatchN,"\n",file="SimAss.CTL",append=TRUE)
  cat("#Constantcatch if harvest control ==3, set fmort level","\n",file="SimAss.CTL",append=TRUE)
- cat(ConstantF,"\n",file="SimAss.CTL",append=TRUE)
+ cat(ConstantFn,"\n",file="SimAss.CTL",append=TRUE)
  cat("#40 10 parameters for harvest control 4","\n",file="SimAss.CTL",append=TRUE)
- cat(HCalpha,"\n",file="SimAss.CTL",append=TRUE)
+ cat(HCalphaN,"\n",file="SimAss.CTL",append=TRUE)
  cat("#40 10 parameters for harvest control 4","\n",file="SimAss.CTL",append=TRUE)
- cat(HCbeta,"\n",file="SimAss.CTL",append=TRUE)
+ cat(HCbetaN,"\n",file="SimAss.CTL",append=TRUE)
 
 #==write .PIN file to get initial values close for estimation
  cat("# Simulated assessment pin file","\n",file="SimAss.PIN")
@@ -750,28 +923,28 @@ for(z in 1:Nsim)
  InputSurvSel95N<-selAtAgeFunc(surv95n,VonKn,LinfN,t0n)
 
  cat("# srv_sel50","\n",file="SimAss.PIN",append=TRUE)
- cat(mean(c(InputSurvSel50S,InputSurvSel50N))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(InputSurvSel50N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# srv_sel95","\n",file="SimAss.PIN",append=TRUE)
- cat(mean(c(InputSurvSel95S,InputSurvSel95N))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(InputSurvSel95N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# stNatLen","\n",file="SimAss.PIN",append=TRUE)
- cat(log(VirInitN+VirInitS)*rnorm(length(log(VirInitN+VirInitS)),1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(log(VirInitN)*rnorm(length(log(VirInitN)),1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_fmort_dir","\n",file="SimAss.PIN",append=TRUE)
- cat((log(mean(trueFmort,na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat((log(trueFmortN))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# fmort_dir_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# mean_log_rec","\n",file="SimAss.PIN",append=TRUE)
- cat((log(mean(trueRec,na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat((log(trueRecN))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_NatM","\n",file="SimAss.PIN",append=TRUE)
- cat((log(mean(c(NatMs,NatMn),na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat((log(NatMn))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# log_avg_GrowthK","\n",file="SimAss.PIN",append=TRUE)
- cat((log(mean(c(VonKn,VonKs),na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat((log(VonKn))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_Linf","\n",file="SimAss.PIN",append=TRUE)
- cat((log(mean(c(LinfN,LinfS),na.rm=T)))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat((log(LinfN))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# GrowthK_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
@@ -784,9 +957,9 @@ for(z in 1:Nsim)
  InputSel95N<-selAtAgeFunc(sel95n,VonKn,LinfN,t0n)
 
  cat("# SelPars50","\n",file="SimAss.PIN",append=TRUE)
- cat(mean(c(InputSel50S,InputSel50N),na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(InputSel50N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# SelPars95","\n",file="SimAss.PIN",append=TRUE)
- cat(mean(c(InputSel95S,InputSel95N),na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(InputSel95N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# SelPars_dev50","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
@@ -834,17 +1007,17 @@ for(z in 1:Nsim)
  cat(LenSampleN[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE) 
 
  cat("#total survey biomass","\n",file="SimAss.DAT",append=TRUE) 
- cat(SurvData,"\n",file="SimAss.DAT",append=TRUE)
+ cat(SurvDataN,"\n",file="SimAss.DAT",append=TRUE)
  cat("#survey CV","\n",file="SimAss.DAT",append=TRUE)
  cat(IndexCVn[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#total CPUE","\n",file="SimAss.DAT",append=TRUE) 
- cat(CPUEData,"\n",file="SimAss.DAT",append=TRUE)
+ cat(CPUEDataN,"\n",file="SimAss.DAT",append=TRUE)
  cat("#CPUE CV","\n",file="SimAss.DAT",append=TRUE)
  cat(IndexCVn[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#total catch biomass","\n",file="SimAss.DAT",append=TRUE)
- cat(CatchData,"\n",file="SimAss.DAT",append=TRUE)
+ cat(CatchDataN,"\n",file="SimAss.DAT",append=TRUE)
  cat("#catch CV","\n",file="SimAss.DAT",append=TRUE)
  cat(CatchCVn[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
  cat("#Length Bins","\n",file="SimAss.DAT",append=TRUE)
@@ -857,11 +1030,11 @@ projSurvLenFreqS[is.na(projSurvLenFreqS)]<-0
 
  cat("#catch length counts","\n",file="SimAss.DAT",append=TRUE)
  for(i in 1:(y-1))
-  cat(projCatLenFreqN[i,,z]+projCatLenFreqS[i,,z],"\n",file="SimAss.DAT",append=TRUE)
+  cat(projCatLenFreqN[i,,z],"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#survey length counts","\n",file="SimAss.DAT",append=TRUE)
  for(i in 1:(y-1))
-  cat(projSurvLenFreqN[i,,z]+projSurvLenFreqS[i,,z],"\n",file="SimAss.DAT",append=TRUE)
+  cat(projSurvLenFreqN[i,,z],"\n",file="SimAss.DAT",append=TRUE)
 
  #==run the code
  shell("simass -nohess")
@@ -885,30 +1058,22 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
  TAC[z,y]	<-OFL
  }
 
- if(EstimationPlots==1 & AssessmentType == 1)
- {
-  lines(BMSY[z,],col=3,lty=3)
-  legend("topright",bty='n',col=c(NA,1,2,3),pch=c(15,NA,NA,NA),lty=c(NA,1,2,3),
-          legend=c("Index obs","Index est","Catch","BMSY"))
- }
+
  #==================================================================================
  #==find the F that removes the TAC given the fishery selectivity===================
  #==this TAC is not necessarily the 'true' TAC--there is error in the biomass and FMSY
  #==================================================================================
 
- if(CatchShareN==0.5)
- {
  minExp<-0.00001
  maxExp<-0.99999
+ inputFs	<-0  # NEED TO BE CHANGED TO THE INPUT F FOR POP 2 OR SOME OUTPUT OF HCR
 
  for(p in 1:30)
  {
  tempExp	<-(maxExp+minExp)/2
  tempF	<- -log(1-tempExp)
- #tempFn	<-tempF*CatchShareN
- #tempFs	<-tempF*CatchShareS
  tempFn	<-tempF
- tempFs	<-tempF
+ tempFs	<-inputFs
 
    finCatLenFn	<-((tempFn*vulnN[y,])/(vulnN[y,]*tempFn+NatMn[y])) * (1-exp(-((tempFn*vulnN[y,])+NatMn[y]))) * projNn[y-1,,z]
    finCatFn		<-sum(finCatLenFn*WeightAtAgeN[y,])
@@ -916,29 +1081,31 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    finCatLenFs	<-((tempFs*vulnS[y,])/(vulnS[y,]*tempFs+NatMs[y])) * (1-exp(-((tempFs*vulnS[y,])+NatMs[y]))) * projNs[y-1,,z]
    finCatFs		<-sum(finCatLenFs*WeightAtAgeS[y,])
 
-   TempTotCatch	<-finCatFs+finCatFn
-
- if(TempTotCatch<TAC[z,y])
+ if(finCatFn<TAC[z,y])
   minExp	<-tempExp
- if(TempTotCatch>TAC[z,y])
+ if(finCatFn>TAC[z,y])
   maxExp	<-tempExp
  initExp	<-tempExp
  }
- ApplyF	<- -log(1-tempExp)
+ ApplyFn	<- -log(1-tempExp)
+ ApplyFs	<- inputFs
+ trueFmortN[z,y]	<-ApplyFn
 
- ApplyFn	<-ApplyF
- ApplyFs	<-ApplyF
- }
- trueFmort[z,y]	<-ApplyF
+ #==calculate true OFL
+ #==find FOFL given spawning biomass
+  tempSpBio			<-EggsN
+  FutMort			<-trueF35in
+  if(tempSpBio<trueB35in)
+  {
+   FutMort<-0
+   if(tempSpBio>HCbetaN*trueB35in)
+    FutMort = trueF35in*(tempSpBio/trueB35in-HCalphaN)/(1-HCalphaN)
+   }
+  #==find the catch for the FOFL
+   trueCatchAtAge		<-((vulnN[y,]*FutMort)/(vulnN[y,]*FutMort+NatMn[y])) * (1-exp(-(vulnN[y,]*FutMort+NatMn[y]))) * projNn[y-1,,z]
+   trueCatch		<-sum(trueCatchAtAge*WeightAtAgeN[y,])
+   trueOFL[z,y]		<-trueCatch
 
- if(CatchShareN!=0.5)
- {
- #==FIGURE THIS OUT SOON==
- #==i THINK JUST MAKE there be an area that has an F designated relative
- #==to the other area, so the user inputs a fraction of the fishing pressure
- #==that is goign on in one area
- #==0.0000001, would be an MPA, for example
- }
  #===UPDATE DATA FOR ASSESSMENT====================================
    projCatchAtAgeN[y,,z]	<-((ApplyFn*vulnN[y,])/(vulnN[y,]*ApplyFn+NatMn[y])) * (1-exp(-((ApplyFn*vulnN[y,])+NatMn[y]))) * projNn[y-1,,z]
    projCatchN[z,y]		<-sum(projCatchAtAgeN[y,,z]*WeightAtAgeN[y,])
@@ -954,19 +1121,19 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    projSurvN[z,y]	<-sum(projNn[y-1,,z]*survSelN[y,]*WeightAtAgeN[y,])
    projSurvS[z,y]	<-sum(projNs[y-1,,z]*survSelS[y,]*WeightAtAgeS[y,])
 
-   trueCatch[z,y]		<-projCatchN[z,y]+projCatchS[z,y]
+   trueCatchN[z,y]	<-projCatchN[z,y]
    CatchAssessN[z,y]	<-projCatchN[z,y]*exp(CatchErrorN[z,y]-(CatchCVn[y]^2/2))
    CatchAssessS[z,y]	<-projCatchS[z,y]*exp(CatchErrorS[z,y]-(CatchCVs[y]^2/2))
 
-   trueCPUEind[z,y]	<-projExpBn[z,y]+projExpBs[z,y]
+   trueCPUEindN[z,y]	<-projExpBn[z,y]
    CPUEAssessN[z,y]	<-projExpBn[z,y]*exp(CPUEErrorN[z,y]-(IndexCVn[y]^2/2))
    CPUEAssessS[z,y]	<-projExpBs[z,y]*exp(CPUEErrorS[z,y]-(IndexCVs[y]^2/2))
 
-   trueSurvInd[z,y]	<-projSurvN[z,y]+projSurvS[z,y]
+   trueSurvIndN[z,y]	<-projSurvN[z,y]+projSurvS[z,y]
    SurvAssessN[z,y]	<-projSurvN[z,y]*exp(SurvErrorN[z,y]-(IndexCVn[y]^2/2))
    SurvAssessS[z,y]	<-projSurvS[z,y]*exp(SurvErrorS[z,y]-(IndexCVs[y]^2/2))
    
-   trueSpbio[z,y]		<-projSSBn[z,y]+projSSBs[z,y]
+   trueSpbioN[z,y]	<-projSSBn[z,y]
 
   #==UPDATE CATCH LENGTH FREQS====
     for(w in 1:ncol(LenAtAgeN))
@@ -1008,35 +1175,23 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    projNn[y,i,z]		<-projNn[y-1,i-1,z]*exp(-ApplyFn*vulnN[y,i-1])*exp(-NatMn[y])
    projNs[y,i,z]		<-projNs[y-1,i-1,z]*exp(-ApplyFs*vulnS[y,i-1])*exp(-NatMs[y])
   }
-   projNn[y,MaxAge,z]		<-(projNn[y-1,(MaxAge-1),z])*exp(-ApplyFn*vulnN[y,MaxAge])*exp(-NatMn[y])+ projNn[y-1,MaxAge,z]*exp(-ApplyFn*vulnN[y,MaxAge])*exp(-NatMn[y])
-   projNs[y,MaxAge,z]		<-(projNs[y-1,(MaxAge-1),z])*exp(-ApplyFs*vulnS[y,MaxAge])*exp(-NatMs[y])+ projNs[y-1,MaxAge,z]*exp(-ApplyFn*vulnS[y,MaxAge])*exp(-NatMs[y])
+   projNn[y,MaxAge,z]	<-(projNn[y-1,(MaxAge-1),z])*exp(-ApplyFn*vulnN[y,MaxAge])*exp(-NatMn[y])+ projNn[y-1,MaxAge,z]*exp(-ApplyFn*vulnN[y,MaxAge])*exp(-NatMn[y])
+   projNs[y,MaxAge,z]	<-(projNs[y-1,(MaxAge-1),z])*exp(-ApplyFs*vulnS[y,MaxAge])*exp(-NatMs[y])+ projNs[y-1,MaxAge,z]*exp(-ApplyFn*vulnS[y,MaxAge])*exp(-NatMs[y])
 
-   EggsN				<-sum(projNn[y-1,,z]*matureN[y,]*WeightAtAgeN[y,])
-   EggsS				<-sum(projNs[y-1,,z]*matureS[y,]*WeightAtAgeS[y,])
+   moveFromN		<-projNn[y,,z]*MovementN[y,]
+   moveFromS		<-projNs[y,,z]*MovementS[y,]
+
+   projNn[y,,z]		<-projNn[y,,z]-moveFromN+moveFromS
+   projNs[y,,z]		<-projNs[y,,z]-moveFromS+moveFromN
+
+   EggsN			<-sum(projNn[y-1,,z]*matureN[y,]*WeightAtAgeN[y,])
+   EggsS			<-sum(projNs[y-1,,z]*matureS[y,]*WeightAtAgeS[y,])
 
    projNn[y,1,z]		<-Recruitment(EggsIN=EggsN,steepnessIN=steepnessN[y],RzeroIN=RzeroN[y],RecErrIN=RecErrN[z,y],recType="BH",NatMin=NatMn[y],
 							vulnIN=vulnN[y,],matureIN=matureN[y,],weightIN=WeightAtAgeN[y,],LenAtAgeIN=LenAtAgeN[y,],MaxAge=MaxAge,sigmaRin=sigmaRn[y])
    projNs[y,1,z]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[y],RzeroIN=RzeroS[y],RecErrIN=RecErrS[z,y],recType="BH",NatMin=NatMs[y],
 							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge,sigmaRin=sigmaRs[y])
-   trueRec[z,y]		<-projNn[y,1,z]+projNs[y,1,z]
-
- #==calculate true OFL
- #==find FOFL given spawning biomass
-  tempSpBio			<-EggsN+EggsS
-  FutMort			<-trueF35
-  if(tempSpBio<trueB35)
-  {
-   FutMort<-0
-   if(tempSpBio>HCbeta*trueB35)
-    FutMort = trueF35*(tempSpBio/trueB35-HCalpha)/(1-HCalpha);
-   }
-  #==find the catch for the FOFL
-   trueCatchAtAgeN	<-((vulnN[y,]*FutMort)/(vulnN[y,]*FutMort+NatMn[y])) * (1-exp(-(vulnN[y,]*FutMort+NatMn[y]))) * projNn[y-1,,z]
-   trueCatchN		<-sum(trueCatchAtAgeN*WeightAtAgeN[y,])
-
-   trueCatchAtAgeS	<-((vulnS[y,]*FutMort)/(vulnS[y,]*FutMort+NatMs[y])) * (1-exp(-(vulnS[y,]*FutMort+NatMs[y]))) * projNs[y-1,,z]
-   trueCatchS		<-sum(trueCatchAtAgeS*WeightAtAgeS[y,])
-   trueOFL[z,y]		<-trueCatchS+trueCatchN
+   trueRecN[z,y]		<-projNn[y,1,z]
 
   print(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,sep=""))
 
