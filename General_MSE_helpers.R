@@ -1741,7 +1741,7 @@ for(x in 1:length(Quant))
 }
 
 pdf(paste(CurDir,"/plots/ProductionOutput_",CreateFolderNameList,".pdf",sep=""))
-par(mfcol=c(4,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in 1:length(CreateFolderNameList))
 {
@@ -1752,11 +1752,29 @@ for(x in 1:nrow(estCPUE))
 if(y==1)
 {
  axis(side=2,las=1)
- mtext(side=2,"Biomass",line=4,cex=.7)
+ mtext(side=2,"Biomass",line=5,cex=.7)
 }
 
-abline(h=trueBMSY,col=3,lty=2)
-abline(h=estBMSY,col=4,lty=2)
+abline(h=trueBMSY,col="#0000ff99",lty=1)
+abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
+abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
+
+legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
+
+boxplot(trueTAC[,,y],type="l",ylim=c(0,max(trueTAC,na.rm=T)),
+        las=1,xaxt='n',ylab='',yaxt='n')
+for(x in 1:nrow(estCPUE))
+  lines(estTAC[x,,y],col='#ff000033')
+if(y==1)
+{
+  axis(side=2,las=1)
+  mtext(side=2,"Total allowable catch",line=4.5,cex=.7)
+}
+}
+axis(side=1)
+
+legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
 
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
 RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
@@ -1784,16 +1802,7 @@ if(y==1)
  mtext(side=2,"Target fishing mortality",line=3.5,cex=.7)
 }
 
-boxplot(trueTAC[,,y],type="l",ylim=c(0,max(trueTAC,na.rm=T)),
- las=1,xaxt='n',ylab='',yaxt='n')
-for(x in 1:nrow(estCPUE))
- lines(estTAC[x,,y],col='#ff000033')
-if(y==1)
-{
- axis(side=2,las=1)
- mtext(side=2,"Total allowable catch",line=3.5,cex=.7)
-}
-}
+
 dev.off()
 }
 

@@ -42,10 +42,12 @@ model_data::model_data(int argc,char * argv[]) : ad_comm(argc,argv)
   endyr.allocate("endyr");
   maxAge.allocate("maxAge");
   Ages.allocate(1,maxAge,"Ages");
+  LengthBinN.allocate("LengthBinN");
   cpueYr.allocate("cpueYr");
   cpueYears.allocate(1,cpueYr,"cpueYears");
   survYr.allocate("survYr");
   survYears.allocate(1,survYr,"survYears");
+cout<<"survYears"<<survYears<<endl;
   catchLenYr.allocate("catchLenYr");
   catchLenYears.allocate(1,survYr,"catchLenYears");
   catchSampN.allocate(styr,endyr,"catchSampN");
@@ -59,10 +61,10 @@ cout<<"SurvLenYear"<<survLenYears<<endl;
   cpueCV.allocate(styr,endyr,"cpueCV");
   catchBiomass.allocate(1,survYr,"catchBiomass");
   catchCV.allocate(styr,endyr,"catchCV");
-  LengthBinsMid.allocate(1,maxAge,"LengthBinsMid");
+  LengthBinsMid.allocate(1,LengthBinN,"LengthBinsMid");
 cout<<"catchBiomass"<<catchBiomass<<endl; 
-  catchLenNum.allocate(styr,endyr,1,maxAge,"catchLenNum");
-  survLenNum.allocate(styr,endyr,1,maxAge,"survLenNum");
+  catchLenNum.allocate(styr,endyr,1,LengthBinN,"catchLenNum");
+  survLenNum.allocate(styr,endyr,1,LengthBinN,"survLenNum");
  ad_comm::change_datafile_name("SimAss.ctl");
   weightPars.allocate(1,2,"weightPars");
   projectTimeVary.allocate("projectTimeVary");
@@ -92,7 +94,6 @@ cout<<"catchBiomass"<<catchBiomass<<endl;
   ConstantF.allocate("ConstantF");
   HCalpha.allocate("HCalpha");
   HCbeta.allocate("HCbeta");
-  LengthBinN.allocate("LengthBinN");
 cout<<"steep"<<steepness<<endl;
  Nproj = 125;
  logMaxAge = log(maxAge);
@@ -103,7 +104,7 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
 {
   initializationfunction();
   srv_sel50.allocate(0.01,maxAge,2,"srv_sel50");
-  srv_sel95.allocate(1,maxAge,2,"srv_sel95");
+  srv_sel95.allocate(0.5,maxAge,2,"srv_sel95");
   stNatLen.allocate(1,maxAge,-10,20,1,"stNatLen");
   log_avg_fmort_dir.allocate(-5,5,1,"log_avg_fmort_dir");
   fmort_dir_dev.allocate(styr,endyr,-20,20,1,"fmort_dir_dev");
@@ -116,17 +117,17 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   GrowthK_dev.allocate(styr,endyr,-20,20,TimeVaryGrowthK,"GrowthK_dev");
   Linf_dev.allocate(styr,endyr,-20,20,TimeVaryLinf,"Linf_dev");
   SelPars50.allocate(0.01,maxAge,2,"SelPars50");
-  SelPars95.allocate(1,maxAge,2,"SelPars95");
+  SelPars95.allocate(0.5,maxAge,2,"SelPars95");
   SelPars_dev50.allocate(styr,endyr,-20,20,TimeVarySel50,"SelPars_dev50");
   SelPars_dev95.allocate(styr,endyr,-20,20,TimeVarySel95,"SelPars_dev95");
   f.allocate("f");
   prior_function_value.allocate("prior_function_value");
   likelihood_function_value.allocate("likelihood_function_value");
-  catchLenFreq.allocate(styr,endyr,1,maxAge,"catchLenFreq");
+  catchLenFreq.allocate(styr,endyr,1,LengthBinN,"catchLenFreq");
   #ifndef NO_AD_INITIALIZE
     catchLenFreq.initialize();
   #endif
-  survLenFreq.allocate(styr,endyr,1,maxAge,"survLenFreq");
+  survLenFreq.allocate(styr,endyr,1,LengthBinN,"survLenFreq");
   #ifndef NO_AD_INITIALIZE
     survLenFreq.initialize();
   #endif
@@ -183,9 +184,9 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   #ifndef NO_AD_INITIALIZE
     predCpueBio.initialize();
   #endif
-  predCpueBioLen.allocate(styr,endyr+Nproj,1,maxAge,"predCpueBioLen");
+  predCpueBioAge.allocate(styr,endyr+Nproj,1,maxAge,"predCpueBioAge");
   #ifndef NO_AD_INITIALIZE
-    predCpueBioLen.initialize();
+    predCpueBioAge.initialize();
   #endif
   predSurvNatAge.allocate(styr,endyr+Nproj,1,maxAge,"predSurvNatAge");
   #ifndef NO_AD_INITIALIZE
@@ -195,7 +196,7 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   #ifndef NO_AD_INITIALIZE
     predSurvAgeFreq.initialize();
   #endif
-  predSurvLenFreq.allocate(styr,endyr+Nproj,1,maxAge,"predSurvLenFreq");
+  predSurvLenFreq.allocate(styr,endyr+Nproj,1,LengthBinN,"predSurvLenFreq");
   #ifndef NO_AD_INITIALIZE
     predSurvLenFreq.initialize();
   #endif
@@ -208,7 +209,7 @@ model_parameters::model_parameters(int sz,int argc,char * argv[]) :
   #ifndef NO_AD_INITIALIZE
     predCatchAgeFreq.initialize();
   #endif
-  predCatchLenFreq.allocate(styr,endyr+Nproj,1,maxAge,"predCatchLenFreq");
+  predCatchLenFreq.allocate(styr,endyr+Nproj,1,LengthBinN,"predCatchLenFreq");
   #ifndef NO_AD_INITIALIZE
     predCatchLenFreq.initialize();
   #endif
@@ -310,8 +311,7 @@ void model_parameters::preliminary_calculations(void)
  dvariable nn;
   // for(i=1;i<=maxAge;i++)
    // WeightAtAge(i) = weightPars(1) * pow(LengthBinsMid(i),weightPars(2));
-   
-  
+   cout<<LengthBinN<<endl;
     for(i=styr;i<=endyr;i++)
     {
 	   nn =0;
@@ -328,6 +328,7 @@ void model_parameters::preliminary_calculations(void)
       for(j=1;j<=LengthBinN;j++)
 	  survLenFreq(i,j) = survLenNum(i,j)/nn;
     }
+  cout<<"Out"<<endl;
 }
 
 void model_parameters::initializationfunction(void)
@@ -389,18 +390,31 @@ void model_parameters::getmaturity(void)
   dvar_vector tempLenAtAge(1,maxAge);
   dvar_vector tempWgtAtAge(1,maxAge);
   //calculate length at age
-  for(i=styr;i<=endyr;i++)
-    for (j=1;j<=maxAge;j++)
+   for (j=1;j<=maxAge;j++)
    {
 	  if(EstGrowthK>0)
-          LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))));		
+        LengthAtAge(styr,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(1))*(Ages(j)-lengthParsIn(3))));		
 	  if(EstLinf>0)
-        LengthAtAge(i,j) = mfexp(log_avg_Linf+Linf_dev(i))*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));		
+        LengthAtAge(styr,j) = mfexp(log_avg_Linf+Linf_dev(1))*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));		
 	  if(EstGrowthK<=0 & EstLinf<=0)
-	    LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));
-	//  LengthAtAge(i,j) = Len1 + (Len2 - Len1)* ( (1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))))/(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(MaxAge-lengthParsIn(3))))
+	    LengthAtAge(styr,j) = lengthParsIn(2)*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));
+	 WeightAtAge(styr,j) = weightPars(1) * pow(LengthAtAge(styr,j),weightPars(2));
+   }
+  for(i=styr+1;i<=endyr;i++)
+  {
+	 LengthAtAge(i,1) = LengthAtAge(styr,1);
+	 WeightAtAge(i,1) = WeightAtAge(styr,1);
+	 for (j=2;j<=maxAge;j++)
+   {
+	  if(EstGrowthK>0)
+        LengthAtAge(i,j) = LengthAtAge(i-1,j-1) +(lengthParsIn(2)-LengthAtAge(i-1,j-1))*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))));		
+	  if(EstLinf>0)
+        LengthAtAge(i,j) = LengthAtAge(i-1,j-1) +(mfexp(log_avg_Linf+Linf_dev(i))-LengthAtAge(i-1,j-1))*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))));	
+	  if(EstGrowthK<=0 & EstLinf<=0) 
+	    LengthAtAge(i,j) = LengthAtAge(i-1,j-1) + (lengthParsIn(2)-LengthAtAge(i-1,j-1))*(1-mfexp(-1*lengthParsIn(1)));
 	 WeightAtAge(i,j) = weightPars(1) * pow(LengthAtAge(i,j),weightPars(2));
    }
+  }
   //==taking the average of the calculated values rather than the average of the parameters may introduce wonkiness
  tempLenAtAge.initialize();
  tempWgtAtAge.initialize(); 
@@ -447,7 +461,7 @@ void model_parameters::getmortality(void)
   }
    if(TimeVaryM>0 )
 	{
-	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
+	    for(j=endyr-projectTimeVary-1;j<=endyr-2;j++)	
 			tempMproj+=NatM(j);
         tempMproj = tempMproj/(projectTimeVary);
 	}
@@ -477,27 +491,27 @@ void model_parameters::get_num_at_len_yr(void)
 {
   ofstream& post= *pad_post;
  int i,j,k,sex;
- dvar_vector predSurvBioLen(1,maxAge);
+ dvar_vector predSurvBioAge(1,maxAge);
  dvar_vector expRate(1,maxAge);
  dvariable temp;
  dvar_vector tempN(1,maxAge);
  dvar_vector dummyN(1,maxAge);
- dvar_matrix dummyAllProbs(1,LengthBinN,1,LengthBinN);
- dvar_vector nn(1,LengthBinN);
+ dvar_matrix dummyAllProbs(1,maxAge,1,LengthBinN);
+ dvar_vector nn(1,maxAge);
  dvariable pi;
  pi = 3.14159265;
   i = ipass;
   //==cpue index==
    dummyN				    = elem_prod(sel_fish(i),NatAge(i));
-   predCpueBioLen(i)	= elem_prod(dummyN,WeightAtAge(i));
+   predCpueBioAge(i)	= elem_prod(dummyN,WeightAtAge(i));
    for(j=1;j<=maxAge;j++)
-    predCpueBio(i)		+= predCpueBioLen(i,j);
+    predCpueBio(i)		+= predCpueBioAge(i,j);
   // cout<<"predCpueBio"<<predCpueBio<<endl;
   //==survey==
   predSurvNatAge(i) 	= elem_prod(sel_srv,NatAge(i));
-  predSurvBioLen		= elem_prod(predSurvNatAge(i),WeightAtAge(i));
+  predSurvBioAge		= elem_prod(predSurvNatAge(i),WeightAtAge(i));
    for(j=1;j<=maxAge;j++)
-    predSurvBio(i)		+= predSurvBioLen(j);
+    predSurvBio(i)		+= predSurvBioAge(j);
   // cout<<"predSurvBio"<<predSurvBio<<endl;
    // cout<<"LengthAtAge"<<LengthAtAge<<endl;
    // cout<<"LengthBinsMid"<<LengthBinsMid<<endl;
@@ -506,13 +520,13 @@ void model_parameters::get_num_at_len_yr(void)
    // cout<<"WeightAtAge"<<WeightAtAge<<endl;
   //==survey length frequencies==
 	//find probability of length at age given variability
-	for(k=1;k<=LengthBinN;k++)
+	for(k=1;k<=maxAge;k++)
     for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(i,k)))/(2*GrowthSD*GrowthSD));
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
- 	for(k=1;k<=LengthBinN;k++)
+ 	for(k=1;k<=maxAge;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predSurvNatAge(i,k);
 	  // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
   //make N at length for entire population	  
@@ -536,13 +550,13 @@ void model_parameters::get_num_at_len_yr(void)
   // cout<<"Selfish"<<sel_fish<<endl;
   // cout<<"predCatchAtAge(i)"<<predCatchAtAge(i)<<endl;
  //find probability of length at age for catch given variability
-	for(k=1;k<=LengthBinN;k++)
+	for(k=1;k<=maxAge;k++)
     for(j=1;j<=LengthBinN;j++)
  	 dummyAllProbs(k,j) = (1/(GrowthSD*sqrt(2*pi)))*mfexp(-1*(square(LengthBinsMid(j)-LengthAtAge(i,k)))/(2*GrowthSD*GrowthSD));
   // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
- 	for(k=1;k<=LengthBinN;k++)
+ 	for(k=1;k<=maxAge;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predCatchAtAge(i,k);
   // cout<<"dummyAllProbs2"<<dummyAllProbs<<endl;
   //make N at length for entire population	  
@@ -598,7 +612,7 @@ void model_parameters::evaluate_the_objective_function(void)
     // cout<<"Catch_like"<<Catch_like<<endl;	
    // survey length frequencies
 	for(i=styr+1;i<=endyr;i++)
-	 for(j=1;j<=maxAge;j++)
+	 for(j=1;j<=LengthBinN;j++)
 	 {
       if(survLenFreq(i,j)>0.001)
 	   SurvLen_like -= survSampN(i) *survLenFreq(i,j) *log(predSurvLenFreq(i,j) +smallNum);
@@ -606,7 +620,7 @@ void model_parameters::evaluate_the_objective_function(void)
     // cout<<"SurvLen_like"<<SurvLen_like<<endl;	
    //catch length frequencies
 	for(i=styr+1;i<=endyr;i++)
-	 for(j=1;j<=maxAge;j++)
+	 for(j=1;j<=LengthBinN;j++)
 	 {
       if(catchLenFreq(i,j)>0.001)
 	   CatchLen_like -= catchSampN(i) *catchLenFreq(i,j) *log(predCatchLenFreq(i,j)+smallNum );		//same sample size for survey and catch right now...
@@ -719,7 +733,7 @@ void model_parameters::Find_OFL(void)
   }
   if(HarvestControl==4)
   {
-  BMSY_Yr1 = 1;BMSY_Yr2 = endyr-8;
+  BMSY_Yr1 = 1;BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
   alpha = 0.05;
   beta = 0.25;
   // Define Fmsy
@@ -759,6 +773,7 @@ void model_parameters::Find_OFL(void)
       for (ii=1;ii<=10;ii++)
        {
         FutMort = Fmsy*(Spbio(ipass)/Bmsy-alpha)/(1-alpha);
+		cout<<"FutMOrt"<<FutMort<<endl;
         get_fut_mortality();
         get_num_at_len_yr();
        }

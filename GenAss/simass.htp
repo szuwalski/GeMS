@@ -8,6 +8,7 @@ class model_data : public ad_comm{
   data_int endyr;
   data_int maxAge;
   data_vector Ages;
+  data_int LengthBinN;
   data_int cpueYr;
   data_ivector cpueYears;
   data_int survYr;
@@ -55,7 +56,6 @@ class model_data : public ad_comm{
   data_number ConstantF;
   data_number HCalpha;
   data_number HCbeta;
-  data_number LengthBinN;
   int ipass;
   int Nproj;
   int IsB0;
@@ -137,7 +137,7 @@ private:
   param_stddev_vector Spbio;
   param_vector predSurvBio;
   param_vector predCpueBio;
-  param_matrix predCpueBioLen;
+  param_matrix predCpueBioAge;
   param_matrix predSurvNatAge;
   param_matrix predSurvAgeFreq;
   param_matrix predSurvLenFreq;

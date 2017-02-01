@@ -3,7 +3,7 @@
 #weight parameters 
 6.8e-06 3.1 
 #how many years to average over timevarying process for projectsion 
-5 
+10 
 #Estimate growth? if positive, indicates phase, no estimate if negative 
 -1 
 #growth time-varying? 

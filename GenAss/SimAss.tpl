@@ -16,6 +16,8 @@ DATA_SECTION
   init_int survYr
   init_ivector survYears(1,survYr)
   
+  !!cout<<"survYears"<<survYears<<endl;
+  
   init_int catchLenYr
   init_ivector catchLenYears(1,survYr)
   init_vector catchSampN(styr,endyr)
@@ -268,19 +270,34 @@ FUNCTION getmaturity
   dvar_vector tempWgtAtAge(1,maxAge);
   
   //calculate length at age
-  for(i=styr;i<=endyr;i++)
-    for (j=1;j<=maxAge;j++)
+   for (j=1;j<=maxAge;j++)
    {
 	  if(EstGrowthK>0)
-          LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))));		
+        LengthAtAge(styr,j) = lengthParsIn(2)*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(1))*(Ages(j)-lengthParsIn(3))));		
 	  if(EstLinf>0)
-        LengthAtAge(i,j) = mfexp(log_avg_Linf+Linf_dev(i))*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));		
+        LengthAtAge(styr,j) = mfexp(log_avg_Linf+Linf_dev(1))*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));		
 	  if(EstGrowthK<=0 & EstLinf<=0)
-	    LengthAtAge(i,j) = lengthParsIn(2)*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));
-	//  LengthAtAge(i,j) = Len1 + (Len2 - Len1)* ( (1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(Ages(j)-lengthParsIn(3))))/(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))*(MaxAge-lengthParsIn(3))))
+	    LengthAtAge(styr,j) = lengthParsIn(2)*(1-mfexp(-1*lengthParsIn(1)*(Ages(j)-lengthParsIn(3))));
+
+	 WeightAtAge(styr,j) = weightPars(1) * pow(LengthAtAge(styr,j),weightPars(2));
+   }
+  for(i=styr+1;i<=endyr;i++)
+  {
+	 LengthAtAge(i,1) = LengthAtAge(styr,1);
+	 WeightAtAge(i,1) = WeightAtAge(styr,1);
+	 for (j=2;j<=maxAge;j++)
+   {
+	  if(EstGrowthK>0)
+        LengthAtAge(i,j) = LengthAtAge(i-1,j-1) +(lengthParsIn(2)-LengthAtAge(i-1,j-1))*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))));		
+	  if(EstLinf>0)
+        LengthAtAge(i,j) = LengthAtAge(i-1,j-1) +(mfexp(log_avg_Linf+Linf_dev(i))-LengthAtAge(i-1,j-1))*(1-mfexp(-1*mfexp(log_avg_GrowthK+GrowthK_dev(i))));	
+	  if(EstGrowthK<=0 & EstLinf<=0) 
+	    LengthAtAge(i,j) = LengthAtAge(i-1,j-1) + (lengthParsIn(2)-LengthAtAge(i-1,j-1))*(1-mfexp(-1*lengthParsIn(1)));
+
 	 WeightAtAge(i,j) = weightPars(1) * pow(LengthAtAge(i,j),weightPars(2));
    }
-
+  }
+  
   //==taking the average of the calculated values rather than the average of the parameters may introduce wonkiness
  tempLenAtAge.initialize();
  tempWgtAtAge.initialize(); 
@@ -332,7 +349,7 @@ FUNCTION getmortality
 
    if(TimeVaryM>0 )
 	{
-	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
+	    for(j=endyr-projectTimeVary-1;j<=endyr-2;j++)	
 			tempMproj+=NatM(j);
 		
         tempMproj = tempMproj/(projectTimeVary);
