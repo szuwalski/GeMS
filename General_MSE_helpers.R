@@ -1740,7 +1740,7 @@ for(x in 1:length(Quant))
 
 }
 
-pdf(paste(CurDir,"/plots/ProductionOutput_",CreateFolderNameList,".pdf",sep=""))
+pdf(paste(CurDir,"/plots/ProductionFits_",CreateFolderNameList,".pdf",sep=""))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in 1:length(CreateFolderNameList))
@@ -1775,6 +1775,10 @@ if(y==1)
 axis(side=1)
 
 legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
+dev.off()
+
+pdf(paste(CurDir,"/plots/ProductionRefPoints_",CreateFolderNameList,".pdf",sep=""))
+par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
 RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
