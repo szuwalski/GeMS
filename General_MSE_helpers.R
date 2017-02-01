@@ -1740,7 +1740,7 @@ for(x in 1:length(Quant))
 
 }
 
-pdf(paste(CurDir,"/plots/ProductionFits_",CreateFolderNameList,".pdf",sep=""))
+png(paste(CurDir,"/plots/ProductionFits_",CreateFolderNameList,".png",sep=""))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in 1:length(CreateFolderNameList))
@@ -1752,7 +1752,7 @@ for(x in 1:nrow(estCPUE))
 if(y==1)
 {
  axis(side=2,las=1)
- mtext(side=2,"Biomass",line=5,cex=.7)
+ mtext(side=2,"Biomass",line=5,cex=.9)
 }
 
 abline(h=trueBMSY,col="#0000ff99",lty=1)
@@ -1769,7 +1769,7 @@ for(x in 1:nrow(estCPUE))
 if(y==1)
 {
   axis(side=2,las=1)
-  mtext(side=2,"Total allowable catch",line=4.5,cex=.7)
+  mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
 }
 }
 axis(side=1)
@@ -1777,7 +1777,7 @@ axis(side=1)
 legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
 dev.off()
 
-pdf(paste(CurDir,"/plots/ProductionRefPoints_",CreateFolderNameList,".pdf",sep=""))
+png(paste(CurDir,"/plots/ProductionRefPoints_",CreateFolderNameList,".png",sep=""))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
@@ -1789,8 +1789,8 @@ abline(h=0,lty=2)
 if(y==1)
 {
  axis(side=2,las=1)
- mtext(side=2,"Relative error",line=2.5,cex=.7)
- mtext(side=2,"Target biomass",line=3.5,cex=.7)
+ mtext(side=2,"Relative error",line=2.5,cex=.9)
+ mtext(side=2,"Target biomass",line=3.5,cex=.9)
 }
 
 temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
@@ -1802,8 +1802,8 @@ abline(h=0,lty=2)
 if(y==1)
 {
  axis(side=2,las=1)
- mtext(side=2,"Relative error",line=2.5,cex=.7)
- mtext(side=2,"Target fishing mortality",line=3.5,cex=.7)
+ mtext(side=2,"Relative error",line=2.5,cex=.9)
+ mtext(side=2,"Target fishing mortality",line=3.5,cex=.9)
 }
 
 

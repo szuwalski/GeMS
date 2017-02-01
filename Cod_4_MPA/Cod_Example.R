@@ -2,7 +2,7 @@ rm(list=ls())
 source("C:/GeMS/General_MSE_helpers.R")
 source("C:/GeMS/General_MSE_main.R")
 
-CurDir<-"C:/GeMS/Cod_3_MPA/"
+CurDir<-"C:/GeMS/Cod_4_MPA/"
 setwd(CurDir)
 CreateFolderNameList<-c("Cod_MPA_CTL")
 
