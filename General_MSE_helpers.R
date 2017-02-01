@@ -1782,8 +1782,14 @@ par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
 RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
+temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
+RelativeErrorFMSY<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
+
+yUp   <-max(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
+ydown <-min(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
+
 boxplot(RelativeErrorBMSY[,Inout$OM$InitYear:Inout$OM$SimYear],
- las=1,yaxt='n',xaxt='n',ylim=c(-1.7,1.7))
+ las=1,yaxt='n',xaxt='n',ylim=c(ydown,yUp))
 abline(h=0,lty=2)
 
 if(y==1)
@@ -1793,10 +1799,8 @@ if(y==1)
  mtext(side=2,"Target biomass",line=3.5,cex=.9)
 }
 
-temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
-RelativeErrorBMSY<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
-boxplot(RelativeErrorBMSY[,Inout$OM$InitYear:Inout$OM$SimYear],
- las=1,yaxt='n',xaxt='n',ylim=c(-1.7,1.7))
+boxplot(RelativeErrorFMSY[,Inout$OM$InitYear:Inout$OM$SimYear],
+ las=1,yaxt='n',xaxt='n',ylim=c(ydown,yUp))
 abline(h=0,lty=2)
 
 if(y==1)
