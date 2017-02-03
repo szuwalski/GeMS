@@ -139,6 +139,9 @@ for(i in 1:SimYear)
  survSelN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50n[i])/(surv95n[i]-surv50n[i])))
 
 survSelS	<-survSelN
+surv50s	<-surv50n
+surv95s	<-surv95n
+
 if(TwoPop>0) 
 {
 surv50s	<-CleanInput(out$OM$surv50s,SimYear)
@@ -797,7 +800,7 @@ for(z in 1:Nsim)
  dir.create(IndSimFolder)
 
  #==copy the .exe into it (where does this come from? github?)
- file.copy(from="GenAss/simass.exe",to=IndSimFolder)
+ file.copy(from=paste(TopDir,"GenAss/simass.exe",sep=""),to=IndSimFolder)
  
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object
@@ -917,49 +920,45 @@ for(z in 1:Nsim)
  cat("# Simulated assessment pin file","\n",file="SimAss.PIN")
  cat("#","\n",file="SimAss.PIN",append=TRUE)
 
- InputSurvSel50S<-selAtAgeFunc(surv50s,VonKs,LinfS,t0s)
  InputSurvSel50N<-selAtAgeFunc(surv50n,VonKn,LinfN,t0n)
- InputSurvSel95S<-selAtAgeFunc(surv95s,VonKs,LinfS,t0s)
  InputSurvSel95N<-selAtAgeFunc(surv95n,VonKn,LinfN,t0n)
 
  cat("# srv_sel50","\n",file="SimAss.PIN",append=TRUE)
- cat(InputSurvSel50N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(InputSurvSel50N,na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# srv_sel95","\n",file="SimAss.PIN",append=TRUE)
- cat(InputSurvSel95N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(InputSurvSel95N,na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# stNatLen","\n",file="SimAss.PIN",append=TRUE)
  cat(log(VirInitN)*rnorm(length(log(VirInitN)),1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_fmort_dir","\n",file="SimAss.PIN",append=TRUE)
- cat((log(trueFmortN))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(log(mean(trueFmortN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# fmort_dir_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# mean_log_rec","\n",file="SimAss.PIN",append=TRUE)
- cat((log(trueRecN))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(log(mean(trueRecN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_NatM","\n",file="SimAss.PIN",append=TRUE)
- cat((log(NatMn))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(log(mean(NatMn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# log_avg_GrowthK","\n",file="SimAss.PIN",append=TRUE)
- cat((log(VonKn))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(log(mean(VonKn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_Linf","\n",file="SimAss.PIN",append=TRUE)
- cat((log(LinfN))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(log(mean(LinfN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# GrowthK_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# Linf_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
 
- InputSel50S<-selAtAgeFunc(sel50s,VonKs,LinfS,t0s)
  InputSel50N<-selAtAgeFunc(sel50n,VonKn,LinfN,t0n)
- InputSel95S<-selAtAgeFunc(sel95s,VonKs,LinfS,t0s)
  InputSel95N<-selAtAgeFunc(sel95n,VonKn,LinfN,t0n)
 
  cat("# SelPars50","\n",file="SimAss.PIN",append=TRUE)
- cat(InputSel50N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(InputSel50N,na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# SelPars95","\n",file="SimAss.PIN",append=TRUE)
- cat(InputSel95N*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ cat(mean(InputSel95N,na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# SelPars_dev50","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
@@ -1024,9 +1023,7 @@ for(z in 1:Nsim)
  cat(LengthBinsMid,"\n",file="SimAss.DAT",append=TRUE)
 
 projCatLenFreqN[is.na(projCatLenFreqN)]<-0
-projCatLenFreqS[is.na(projCatLenFreqS)]<-0
 projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
-projSurvLenFreqS[is.na(projSurvLenFreqS)]<-0
 
  cat("#catch length counts","\n",file="SimAss.DAT",append=TRUE)
  for(i in 1:(y-1))
@@ -1048,7 +1045,7 @@ DAT<-readLines(paste(CurDir,IndSimFolder,"/simass.DAT",sep=""))
 TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
 data2<-scan(paste(CurDir,IndSimFolder,"/simass.PAR",sep=""),what="character")
 
- if(EstimationPlots==1)
+ if(EstimationPlots==1 & z==Nsim & y == SimYear)
   AgeAssPlot(REP,CTL,DAT,TRU,data2)
 
 temp<-grep("OFL",REP)[2]
