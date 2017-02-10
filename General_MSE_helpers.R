@@ -1825,7 +1825,7 @@ dev.off()
 }
 
 #############################################################
-#==Save gradients
+#==cOMPARISON OF AGE STRUCTURED MODELS
 ############################################################
 AgeStructureComp<-function(RetroPeels=6,Inout,CreateFolderNameList)
 {
@@ -1902,7 +1902,7 @@ for(x in 1:length(CreateFolderNameList))
   BigBias[,x]<-apply(temp,2,mean) 
 }
 
-dev.new()
+png(paste(CurDir,"/plots/CompareRefPoints.png",sep=""))
 par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
 
 inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
@@ -1927,9 +1927,11 @@ boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=1,names=CreateFolderNameList)
 abline(h=0,lty=2)
 legend("topleft",c("(e) OFL"),bty='n')
 mtext(side=2,"relative error",line=3,cex=.7)
+dev.off()
 
 quants<-PullTimevary(inFolders=CreateFolderNameList,out=Inout)
 
+png(paste(CurDir,"/plots/ComparePopulationProcess.png",sep=""))
 inmat<-matrix(c(1,1,2,2,3,3,
                 4,4,4,5,5,5),nrow=2,byrow=T)
 layout(inmat)
@@ -2077,17 +2079,16 @@ legend("bottomright",bty='n',col=c(1,ScenCols,"yellow"),lty=c(3,rep(1,length(Sce
        legend=c("Projection begins",CreateFolderNameList,"Truth"),lwd=2)
 mtext(side=1,outer=T,"Age",line=2.3)
 
-SaveTrueOFL[[t]]<-quants[[12]]
-SaveEstOFL[[t]]<-quants[[11]]
-SaveSpBio[[t]]<-quants[[14]]
-SaveEstBio[[t]]<-quants[[15]]
 dev.off()
 
 
 #==================================
 # relative error in OFL over time
+# NEED TO GET THIS ONCE FIGURED OUT AT SOME POINT
 #====================================
-dev.new()
+OFLrel<-0
+if(OFLrel>0)
+{
 InitYear<-Inout$OM$InitYear
 SimYear<-Inout$OM$SimYear
 
@@ -2131,12 +2132,6 @@ for(x in 1:length(REofl))
 axis(side=1)
 mtext(outer=T,side=2,"Relative error in TAC",line=2.5)
 mtext(outer=T,side=1,"Projection year",line=2)
-
-
-CreateFolderNameList1<-c("NoEstBase","EstMbase","EstGrowBase","EstSelBase")
-CreateFolderNameList2<-c("NoEstMvary","EstMmvary","EstGrowMvary","EstSelMvary")
-CreateFolderNameList3<-c("NoEstSelVary","EstMSelVary","EstGrowSelVary","EstSelSelVary")
-CreateFolderNameList4<-c("NoEstGrowVary","EstMgrowVary","EstGrowGrowVary","EstSelGrowVary")
 
 dev.new()
 boxplot(SaveTrueOFL[[1]][,(InitYear+1):(SimYear-1),],col="#00ff0033")
@@ -2188,4 +2183,5 @@ for(x in 1:length(REofl))
 mtext(side=4,outer=T,text=expression("B/B"[35]),line=2.5)
 mtext(side=2,outer=T,"Catch",line=3.25)
 mtext(side=1,outer=T,"Projection year",line=2.5)
+}
 }

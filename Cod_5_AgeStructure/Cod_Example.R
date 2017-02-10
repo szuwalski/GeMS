@@ -19,6 +19,6 @@ for(x in 1:length(CreateFolderNameList))
   GeMS(out=Inout,CreateFolderName=CreateFolderNameList[x])
 }
 
-
-
-
+#==compare estimating M vs. not estimating M when M is varying
+CreateFolderNameList<-c("Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
+AgeStructureComp(Inout=Inout,CreateFolderNameList=CreateFolderNameList)
