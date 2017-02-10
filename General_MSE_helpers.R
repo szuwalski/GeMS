@@ -1421,16 +1421,16 @@ SelVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(inFolders)))
 GrowthVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(inFolders)))
 TrueGrow	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(inFolders)))
 TrueSel	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(inFolders)))
-
+TrueM   <-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 TrueOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 EstOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 
 for(p in 1:length(inFolders))
 {
 DrawDir		<-CreateFolderNameList[p]
-Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[p],"_CTL.csv",sep=""))
+Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[p],".csv",sep=""))
 
-IndSimFolder	<-paste(DrawDir,"/",20,"/",SimYear,sep="")
+IndSimFolder	<-paste(DrawDir,"/",Nsim,"/",SimYear,sep="")
 TRU			<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
 
 #==true
@@ -1497,7 +1497,7 @@ temp			<-grep("Linf_dev",PAR)[1]
 Linf_dev		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
 Linf			<-exp(log_avg_Linf+Linf_dev)
 
-GrowthK		<-rep(Inout$OM$VonKs,SimYear)
+GrowthK		<-rep(Inout$OM$VonKn,SimYear)
 }
 
 if(Inout$OM$TimeVaryLinf<=0 & Inout$OM$TimeVaryGrowthK >0)
@@ -1508,7 +1508,7 @@ temp			<-grep("GrowthK_dev",PAR)[1]
 GrowthK_dev		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
 GrowthK		<-exp(log_avg_GrowthK+GrowthK_dev)
 
-Linf			<-rep(Inout$OM$LinfS,SimYear)
+Linf			<-rep(Inout$OM$LinfN,SimYear)
 }
 
 if(Inout$OM$TimeVaryLinf>0 & Inout$OM$TimeVaryGrowthK>0)
@@ -1528,8 +1528,8 @@ GrowthK		<-exp(log_avg_GrowthK+GrowthK_dev)
 
 if(Inout$OM$TimeVaryLinf<=0 & Inout$OM$TimeVaryGrowthK<=0)
 {
-Linf			<-rep(Inout$OM$LinfS,SimYear)
-GrowthK		<-rep(Inout$OM$VonKs,SimYear)
+Linf			<-rep(Inout$OM$LinfN,SimYear)
+GrowthK		<-rep(Inout$OM$VonKn,SimYear)
 }
 
 for(x in 1:SimYear)
@@ -1543,6 +1543,13 @@ avgM			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
 temp			<-grep("m_dev",PAR)[1]
 mDevs			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
 NatMvary[n,,p]	<-exp(avgM+mDevs)
+}
+
+if(Inout$OM$TimeVaryM <=0 )
+{
+  temp			<-grep("log_avg_NatM",PAR)[1]
+  avgM			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
+  NatMvary[n,,p]	<-exp(avgM)
 }
 
 #==fishing selectivity combos
@@ -1604,18 +1611,18 @@ for(x in 1:SimYear)
 #==============================================
 # Pull the 'true' values for each process
 #==============================================
-tGrowthK		<-Inout$OM$VonKs
+tGrowthK		<-Inout$OM$VonKn
 if(length(tGrowthK)==1)
  tGrowthK		<-rep(tGrowthK,SimYear)
-tLinf			<-Inout$OM$LinfS
+tLinf			<-Inout$OM$LinfN
 if(length(tLinf)==1)
  tLinf		<-rep(tLinf,SimYear)
 
 for(x in 1:SimYear)
  TrueGrow[x,,p]	<-tLinf[x]*(1-exp(-tGrowthK[x]*(Ages-t0)))
 
- tSel50<-selAtAgeFunc(Inout$OM$sel50s,Inout$OM$VonKs,Inout$OM$LinfS,Inout$OM$t0s)
- tSel95<-selAtAgeFunc(Inout$OM$sel95s,Inout$OM$VonKs,Inout$OM$LinfS,Inout$OM$t0s)
+ tSel50<-selAtAgeFunc(Inout$OM$sel50n,Inout$OM$VonKn,Inout$OM$LinfN,Inout$OM$t0n)
+ tSel95<-selAtAgeFunc(Inout$OM$sel95n,Inout$OM$VonKn,Inout$OM$LinfN,Inout$OM$t0n)
 
 if(length(tSel50)==1)
  tSel50		<-rep(tSel50,Inout$OM$SimYear)
@@ -1625,7 +1632,7 @@ if(length(tSel95)==1)
 for(x in 1:SimYear)
  TrueSel[x,,p]	<-1/( 1 + exp( -1*log(19)*(Ages-tSel50[x])/(tSel95[x]-tSel50[x])))
 
-TrueM			<-Inout$OM$NatMs
+TrueM			<-Inout$OM$NatMn
 if(length(TrueM)==1)
  TrueM		<-rep(TrueM,SimYear)
 }
@@ -1827,26 +1834,28 @@ GradientSave<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList))
 
 for(x in 1:length(CreateFolderNameList))
 {
-  Inout<-ReadCTLfile(paste(CurDir,CreateFolderNameList[1],"_CTL.csv",sep=""))
+  Inout<-ReadCTLfile(paste(CurDir,CreateFolderNameList[x],".csv",sep=""))
   GradientSave[,,x]<-CheckGradient(DrawDir=CreateFolderNameList[x],out=Inout)[TakeRows,]
 }
-ScenCols<-c("grey",seq(2,length(CreateFolderNameList),1))
+ScenCols<-c("grey",as.numeric(seq(2,length(CreateFolderNameList),1)))
 
 #==reference points
 TakeRows	<-(Inout$OM$InitYear+1):Inout$OM$SimYear
+B35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 F35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 OFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 tOFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 tF35save	<-rep(0,length(CreateFolderNameList))
+tB35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 
 for(x in 1:length(CreateFolderNameList))
 {
   temp<-CheckReferencePoints(DrawDir=CreateFolderNameList[x],out=Inout)
-  B35save[,,x,t]	<-temp[[1]][TakeRows,]
+  B35save[,,x]	<-temp[[1]][TakeRows,]
   F35save[,,x]	<-temp[[2]][TakeRows,]
   OFLsave[,,x]	<-temp[[3]][TakeRows,]
-  tB35save[,,x,t]	<-temp[[4]][TakeRows,]
-  tF35save[x]	<-temp[[5]]
+  tB35save[,,x]	<-temp[[4]][TakeRows,]
+  tF35save[x]	  <-temp[[5]]
   tOFLsave[,,x]	<-temp[[6]][TakeRows,]
 } 
 
@@ -1855,8 +1864,8 @@ BigF35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
 BigOFL<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
 for(x in 1:length(CreateFolderNameList))
 {
-  BigB35[,x]<-apply((B35save[,,x,t]-tB35save[,,x,t])/tB35save[,,x,t],2,median,na.rm=T)
-  BigF35[,x]<-apply((F35save[,,x]-tF35save)/tF35save,2,median,na.rm=T)
+  BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
+  BigF35[,x]<-apply((F35save[,,x]-tF35save[x])/tF35save[x],2,median,na.rm=T)
   BigOFL[,x]<-apply((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],2,median,na.rm=T)
 }
 
@@ -1872,20 +1881,12 @@ TrueOFL<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList)))
 
 for(x in 1:length(CreateFolderNameList))
 {
-  Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[x],"_CTL.csv",sep=""))
+  Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[x],".csv",sep=""))
   DrawDir		<-paste(CreateFolderNameList[x],sep="")
   RetroOuts		<-CheckRetro(RetroPeels=RetroPeels,DrawDir,PlotRetro=0,out=Inout)
   MohnsRho[,,x]	<-CalculateMohn(RetroOuts)
   SSBbias[,,x]	<-CalculateBias(RetroOuts)
 }
-
-dev.new()
-par(mar=c(3,4,1,1))
-plot(RetroOuts[[1]][1,35:60,20]/10000,type='l',las=1,ylab='',xlab='',ylim=c(0,300))
-for(x in 2:6)
-  lines(RetroOuts[[1]][x,35:60,20]/10000)
-mtext(side=2,line=3,"Spawning biomass (10000 t)")
-mtext(side=1,line=2,"Year since change in process")
 
 BigMohn<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
 for(x in 1:length(CreateFolderNameList))
@@ -1901,14 +1902,10 @@ for(x in 1:length(CreateFolderNameList))
   BigBias[,x]<-apply(temp,2,mean) 
 }
 
-SaveAllMohn[t,]<-apply(BigMohn,2,median)
-
 dev.new()
 par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
 
-inYlim<-c(-.3,.3)
-if(t==4)
-  inYlim<-c(-.75,1.05)
+inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
 boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
 legend("topleft",c("(a) Retrospective bias"),bty='n')
 mtext(side=2,"Mohn's rho",line=3,cex=.7)
@@ -1926,13 +1923,13 @@ boxplot(ReF35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
 legend("topleft",expression("(c) F"[35]),bty='n')
 mtext(side=2,"relative error",line=3,cex=.7)
 abline(h=0,lty=2)
-boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=1,names=c("Base","M vary","Growth vary","Sel vary"))
+boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=1,names=CreateFolderNameList)
 abline(h=0,lty=2)
 legend("topleft",c("(e) OFL"),bty='n')
 mtext(side=2,"relative error",line=3,cex=.7)
 
 quants<-PullTimevary(inFolders=CreateFolderNameList,out=Inout)
-dev.new(width=7,height=4)
+
 inmat<-matrix(c(1,1,2,2,3,3,
                 4,4,4,5,5,5),nrow=2,byrow=T)
 layout(inmat)
@@ -1957,7 +1954,7 @@ for(x in 1:ncol(medians))
   lines(medians[,x],col=x,cex=2)
 
 abline(v=Inout$OM$InitYear,lty=3)
-abline(v=35,lty=4)
+
 #==true R
 plotIn<-apply(tInput,2,median)
 plotIn[1]<-NA
@@ -1987,17 +1984,15 @@ for(x in 1:ncol(medians))
   lines(medians[,x],col=x,cex=2)
 
 abline(v=Inout$OM$InitYear,lty=3)
-abline(v=35,lty=4)
 
 #==true F
-dim(tInput)
 lines(apply(tInput,2,median),col="yellow",lwd=2,lty=2)
 legend("bottomleft",bty='n',"(b) Fishing mortality")
 
 #==NATURAL MORTALITY
 input<-quants[[7]]
 tInput<-quants[[8]] 
-dim(input)
+
 plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
 axis(side=4,las=1)
 for(x in 1:length(CreateFolderNameList))
@@ -2013,16 +2008,11 @@ medians<- apply(input,c(2,3),median,na.rm=T)
 for(x in 1:ncol(medians))
   lines(medians[,x],col=x,cex=2)
 
-lines(rep(tInput[length(tInput)],60),col=1)
-lines(rep(tInput[length(tInput)],60),col=3)
-lines(rep(tInput[length(tInput)],60),col=4)
-
 #==true M
 dim(tInput)
 lines(tInput,col="yellow",lwd=2,lty=2)
 
 abline(v=Inout$OM$InitYear,lty=3)
-abline(v=35,lty=4)
 
 legend("bottomleft",bty='n',"(c) Natural mortality")
 mtext(side=4,"rate (/year)",line=2,cex=.7)
@@ -2082,15 +2072,16 @@ mtext(side=4,"Length (cm)",line=2.3,cex=.7)
 lines(tInput[1,,1],col="yellow",lwd=2,lty=2)
 lines(tInput[Inout$OM$SimYear,,1],col="yellow",lwd=2,lty=2)
 legend("topleft",bty='n',"(e) Length at age")
-legend("bottomright",bty='n',col=c(1,1,seq(1,4),"yellow"),lty=c(4,3,1,1,1,1,2),
-       legend=c("Year of change","Management begins","Base","M vary","Growth vary","Sel vary","True"),lwd=2)
+
+legend("bottomright",bty='n',col=c(1,ScenCols,"yellow"),lty=c(3,rep(1,length(ScenCols)),2),
+       legend=c("Projection begins",CreateFolderNameList,"Truth"),lwd=2)
 mtext(side=1,outer=T,"Age",line=2.3)
 
 SaveTrueOFL[[t]]<-quants[[12]]
 SaveEstOFL[[t]]<-quants[[11]]
 SaveSpBio[[t]]<-quants[[14]]
 SaveEstBio[[t]]<-quants[[15]]
-
+dev.off()
 
 
 #==================================

@@ -271,7 +271,7 @@ VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
 
-pdf(paste(PlotFolder,"/LifeHistory_",CreateFolderName,".pdf",sep=""))
+png(paste(PlotFolder,"/LifeHistory_",CreateFolderName,".png",sep=""))
 par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
 PlotLifeHistory(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSelS,WeightAtAgeN,
 	WeightAtAgeS,MovementN,MovementS,NatMs,NatMn,VirBioN,VirBioS,RzeroN,RecErrN,steepnessN,steepnessS,
@@ -1035,6 +1035,9 @@ projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
 
  #==run the code
  shell("simass -nohess")
+ 
+ #==delete the .exe
+ shell("rm simass.exe")
 
 #==================================
 # PLOT THE ASSESSMENT OUTPUT (if instructed)
