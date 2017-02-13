@@ -2082,6 +2082,48 @@ mtext(side=1,outer=T,"Age",line=2.3)
 dev.off()
 
 
+#================================
+# Plot the comparisons of fits like the production models
+#====================================
+
+
+  png(paste(CurDir,"/plots/AgeStructuredFits_",CreateFolderNameList,".png",sep=""),height=600,width=900)
+  par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+  for(y in 1:length(CreateFolderNameList))
+  {
+  boxplot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
+          las=1,xaxt='n',ylab='',yaxt='n')
+  for(x in 1:nrow(  quants[[14]]))
+    lines(quants[[15]][x,,y],col='#ff000033')
+  if(y==1)
+  {
+    axis(side=2,las=1)
+    mtext(side=2,"Biomass",line=5,cex=.9)
+  }
+  
+ # abline(h=trueBMSY,col="#0000ff99",lty=1)
+#  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
+ # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
+  
+  #legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+  #       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
+  
+  boxplot(quants[[12]][,,y],type="l",ylim=c(0,max(quants[[12]],na.rm=T)),
+          las=1,xaxt='n',ylab='',yaxt='n')
+  for(x in 1:nrow(quants[[11]]))
+    lines(quants[[11]][x,,y],col='#ff000033')
+  if(y==1)
+  {
+    axis(side=2,las=1)
+    mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
+  }
+  axis(side=1)  
+}
+
+legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
+dev.off()
+
+
 #==================================
 # relative error in OFL over time
 # NEED TO GET THIS ONCE FIGURED OUT AT SOME POINT
@@ -2092,11 +2134,9 @@ if(OFLrel>0)
 InitYear<-Inout$OM$InitYear
 SimYear<-Inout$OM$SimYear
 
-length(SaveTrueOFL[[1]])
-lapply(SaveTrueOFL,length)
 REofl<-rep(list(list()))
 for(x in 1:length(SaveTrueOFL))
-  REofl[[x]]<-(SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]-SaveEstOFL[[x]][,(InitYear+1):(SimYear-1),])/SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]
+  REofl[[x]]<-(SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]-SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),])/SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]
 
 emNames<-c("Base","M vary","Growth vary","Sel vary")
 omNames<-c("Base","M vary","Sel vary","Growth vary")
