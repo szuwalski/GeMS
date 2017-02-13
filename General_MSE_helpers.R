@@ -821,7 +821,7 @@ PlotLifeHistory<-function(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSe
 
  plot(NatMs,las=1,type="l",ylim=c(0,max(NatMs)))
  lines(NatMn,lty=2)
- legend("topleft",bty='n',lty=c(1,2),legend=c("South","North"))
+ legend("bottomleft",bty='n',lty=c(1,2),legend=c("South","North"))
   mtext(side=3,"Natural mortality by year",cex=.7)
 
 ssb<-seq(1,VirBioN,VirBioN/100)
