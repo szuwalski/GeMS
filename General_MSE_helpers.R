@@ -2100,7 +2100,7 @@ dev.off()
     axis(side=2,las=1)
     mtext(side=2,"Biomass",line=5,cex=.9)
   }
-  
+  legend("topright",bty='n',,legend=CreateFolderNameList[y])
  # abline(h=trueBMSY,col="#0000ff99",lty=1)
 #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
  # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
