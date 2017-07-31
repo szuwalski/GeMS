@@ -9,6 +9,22 @@
 
 GeMS<-function(out,CreateFolderName)
 {
+
+#===============
+#==Checking OS==
+#===============
+os <- .Platform$OS.type
+
+if(os == "unix") {
+  SimAssExec <- "SimAss"
+  SimAssComm <- "./SimAss"
+}
+
+if(os != "unix") {
+  SimAssExec <- "simass.exe"
+  SimAssComm <- "simass"
+}
+
 #=======================
 #==simulation controls==
 #=======================
@@ -800,7 +816,7 @@ for(z in 1:Nsim)
  dir.create(IndSimFolder)
 
  #==copy the .exe into it (where does this come from? github?)
- file.copy(from=paste(TopDir,"GenAss/simass.exe",sep=""),to=IndSimFolder)
+ file.copy(from=paste("../","GenAss/",SimAssExec,sep=""),to=IndSimFolder)
  
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object
@@ -1034,10 +1050,17 @@ projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
   cat(projSurvLenFreqN[i,,z],"\n",file="SimAss.DAT",append=TRUE)
 
  #==run the code
- shell("simass -nohess")
+ if(os != "unix") {
+  shell(paste(SimAssComm, "-nohess", sep = " "))
  
  #==delete the .exe
- shell("rm simass.exe")
+  shell(paste("del", SimAssExec, sep = " "))
+  }
+
+  if(os == "unix") {
+   system(paste(SimAssComm, "-nohess", sep = " "))
+   system(paste("rm", SimAssExec, sep = " "))
+  }
 
 #==================================
 # PLOT THE ASSESSMENT OUTPUT (if instructed)
