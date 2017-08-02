@@ -15,12 +15,12 @@ GeMS<-function(out,CreateFolderName,silent=F,ADoptions=NULL)
 #===============
 os <- .Platform$OS.type
 
-if(os == "unix") {
+if(os != "windows") {
   SimAssExec <- "SimAss"
   SimAssComm <- "./SimAss -nohess"
 }
 
-if(os != "unix") {
+if(os == "windows") {
   SimAssExec <- "simass.exe"
   SimAssComm <- "simass -nohess"
 }
@@ -29,7 +29,7 @@ if(silent) {
   SimAssComm <- paste(SimAssComm, ">console.log", sep = " ")
 }
 
-if(ADoptions!=NULL) {
+if(is.na(ADoptions!=NA)) {
   SimAssComm <- paste(SimAssComm, ADoptions, sep = " ")
 }
 
