@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName)
+GeMS<-function(out,CreateFolderName,silent=F,ADoptions=NULL)
 {
 
 #===============
@@ -17,12 +17,20 @@ os <- .Platform$OS.type
 
 if(os == "unix") {
   SimAssExec <- "SimAss"
-  SimAssComm <- "./SimAss"
+  SimAssComm <- "./SimAss -nohess"
 }
 
 if(os != "unix") {
   SimAssExec <- "simass.exe"
-  SimAssComm <- "simass"
+  SimAssComm <- "simass -nohess"
+}
+
+if(silent) {
+  SimAssComm <- paste(SimAssComm, ">console.log", sep = " ")
+}
+
+if(ADoptions!=NULL) {
+  SimAssComm <- paste(SimAssComm, ADoptions, sep = " ")
 }
 
 #=======================
@@ -1051,14 +1059,14 @@ projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
 
  #==run the code
  if(os != "unix") {
-  shell(paste(SimAssComm, "-nohess", sep = " "))
+  shell(SimAssComm)
  
  #==delete the .exe
   shell(paste("del", SimAssExec, sep = " "))
   }
 
   if(os == "unix") {
-   system(paste(SimAssComm, "-nohess", sep = " "))
+   system(SimAssComm)
    system(paste("rm", SimAssExec, sep = " "))
   }
 
