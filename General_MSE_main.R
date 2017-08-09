@@ -409,12 +409,15 @@ trueSpbioS		<-matrix(ncol=SimYear,nrow=Nsim)
 trueSurvIndS	<-matrix(ncol=SimYear,nrow=Nsim)
 trueCPUEindS	<-matrix(ncol=SimYear,nrow=Nsim)
 
+trueF35   		<-rep(0,SimYear)
+trueSBPR35 		<-rep(0,SimYear)
+trueB35		    <-matrix(ncol=SimYear,nrow=Nsim)
 #========================================================================
 # FIND REFERENCE POINTS FOR THE POPULATION 
 #========================================================================
 if(PlotYieldCurve==1)
 {
-pdf(paste(PlotFolder,"/PlotYieldCurve_",CreateFolderName,".pdf",sep=""))
+pdf(paste(PlotFolder,"/Plot_init_YieldCurve_",CreateFolderName,".pdf",sep=""))
 SearchFmort		<-seq(0.01,3*NatMn[1],(NatMn[1]-0.01)/100)
 SearchYield		<-rep(0,length(SearchFmort))
 SearchBiomass	<-rep(0,length(SearchFmort))
@@ -436,83 +439,6 @@ plot(SearchYield~SearchFmort)
 plot(SearchYield~SearchBiomass)
 dev.off()
 }
-#============================================
-# calculate 'true' reference points
-# figure out a way to determine when to do this for all sims and when for just 1
-# as long as population parametesr are from the same control file, this should be the same 
-# for all populations regardless of fishing history or recruitment
-#===================================
-FindFMSYin<-1
-if(FindFMSYin==1)
-{
-#==Find reference points for the initial year of projection
-x			<-0.3
-FmsyOut		<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
-				sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)
-trueFMSYbegin	<-FmsyOut$par
-trueUMSYbegin	<- 1-(exp(-trueFMSYbegin))
-trueBMSYbegin	<-ProjPopDym(fmortN=trueFMSYbegin,MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
-				sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)[[2]]
-trueMSYbegin	<- -FmsyOut$objective
-
-#==find the reference points associated with the final year of projection
-FmsyOut		<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
-				sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,MovementN=MovementN,MovementS=MovementS)
-trueFMSYend		<-FmsyOut$par
-trueUMSYend		<- 1-(exp(-trueFMSYend))
-trueBMSYend		<-ProjPopDym(fmortN=trueFMSYend,MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,
-				MovementN=MovementN,MovementS=MovementS)[[2]]
-trueMSYend		<- -FmsyOut$objective
-}
-
-#======================================
-# calculate reference point proxies
-# MIGHT NEED TWO OF THESE
-#======================================
-ConstRec	<-100000
-outsF35in	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,inRec=ConstRec,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)
-
- 
-trueF35in	<-outsF35in[[1]]
-trueB35in	<-ProjPopDym(fmortN=trueF35in,MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,
-				MovementN=MovementN,MovementS=MovementS)[[2]]
-
-outsF35out	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,inRec=ConstRec,RefYear=SimYear,
-				MovementN=MovementN,MovementS=MovementS)
-
- 
-trueF35out	<-outsF35out[[1]]
-trueB35out	<-ProjPopDym(fmortN=trueF35out,MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,
-				MovementN=MovementN,MovementS=MovementS)[[2]]
 
 #==============================================================
 # calculate the catch proportion at (length) for assessment
@@ -644,6 +570,63 @@ CurBio	<-matrix(nrow=Nsim,ncol=SimYear)
 EstBio	<-matrix(nrow=Nsim,ncol=SimYear)
 Converge	<-matrix(nrow=Nsim,ncol=SimYear)
 
+#============================================
+# calculate 'true' reference points
+# figure out a way to determine when to do this for all sims and when for just 1
+# as long as population parametesr are from the same control file, this should be the same 
+# for all populations regardless of fishing history or recruitment
+#===================================
+FindFMSYin<-1
+if(FindFMSYin==1)
+{
+  #==Find reference points for the initial year of projection
+  x			<-0.3
+  FmsyOut		<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
+                    vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                    WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                    steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
+                    sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)
+  trueFMSYbegin	<-FmsyOut$par
+  trueUMSYbegin	<- 1-(exp(-trueFMSYbegin))
+  trueBMSYbegin	<-ProjPopDym(fmortN=trueFMSYbegin,MaxAge=MaxAge,vulnN=vulnN,
+                             vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                             WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                             steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
+                             sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)[[2]]
+  trueMSYbegin	<- -FmsyOut$objective
+  
+  #==find the reference points associated with the final year of projection
+  FmsyOut		<-nlminb(x,FindFMSY,MaxAge=MaxAge,VirInitN=VirInitN,VirInitS=VirInitS,vulnN=vulnN,
+                    vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                    WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                    steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,LenAtAgeS=LenAtAgeS,
+                    sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,MovementN=MovementN,MovementS=MovementS)
+  trueFMSYend		<-FmsyOut$par
+  trueUMSYend		<- 1-(exp(-trueFMSYend))
+  trueBMSYend		<-ProjPopDym(fmortN=trueFMSYend,MaxAge=MaxAge,vulnN=vulnN,
+                            vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                            WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                            steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+                            LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,
+                            MovementN=MovementN,MovementS=MovementS)[[2]]
+  trueMSYend		<- -FmsyOut$objective
+}
+
+#======================================
+# calculate reference point proxies
+# MIGHT NEED TWO OF THESE
+#======================================
+ConstRec	<-100000
+outsF35in	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
+                    vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                    WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                    steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+                    LenAtAgeS=LenAtAgeS,inRec=ConstRec,RefYear=InitYear,MovementN=MovementN,MovementS=MovementS)
+
+trueSBPR35[InitYear]<-outsF35in[[2]]
+trueF35[InitYear]	  <-outsF35in[[1]]
+trueB35[,InitYear]  <-trueSBPR35[InitYear]*apply(trueRecN,1,mean,na.rm=T)
+
 #=================================================================================
 #==BEGIN PROJECTIONS===========================================================
 
@@ -651,6 +634,20 @@ for(z in 1:Nsim)
 {
  for(y in (InitYear+1):SimYear)
  {
+  if(z==1)
+  {
+    # this calculates the F35 and SBPR35
+    # make it so this only does it if the things that change F35 and SBPR35 change
+    # this can be done with an if statement that calls a function that checksif the values are all the same (or columns are all the same)
+    outsF35in	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
+                        vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                        WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                        steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+                        LenAtAgeS=LenAtAgeS,inRec=ConstRec,RefYear=y,MovementN=MovementN,MovementS=MovementS)
+    
+    trueSBPR35[y]<-outsF35in[[2]]
+    trueF35[y]	 <-outsF35in[[1]]
+  }
  #==pull data for assessment
  CatchDataN	<- CatchAssessN[z,!is.na(CatchAssessN[z,])]
  CPUEDataN	<- CPUEAssessN[z,!is.na(CPUEAssessN[z,])]
@@ -862,13 +859,9 @@ for(z in 1:Nsim)
  cat("#FMSY end","\n",file="TrueQuantities.DAT",append=TRUE)
  cat(trueFMSYend,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#B35in","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueB35in,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueB35,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#F35in","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueF35in,"\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#B35out","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueB35out,"\n",file="TrueQuantities.DAT",append=TRUE)
- cat("#F35out","\n",file="TrueQuantities.DAT",append=TRUE)
- cat(trueF35out,"\n",file="TrueQuantities.DAT",append=TRUE)
+ cat(trueF35,"\n",file="TrueQuantities.DAT",append=TRUE)
  cat("#OFL","\n",file="TrueQuantities.DAT",append=TRUE)
  for(q in 1:Nsim)
  cat(trueOFL[q,],"\n",file="TrueQuantities.DAT",append=TRUE)
@@ -1125,12 +1118,12 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
  #==calculate true OFL
  #==find FOFL given spawning biomass
   tempSpBio			<-EggsN
-  FutMort			<-trueF35in
-  if(tempSpBio<trueB35in)
+  FutMort			<-trueF35[y]
+  if(tempSpBio<trueB35[z,y-1])
   {
    FutMort<-0
-   if(tempSpBio>HCbetaN*trueB35in)
-    FutMort = trueF35in*(tempSpBio/trueB35in-HCalphaN)/(1-HCalphaN)
+   if(tempSpBio>HCbetaN*trueB35[z,y-1])
+    FutMort = trueF35[y]*(tempSpBio/trueB35[z,y-1]-HCalphaN)/(1-HCalphaN)
    }
   #==find the catch for the FOFL
    trueCatchAtAge		<-((vulnN[y,]*FutMort)/(vulnN[y,]*FutMort+NatMn[y])) * (1-exp(-(vulnN[y,]*FutMort+NatMn[y]))) * projNn[y-1,,z]
@@ -1225,7 +1218,8 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
    trueRecN[z,y]		<-projNn[y,1,z]
 
   print(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,sep=""))
-
+  
+  trueB35[z,y]  <-trueSBPR35[y]*mean(trueRecN[z,],na.rm=T)
  } # end y
 } # end z
 
