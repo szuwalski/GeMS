@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName,silent=F,ADoptions=NULL)
+GeMS<-function(out,CreateFolderName,silent=F,ADoptions=NA)
 {
 
 #===============
@@ -1058,14 +1058,14 @@ projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
   cat(projSurvLenFreqN[i,,z],"\n",file="SimAss.DAT",append=TRUE)
 
  #==run the code
- if(os != "unix") {
+ if(os == "windows") {
   shell(SimAssComm)
  
  #==delete the .exe
   shell(paste("del", SimAssExec, sep = " "))
   }
 
-  if(os == "unix") {
+  if(os != "windows") {
    system(SimAssComm)
    system(paste("rm", SimAssExec, sep = " "))
   }
