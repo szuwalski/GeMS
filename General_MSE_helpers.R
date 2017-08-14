@@ -1017,10 +1017,10 @@ OFL[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
 if(v==SimYear)
 {
 temp<-grep("B35",TRU)
-tB35[,n] <-as.numeric((unlist(strsplit(TRU[temp+1],split=" "))))
+tB35[,n] <-as.numeric((unlist(strsplit(TRU[temp+n],split=" "))))
 
 temp<-grep("OFL",TRU)
-tOFL[,n]<-as.numeric((unlist(strsplit(TRU[temp+1],split=" ")))) 
+tOFL[,n]<-as.numeric((unlist(strsplit(TRU[temp+n],split=" ")))) 
 }
 temp<-grep("F35",TRU)
 tF35 <-as.numeric((unlist(strsplit(TRU[temp+1],split=" ")))) 
@@ -1845,7 +1845,7 @@ B35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList
 F35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 OFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 tOFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-tF35save	<-rep(0,length(CreateFolderNameList))
+tF35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 tB35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
 
 for(x in 1:length(CreateFolderNameList))
@@ -1855,7 +1855,7 @@ for(x in 1:length(CreateFolderNameList))
   F35save[,,x]	<-temp[[2]][TakeRows,]
   OFLsave[,,x]	<-temp[[3]][TakeRows,]
   tB35save[,,x]	<-temp[[4]][TakeRows,]
-  tF35save[x]	  <-temp[[5]]
+  tF35save[,,x]	  <-temp[[5]][TakeRows]
   tOFLsave[,,x]	<-temp[[6]][TakeRows,]
 } 
 
