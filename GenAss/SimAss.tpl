@@ -76,8 +76,8 @@ DATA_SECTION
   int Nproj;
   int IsB0;                                                         // Set to 0 for B0
   !! Nproj = 125;
-  number logMaxAge;
-  !! logMaxAge = log(maxAge);
+  number logMaxAge;                                                 // Why is this in here???
+  !! logMaxAge = log(double(maxAge));
 // =======================================================================
 PARAMETER_SECTION
 	init_bounded_number srv_sel50(0.01,maxAge,2)
