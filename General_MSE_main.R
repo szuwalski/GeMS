@@ -428,7 +428,8 @@ tempOut<-ProjPopDym(fmortN=SearchFmort[p],MaxAge=MaxAge,vulnN=vulnN,
                      	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
 				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
 				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear)
+				LenAtAgeS=LenAtAgeS,sigmaRn=sigmaRn,sigmaRs=sigmaRs,RefYear=SimYear,
+        MovementN=MovementN,MovementS=MovementS)
 
 SearchYield[p]<-tempOut[[1]]
 SearchBiomass[p]<-tempOut[[2]]
