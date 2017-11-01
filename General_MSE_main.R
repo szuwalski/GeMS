@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName,silent=F,ADoptions=NA)
+GeMS<-function(out,CreateFolderName,MSEdir = CurDir,silent=F,ADoptions=NA)
 {
 
 #===============
@@ -26,11 +26,15 @@ if(os == "windows") {
 }
 
 if(silent) {
-  SimAssComm <- paste(SimAssComm, ">console.log", sep = " ")
+  SimAssComm <- paste(SimAssComm, ">console.log", sep = " ") # saves console output to a file "console.log"
 }
 
 if(is.na(ADoptions!=NA)) {
-  SimAssComm <- paste(SimAssComm, ADoptions, sep = " ")
+  SimAssComm <- paste(SimAssComm, ADoptions, sep = " ") # ADMB options such as "-gbs" or "-cbs" (Memory Management)
+}
+
+if(rev(unlist(strsplit(MSEdir, split = "")))[1] == "/") {
+  MSEdir <- paste0(rev(rev(unlist(strsplit(MSEdir, split = "")))[-1]), collapse = "")
 }
 
 #=======================
@@ -47,7 +51,7 @@ AssessmentData	<-out$OM$AssessmentData		# this plots the diagnostics for each ru
 PlotYieldCurve	<-out$OM$PlotYieldCurve
 TwoPop		<-out$OM$TwoPop
 
-PlotFolder<-paste(CurDir,"/plots",sep="")
+PlotFolder<-file.path(MSEdir, "plots")
 dir.create(PlotFolder)
 
 #==sampling uncertainty 
@@ -295,7 +299,7 @@ VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
 
-png(paste(PlotFolder,"/LifeHistory_",CreateFolderName,".png",sep=""))
+png(file.path(PlotFolder,paste0("LifeHistory_",CreateFolderName,".png")))
 par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
 PlotLifeHistory(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSelS,WeightAtAgeN,
 	WeightAtAgeS,MovementN,MovementS,NatMs,NatMn,VirBioN,VirBioS,RzeroN,RecErrN,steepnessN,steepnessS,
@@ -417,7 +421,7 @@ trueB35		    <-matrix(ncol=SimYear,nrow=Nsim)
 #========================================================================
 if(PlotYieldCurve==1)
 {
-pdf(paste(PlotFolder,"/Plot_init_YieldCurve_",CreateFolderName,".pdf",sep=""))
+pdf(file.path(PlotFolder,paste0("Plot_init_YieldCurve_",CreateFolderName,".pdf")))
 SearchFmort		<-seq(0.01,3*NatMn[1],(NatMn[1]-0.01)/100)
 SearchYield		<-rep(0,length(SearchFmort))
 SearchBiomass	<-rep(0,length(SearchFmort))
@@ -466,7 +470,7 @@ for(x in 1:Nsim)
 
 if(AssessmentData==1)
  {
- pdf(paste(PlotFolder,"/CatchLengthProportions_",CreateFolderName,".pdf",sep=""))
+ pdf(file.path(PlotFolder,paste0("CatchLengthProportions_",CreateFolderName,".pdf")))
  par(mfrow=c(ceiling(sqrt(InitYear)),ceiling(sqrt(InitYear))),mar=c(.1,.1,.1,.1))
  for(i in 2:InitYear)
   barplot(rbind(projCatLenFreqN[i,,1],projCatLenFreqS[i,,1]),beside=T,xaxt='n',yaxt='n')
@@ -498,7 +502,7 @@ for(x in 1:Nsim)
 
 if(AssessmentData==1)
  {
- pdf(paste(PlotFolder,"/SurveyLengthProportions_",CreateFolderName,".pdf",sep=""))
+ pdf(file.path(PlotFolder,paste0("SurveyLengthProportions_",CreateFolderName,".pdf")))
  par(mfrow=c(ceiling(sqrt(InitYear)),ceiling(sqrt(InitYear))),mar=c(.1,.1,.1,.1))
  for(i in 2:InitYear)
   barplot(rbind(projSurvLenFreqN[i,,1],projSurvLenFreqS[i,,1]),beside=T,xaxt='n',yaxt='n')
@@ -665,7 +669,7 @@ for(z in 1:Nsim)
  #==Production model==
  if(AssessmentType == 1)
  {
- setwd(CurDir)
+ setwd(MSEdir)
  dir.create(CreateFolderName)
  setwd(CreateFolderName)
  if(y==(InitYear+1))
@@ -758,10 +762,10 @@ for(z in 1:Nsim)
  if(AssessmentType == 0)
  {
  #==make folder if it isn't there
- setwd(CurDir)
+ setwd(MSEdir)
  dir.create(CreateFolderName)
- dir.create(paste(CreateFolderName,"/",z,sep=""))
- IndSimFolder<-paste(CreateFolderName,"/",z,"/",y,sep="")
+ dir.create(file.path(CreateFolderName,z))
+ IndSimFolder<-file.path(CreateFolderName,z,y)
  dir.create(IndSimFolder)
 
  #==write the true values
@@ -816,15 +820,21 @@ for(z in 1:Nsim)
  if(AssessmentType == 2)
  {
  #==make folder if it isn't there
- setwd(CurDir)
+ setwd(MSEdir)
  dir.create(CreateFolderName)
- dir.create(paste(CreateFolderName,"/",z,sep=""))
- IndSimFolder<-paste(CreateFolderName,"/",z,"/",y,sep="")
+ dir.create(file.path(CreateFolderName,z))
+ IndSimFolder<-file.path(CreateFolderName,z,y)
  dir.create(IndSimFolder)
 
  #==copy the .exe into it (where does this come from? github?)
- file.copy(from=paste("../","GenAss/",SimAssExec,sep=""),to=IndSimFolder)
- 
+ #==Better way of doing this??
+ if (dir.exists("../GenAss")) {
+  file.copy(from=file.path("..","GenAss",SimAssExec),to=IndSimFolder)
+ }
+ if (dir.exists("GenAss")) {
+  file.copy(from=file.path("GenAss",SimAssExec),to=IndSimFolder)
+ }
+
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object
  setwd(IndSimFolder)
@@ -1069,11 +1079,11 @@ projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
 #==================================
 # PLOT THE ASSESSMENT OUTPUT (if instructed)
 #==================================
-REP<-readLines(paste(CurDir,IndSimFolder,"/simass.rep",sep=""))
-CTL<-readLines(paste(CurDir,IndSimFolder,"/simass.CTL",sep=""))
-DAT<-readLines(paste(CurDir,IndSimFolder,"/simass.DAT",sep=""))
-TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
-data2<-scan(paste(CurDir,IndSimFolder,"/simass.PAR",sep=""),what="character")
+REP<-readLines(file.path(MSEdir,IndSimFolder,"simass.rep"))
+CTL<-readLines(file.path(MSEdir,IndSimFolder,"simass.CTL"))
+DAT<-readLines(file.path(MSEdir,IndSimFolder,"simass.DAT"))
+TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
+data2<-scan(file.path(MSEdir,IndSimFolder,"simass.PAR"),what="character")
 
  if(EstimationPlots==1 & z==Nsim & y == SimYear)
   AgeAssPlot(REP,CTL,DAT,TRU,data2)

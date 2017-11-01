@@ -1,21 +1,21 @@
 rm(list=ls())
 
 #==name where the GeMS folder lives on your computer
-TopDir<-"C:/GeMS/"
+TopDir<-"C:/GeMS"
 
 #==source important scripts
-source(paste(TopDir,"General_MSE_helpers.R",sep=""))
-source(paste(TopDir,"General_MSE_main.R",sep=""))
+source(file.path(TopDir,"General_MSE_helpers.R"))
+source(file.path(TopDir,"General_MSE_main.R"))
 
 #==identify the directory where current analysis will be performed and CTL files
-CurDir<-"C:/GeMS/Cod_5_AgeStructure/"
+CurDir<-"C:/GeMS/Cod_5_AgeStructure"
 setwd(CurDir)
 CreateFolderNameList<-c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
 
 #==Loop that reads in CTL files stored in CurDir and executes code
 for(x in 1:length(CreateFolderNameList))
 {
-  Inout<-ReadCTLfile(paste(CurDir,CreateFolderNameList[x],".csv",sep=""))
+  Inout<-ReadCTLfile(file.path(CurDir,paste0(CreateFolderNameList[x],".csv")))
   GeMS(out=Inout,CreateFolderName=CreateFolderNameList[x])
 }
 

@@ -452,7 +452,7 @@ return(predBio)
 }
 
 #################################################################
-AgeAssPlot<-function(REP,CTL,DAT,TRU,data2)
+AgeAssPlot<-function(REP,CTL,DAT,TRU,data2,MSEdir=CurDir)
 {
 temp<-grep("survey years",DAT)[1]
 yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
@@ -525,7 +525,7 @@ TotFdir<-exp(logFdir+fmort_dir_dev)
 cnt<-grep("stNatLen",data2)
 stNatLen<-as.numeric(data2[(cnt+1):(cnt+maxAge)])
 
-png(paste(CurDir,"/plots/PopulationProcessesEst_",CreateFolderNameList,".png",sep=""))
+png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CreateFolderNameList,".png")))
 par(mfrow=c(3,1),mar=c(1,4,1,1),oma=c(3,1,1,1))
 plot(TotRec[1:(yearsDat-1)],type="l",las=1,ylab="Recruitment")
 lines(trueRec[1:(yearsDat-1)],lty=2,col=2)
@@ -563,7 +563,7 @@ trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueFishSelPar[1])/(trueFishSelP
 #legend("bottomright",bty='n',col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("True Survey","Est Survey","True Fishery","Est Fishery"))
 dev.off()
 
-png(paste(CurDir,"/plots/FitsToDataAgeStruc_",CreateFolderNameList,".png",sep=""))
+png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CreateFolderNameList,".png")))
 par(mfrow=c(2,2),mar=c(.1,.1,.1,.1),oma=c(5,5,1,5))
 #plot(obsSurvBio,yaxt='n',ylim=c(0,max(obsSurvBio,predSurvBio,trueSpbio,na.rm=T)))
 #axis(side=2,las=1)
@@ -598,7 +598,7 @@ legend("topright",bty='n',c("Spawning biomass","True","Estimated"),lty=c(NA,1,2)
 dev.off()
 
 
-png(paste(CurDir,"/plots/FitsToSurvLengths_",CreateFolderNameList,".png",sep=""))
+png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CreateFolderNameList,".png")))
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -610,7 +610,7 @@ plot.new()
 legend("center","Survey")
 dev.off()
 
-png(paste(CurDir,"/plots/FitsToCatchLengths_",CreateFolderNameList,".png",sep=""))
+png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CreateFolderNameList,".png")))
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -910,13 +910,13 @@ if(!is.na(quantity))
 }
 
 #####################################################################
-selAtAgeFunc<-function(inputLen,K,Linf,t0)
+selAtAgeFunc<-function(inputLen,K,Linf,t0,MSEdir=CurDir)
  {
   selAtAge<-((log(1-inputLen/Linf)/-K))+t0
  return(selAtAge)
  }
 #####################################################################
-CheckRetro<-function(RetroPeels=6,DrawDir,PlotRetro=0,out)
+CheckRetro<-function(RetroPeels=6,DrawDir,PlotRetro=0,out,MSEdir=CurDir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -928,9 +928,9 @@ trueSpBioRetro    <-matrix(ncol=SimYear,nrow=Nsim)
 for(n in 1:Nsim)
 for(v in 0:(RetroPeels-1))
 {
-IndSimFolder<-paste(DrawDir,"/",n,"/",SimYear-v,sep="")
-REP<-readLines(paste(CurDir,IndSimFolder,"/simass.rep",sep=""))
-DAT<-readLines(paste(CurDir,IndSimFolder,"/simass.DAT",sep=""))
+IndSimFolder<-file.path(DrawDir,n,SimYear-v)
+REP<-readLines(file.path(MSEdir,IndSimFolder,"simass.rep"))
+DAT<-readLines(file.path(MSEdir,IndSimFolder,"simass.DAT"))
 
 temp<-grep("survey years",DAT)[1]
 yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
@@ -941,8 +941,8 @@ predSpBioRetro[(v+1),(1:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1
 
 for(n in 1:Nsim)
 {
-IndSimFolder<-paste(DrawDir,"/",n,"/",SimYear,sep="")
-TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
+IndSimFolder<-file.path(DrawDir,n,SimYear)
+TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
 temp<-grep("spawning biomass",TRU)
 trueSpBioRetro[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
 }
@@ -965,7 +965,7 @@ list(predSpBioRetro,trueSpBioRetro)
 }
 
 #################################################
-CheckGradient<-function(DrawDir,out)
+CheckGradient<-function(DrawDir,out,MSEdir=CurDir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -976,8 +976,8 @@ Gradients	<-matrix(ncol=Nsim,nrow=SimYear)
 for(n in 1:Nsim)
 for(v in (InitYear+1):SimYear)
 {
-IndSimFolder<-paste(DrawDir,"/",n,"/",v,sep="")
-PAR<-readLines(paste(CurDir,IndSimFolder,"/simass.par",sep=""))
+IndSimFolder<-file.path(DrawDir,n,v)
+PAR<-readLines(file.path(MSEdir,IndSimFolder,"simass.par"))
 
 temp<-grep("gradient",PAR)[1]
 GradientLine<-(unlist(strsplit(PAR[temp],split=" ")))
@@ -986,7 +986,7 @@ Gradients[v,n]<-as.numeric(GradientLine[length(GradientLine)])
 return(Gradients)
 }
 #################################################
-CheckReferencePoints<-function(DrawDir,out)
+CheckReferencePoints<-function(DrawDir,out,MSEdir=CurDir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -1001,9 +1001,9 @@ tOFL	<-matrix(ncol=Nsim,nrow=SimYear)
 for(n in 1:Nsim)
 for(v in (InitYear+1):SimYear)
 {
-IndSimFolder<-paste(DrawDir,"/",n,"/",v,sep="")
-REP<-readLines(paste(CurDir,IndSimFolder,"/simass.REP",sep=""))
-TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
+IndSimFolder<-file.path(DrawDir,n,v)
+REP<-readLines(file.path(MSEdir,IndSimFolder,"simass.REP"))
+TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
 
 temp<-grep("B35",REP)[1]
 B35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
@@ -1071,7 +1071,7 @@ MaxAge		<-out$OM$MaxAge
 
 if(AssessmentType==1)
 {
- PROD<-readLines(paste(SourceFolder,"/ProdOuts.csv",sep=""))
+ PROD<-readLines(file.path(SourceFolder,"ProdOuts.csv"))
 
 temp<-grep("true Catch",PROD)[1]
 TrueCatchOut<-matrix(as.numeric(unlist(strsplit(PROD[(temp+1):(temp+Nsim)],split=" "))),nrow=Nsim,byrow=T)
@@ -1103,7 +1103,7 @@ EstFMSYOut<-matrix(as.numeric(unlist(strsplit(PROD[(temp+1):(temp+Nsim)],split="
 temp<-grep("data cpue",PROD)[1]
 DateCPUEout<-matrix(as.numeric(unlist(strsplit(PROD[(temp+1):(temp+Nsim)],split=" "))),nrow=Nsim,byrow=T)
 
-pdf(paste(SourceFolder,"/RelativeErrors.pdf",sep=""),height=3,width=4)
+pdf(file.path(SourceFolder,"RelativeErrors.pdf"),height=3,width=4)
 PolygonPlots(Truth=TrueCPUEOut,Estimated=EstCPUEOut,Observed=DateCPUEout)
 dev.off()
 
@@ -1117,7 +1117,7 @@ PercLostYield<-LostYield/TrueTACOut
 PercOverfishedTrue<-TrueSpBioOut/TrueBMSYOut[1]
 PercOverfishedEst<-EstCurbioOut/TrueBMSYOut[1]
 
-MyBoxPlot<-function(Inputs,Title,bottomplot=0,refVal=0)
+MyBoxPlot<-function(Inputs,Title,bottomplot=0,refVal=0,MSEdir=CurDir)
 {
  maxVal<-max(Inputs,na.rm=T)
  minVal<-min(Inputs,na.rm=T)
@@ -1143,7 +1143,7 @@ MyBoxPlot<-function(Inputs,Title,bottomplot=0,refVal=0)
  legend("topleft",bty='n',legend=Title)
 }
 
-pdf(paste(SourceFolder,"/RelativeErrors.pdf",sep=""),height=8,width=4)
+pdf(file.path(SourceFolder,"RelativeErrors.pdf"),height=8,width=4)
 par(mfrow=c(4,1),mar=c(0.1,4,.1,1),oma=c(3,0,3,0))
 MyBoxPlot(REtac[,InitYear:SimYear],"Total allowable catch")
 MyBoxPlot(REbmsy[,InitYear:SimYear],"BMSY")
@@ -1151,7 +1151,7 @@ MyBoxPlot(REfmsy[,InitYear:SimYear],"FMSY")
 MyBoxPlot(REbio[,InitYear:SimYear],"Estimated biomass",bottomplot=1)
 mtext(outer=T,side=3,"Relative error")
 
-pdf(paste(SourceFolder,"/YieldStats.pdf",sep=""),height=8,width=4)
+pdf(file.path(SourceFolder,"YieldStats.pdf"),height=8,width=4)
 par(mfrow=c(4,1),mar=c(0.1,4,.1,1),oma=c(3,0,0,0))
 MyBoxPlot(LostYield[,InitYear:SimYear],"Lost yield")
 MyBoxPlot(PercLostYield[,InitYear:SimYear],"Lost yield/yield")
@@ -1211,18 +1211,18 @@ sel95surv		<-rep(0,Nsim)
 sel50fish		<-rep(0,Nsim)
 sel95fish		<-rep(0,Nsim)
 
-OutFolder<-paste(CurDir,SourceFolder,sep="")
-pdf(paste(OutFolder,"/AgeStrucurePlots.pdf",sep=""))
+OutFolder<-file.path(MSEdir,SourceFolder)
+pdf(file.path(OutFolder,"AgeStrucurePlots.pdf"))
 #==cycle through final .rep files, pull out data
 for(n in 1:Nsim)
 {
-IndSimFolder<-paste(SourceFolder,"/",n,"/",SimYear,sep="")
+IndSimFolder<-file.path(SourceFolder,n,SimYear)
 
-REP<-readLines(paste(CurDir,IndSimFolder,"/simass.rep",sep=""))
-CTL<-readLines(paste(CurDir,IndSimFolder,"/simass.CTL",sep=""))
-DAT<-readLines(paste(CurDir,IndSimFolder,"/simass.DAT",sep=""))
-TRU<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
-data2<-scan(paste(CurDir,IndSimFolder,"/simass.PAR",sep=""),what="character")
+REP<-readLines(file.path(MSEdir,IndSimFolder,"simass.rep"))
+CTL<-readLines(file.path(MSEdir,IndSimFolder,"simass.CTL"))
+DAT<-readLines(file.path(MSEdir,IndSimFolder,"simass.DAT"))
+TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
+data2<-scan(file.path(MSEdir,IndSimFolder,"simass.PAR"),what="character")
 
 if(n==1)
 {
@@ -1400,7 +1400,7 @@ dev.off()
 
 }
 ########################################################
-PullTimevary<-function(inFolders,out)
+PullTimevary<-function(inFolders,out,MSEdir=CurDir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -1428,10 +1428,10 @@ EstOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 for(p in 1:length(inFolders))
 {
 DrawDir		<-CreateFolderNameList[p]
-Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[p],".csv",sep=""))
+Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[p],".csv")))
 
-IndSimFolder	<-paste(DrawDir,"/",Nsim,"/",SimYear,sep="")
-TRU			<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
+IndSimFolder	<-file.path(DrawDir,Nsim,SimYear)
+TRU			<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
 
 #==true
 temp		<-grep("fishing mortality",TRU)
@@ -1454,8 +1454,8 @@ TrueOFL[,,p]	<-matrix(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split
 
 for(n in 1:Nsim)
 {
-IndSimFolder	<-paste(DrawDir,"/",n,"/",SimYear,sep="")
-PAR			<-readLines(paste(CurDir,IndSimFolder,"/simass.par",sep=""))
+IndSimFolder	<-file.path(DrawDir,n,SimYear)
+PAR			<-readLines(file.path(MSEdir,IndSimFolder,"simass.par"))
 
 #==fishing mortality
 temp		<-grep("log_avg_fmort_dir",PAR)[1]
@@ -1465,8 +1465,8 @@ fDevs		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
 FishMort[n,,p]<-exp(AvgF+fDevs)
 
 #==est spawning biomass
-IndSimFolder2			<-paste(DrawDir,"/",n,"/",SimYear,sep="")
-pullREP				<-readLines(paste(CurDir,IndSimFolder2,"/simass.rep",sep=""))
+IndSimFolder2			<-file.path(DrawDir,n,SimYear)
+pullREP				<-readLines(file.path(MSEdir,IndSimFolder2,"simass.rep"))
 temp					<-grep("spawning biomass",pullREP)
 EstSpbio[n,,p]			<-as.numeric((unlist(strsplit(pullREP[temp+1],split=" "))))[2:(SimYear+1)]
 
@@ -1479,8 +1479,8 @@ Recruitment[n,,p]<-exp(AvgRec+RecDevs)
 
 for(w in (InitYear+1):SimYear)
 {
-IndSimFolder2			<-paste(DrawDir,"/",n,"/",w,sep="")
-pullREP				<-readLines(paste(CurDir,IndSimFolder2,"/simass.rep",sep=""))
+IndSimFolder2			<-file.path(DrawDir,n,w)
+pullREP				<-readLines(file.path(MSEdir,IndSimFolder2,"simass.rep"))
 temp					<-grep("OFL",pullREP)[2]
 EstOFL[n,w,p]			<-as.numeric((unlist(strsplit(pullREP[temp+1],split=" "))))
 }
@@ -1641,7 +1641,7 @@ list(Recruitment,TrueRec,FishMort,TrueFmort,GrowthVary,TrueGrow,NatMvary,TrueM,S
 }
 
 ########################################################
-PullTrueProj<-function(inFolders,out)
+PullTrueProj<-function(inFolders,out,MSEdir=CurDir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -1659,12 +1659,12 @@ TrueOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
 for(p in 1:length(inFolders))
 {
 DrawDir		<-CreateFolderNameList[p]
-Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[p],"_CTL.csv",sep=""))
+Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[p],"_CTL.csv")))
 
 for(n in 1:Nsim)
 {
-IndSimFolder	<-paste(DrawDir,"/",n,"/",SimYear,sep="")
-TRU			<-readLines(paste(CurDir,IndSimFolder,"/TrueQuantities.DAT",sep=""))
+IndSimFolder	<-file.path(DrawDir,n,SimYear)
+TRU			<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
 
 #==true
 temp		<-grep("fishing mortality",TRU)
@@ -1694,11 +1694,11 @@ list(TrueRec,TrueFmort,TrueOFL,TrueCatch,TrueSpbio)
 #=============================================================
 # Production model plots
 #============================================================
-ProductionModelOutput<-function(CreateFolderNameList)
+ProductionModelOutput<-function(CreateFolderNameList,MSEdir=CurDir)
 {
 Data<-rep(list(list()))
 for(x in 1:length(CreateFolderNameList))
- Data[[x]]<-readLines(paste(CurDir,CreateFolderNameList[x],"/ProdOutputs.csv",sep=""))
+ Data[[x]]<-readLines(file.path(MSEdir,CreateFolderNameList[x],"ProdOutputs.csv"))
 
 #==estimated and true CPUE
 estCPUE<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
@@ -1750,7 +1750,7 @@ for(x in 1:length(Quant))
 
 }
 
-png(paste(CurDir,"/plots/ProductionFits_",CreateFolderNameList,".png",sep=""))
+png(file.path(MSEdir,"plots",paste0("ProductionFits_",CreateFolderNameList,".png")))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in 1:length(CreateFolderNameList))
@@ -1787,9 +1787,10 @@ axis(side=1)
 legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
 dev.off()
 
-png(paste(CurDir,"/plots/ProductionRefPoints_",CreateFolderNameList,".png",sep=""))
+png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",CreateFolderNameList,".png")))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
-
+for(y in 1:length(CreateFolderNameList))
+{
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
 RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
 temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
@@ -1819,7 +1820,7 @@ if(y==1)
  mtext(side=2,"Relative error",line=2.5,cex=.9)
  mtext(side=2,"Target fishing mortality",line=3.5,cex=.9)
 }
-
+}
 
 dev.off()
 }
@@ -1827,14 +1828,14 @@ dev.off()
 #############################################################
 #==cOMPARISON OF AGE STRUCTURED MODELS
 ############################################################
-AgeStructureComp<-function(RetroPeels=6,Inout,CreateFolderNameList)
+AgeStructureComp<-function(RetroPeels=6,Inout,CreateFolderNameList,MSEdir=CurDir)
 {
 TakeRows<-(Inout$OM$SimYear-RetroPeels+1):Inout$OM$SimYear
 GradientSave<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList)))
 
 for(x in 1:length(CreateFolderNameList))
 {
-  Inout<-ReadCTLfile(paste(CurDir,CreateFolderNameList[x],".csv",sep=""))
+  Inout<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[x],".csv")))
   GradientSave[,,x]<-CheckGradient(DrawDir=CreateFolderNameList[x],out=Inout)[TakeRows,]
 }
 ScenCols<-c("grey",as.numeric(seq(2,length(CreateFolderNameList),1)))
@@ -1881,8 +1882,8 @@ TrueOFL<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList)))
 
 for(x in 1:length(CreateFolderNameList))
 {
-  Inout			<-ReadCTLfile(paste(CurDir,CreateFolderNameList[x],".csv",sep=""))
-  DrawDir		<-paste(CreateFolderNameList[x],sep="")
+  Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[x],".csv")))
+  DrawDir		<-CreateFolderNameList[x]
   RetroOuts		<-CheckRetro(RetroPeels=RetroPeels,DrawDir,PlotRetro=0,out=Inout)
   MohnsRho[,,x]	<-CalculateMohn(RetroOuts)
   SSBbias[,,x]	<-CalculateBias(RetroOuts)
@@ -1902,7 +1903,7 @@ for(x in 1:length(CreateFolderNameList))
   BigBias[,x]<-apply(temp,2,mean) 
 }
 
-png(paste(CurDir,"/plots/CompareRefPoints.png",sep=""))
+png(file.path(MSEdir,"plots","CompareRefPoints.png"))
 par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
 
 inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
@@ -1931,7 +1932,7 @@ dev.off()
 
 quants<-PullTimevary(inFolders=CreateFolderNameList,out=Inout)
 
-png(paste(CurDir,"/plots/ComparePopulationProcess.png",sep=""))
+png(file.path(MSEdir,"plots","ComparePopulationProcess.png"))
 inmat<-matrix(c(1,1,2,2,3,3,
                 4,4,4,5,5,5),nrow=2,byrow=T)
 layout(inmat)
@@ -2087,7 +2088,7 @@ dev.off()
 #====================================
 
 
-  png(paste(CurDir,"/plots/AgeStructuredFits_",CreateFolderNameList,".png",sep=""),height=600,width=900)
+  png(file.path(MSEdir,"plots",paste0("AgeStructuredFits_",CreateFolderNameList,".png")),height=600,width=900)
   par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
   for(y in 1:length(CreateFolderNameList))
   {
