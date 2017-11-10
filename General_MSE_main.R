@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName,MSEdir = CurDir,silent=F,ADoptions=NA)
+GeMS<-function(out,CreateFolderName,MSEdir=CurDir,silent=F,ADoptions=NA)
 {
 
 #===============
@@ -31,10 +31,6 @@ if(silent) {
 
 if(is.na(ADoptions!=NA)) {
   SimAssComm <- paste(SimAssComm, ADoptions, sep = " ") # ADMB options such as "-gbs" or "-cbs" (Memory Management)
-}
-
-if(rev(unlist(strsplit(MSEdir, split = "")))[1] == "/") {
-  MSEdir <- paste0(rev(rev(unlist(strsplit(MSEdir, split = "")))[-1]), collapse = "")
 }
 
 #=======================
@@ -968,15 +964,28 @@ for(z in 1:Nsim)
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_NatM","\n",file="SimAss.PIN",append=TRUE)
+ if(EstM > 0) {
  cat(log(mean(NatMn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ }
+ if(EstM <= 0) {
+ cat(log(mean(NatMn,na.rm=T)),"\n",file="SimAss.PIN",append=TRUE) 
+ }
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
-
  cat("# log_avg_GrowthK","\n",file="SimAss.PIN",append=TRUE)
+ if(EstGrowthK > 0) {
  cat(log(mean(VonKn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
+ }
+ if(EstGrowthK <= 0) {
+ cat(log(mean(VonKn,na.rm=T)),"\n",file="SimAss.PIN",append=TRUE)
+ }
  cat("# log_avg_Linf","\n",file="SimAss.PIN",append=TRUE)
+ if(EstLinf > 0) {
  cat(log(mean(LinfN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
-
+ }
+ if(EstLinf < 0) {
+ cat(log(mean(LinfN,na.rm=T)),"\n",file="SimAss.PIN",append=TRUE)
+ }
  cat("# GrowthK_dev","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  cat("# Linf_dev","\n",file="SimAss.PIN",append=TRUE)
