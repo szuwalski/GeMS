@@ -828,7 +828,7 @@ ssb<-seq(1,VirBioN,VirBioN/100)
 record<-ssb
   for(x in 1:length(record))
    {
-     record[x]<-Recruitment(EggsIN=ssb[x],steepnessIN=steepnessN,RzeroIN=RzeroN[1],RecErrIN=RecErrN[1],recType="BH",NatMin=NatMn[1],
+     record[x]<-Recruitment(EggsIN=ssb[x],steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=RecErrN[1],recType="BH",NatMin=NatMn[1],
 							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,],MaxAge=MaxAge,sigmaRin=sigmaRn[1])
    }
 plot(record~ssb,type='l')
@@ -1750,7 +1750,7 @@ for(x in 1:length(Quant))
 
 }
 
-png(file.path(MSEdir,"plots",paste0("ProductionFits_",CreateFolderNameList,".png")))
+png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CreateFolderNameList,collapse="_"),".png")))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in 1:length(CreateFolderNameList))
@@ -1787,7 +1787,7 @@ axis(side=1)
 legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
 dev.off()
 
-png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",CreateFolderNameList,".png")))
+png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CreateFolderNameList,collapse="_"),".png")))
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 for(y in 1:length(CreateFolderNameList))
 {
@@ -1863,11 +1863,22 @@ for(x in 1:length(CreateFolderNameList))
 BigB35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
 BigF35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
 BigOFL<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-for(x in 1:length(CreateFolderNameList))
-{
-  BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
-  BigF35[,x]<-apply((F35save[,,x]-tF35save[x])/tF35save[x],2,median,na.rm=T)
-  BigOFL[,x]<-apply((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],2,median,na.rm=T)
+if(Inout$OM$Nsim>1) {
+  for(x in 1:length(CreateFolderNameList))
+  {
+    BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
+    BigF35[,x]<-apply((F35save[,,x]-tF35save[x])/tF35save[x],2,median,na.rm=T)
+    BigOFL[,x]<-apply((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],2,median,na.rm=T)
+  }
+}
+
+if(Inout$OM$Nsim==1) {
+  for(x in 1:length(CreateFolderNameList))
+  {
+    BigB35[,x]<-median((B35save[,,x]-tB35save[,,x])/tB35save[,,x],na.rm=T)
+    BigF35[,x]<-median((F35save[,,x]-tF35save[x])/tF35save[x],na.rm=T)
+    BigOFL[,x]<-median((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],na.rm=T)
+  }
 }
 
 ReB35<-BigB35
@@ -1890,17 +1901,37 @@ for(x in 1:length(CreateFolderNameList))
 }
 
 BigMohn<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-for(x in 1:length(CreateFolderNameList))
-{
-  temp<-MohnsRho[,,x]
-  BigMohn[,x]<-apply(temp,2,mean) 
+if(Inout$OM$Nsim > 1) {
+  for(x in 1:length(CreateFolderNameList))
+  {
+    temp<-MohnsRho[,,x]
+    BigMohn[,x]<-apply(temp,2,mean) 
+  }
+}
+
+if(Inout$OM$Nsim == 1) {
+  for(x in 1:length(CreateFolderNameList))
+  {
+    temp<-MohnsRho[,,x]
+    BigMohn[,x]<-mean(temp) 
+  }
 }
 
 BigBias<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-for(x in 1:length(CreateFolderNameList))
-{
-  temp<-SSBbias[,,x]
-  BigBias[,x]<-apply(temp,2,mean) 
+if(Inout$OM$Nsim > 1) {
+  for(x in 1:length(CreateFolderNameList))
+  {
+    temp<-SSBbias[,,x]
+    BigBias[,x]<-apply(temp,2,mean) 
+  }
+}
+
+if(Inout$OM$Nsim == 1) {
+  for(x in 1:length(CreateFolderNameList))
+  {
+    temp<-SSBbias[,,x]
+    BigBias[,x]<-mean(temp) 
+  }
 }
 
 png(file.path(MSEdir,"plots","CompareRefPoints.png"))
@@ -2090,36 +2121,72 @@ dev.off()
 
   png(file.path(MSEdir,"plots",paste0("AgeStructuredFits_",CreateFolderNameList,".png")),height=600,width=900)
   par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
-  for(y in 1:length(CreateFolderNameList))
-  {
-  boxplot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
-          las=1,xaxt='n',ylab='',yaxt='n')
-  for(x in 1:nrow(  quants[[14]]))
-    lines(quants[[15]][x,,y],col='#ff000033')
-  if(y==1)
-  {
-    axis(side=2,las=1)
-    mtext(side=2,"Biomass",line=5,cex=.9)
-  }
-  legend("topright",bty='n',,legend=CreateFolderNameList[y])
- # abline(h=trueBMSY,col="#0000ff99",lty=1)
-#  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
- # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
   
-  #legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-  #       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
-  
-  boxplot(quants[[12]][,,y],type="l",ylim=c(0,max(quants[[12]],na.rm=T)),
-          las=1,xaxt='n',ylab='',yaxt='n')
-  for(x in 1:nrow(quants[[11]]))
-    lines(quants[[11]][x,,y],col='#ff000033')
-  if(y==1)
-  {
-    axis(side=2,las=1)
-    mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
+  if(Inout$OM$Nsim>1) {
+    for(y in 1:length(CreateFolderNameList))
+    {
+    boxplot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
+            las=1,xaxt='n',ylab='',yaxt='n')
+    for(x in 1:nrow(  quants[[14]]))
+      lines(quants[[15]][x,,y],col='#ff000033')
+    if(y==1)
+    {
+      axis(side=2,las=1)
+      mtext(side=2,"Biomass",line=5,cex=.9)
+    }
+    legend("topright",bty='n',,legend=CreateFolderNameList[y])
+   # abline(h=trueBMSY,col="#0000ff99",lty=1)
+  #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
+   # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
+    
+    #legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+    #       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
+    
+    boxplot(quants[[12]][,,y],type="l",ylim=c(0,max(quants[[12]],na.rm=T)),
+            las=1,xaxt='n',ylab='',yaxt='n')
+    for(x in 1:nrow(quants[[11]]))
+      lines(quants[[11]][x,,y],col='#ff000033')
+    if(y==1)
+    {
+      axis(side=2,las=1)
+      mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
+    }
+    axis(side=1)  
   }
-  axis(side=1)  
-}
+  }
+
+    if(Inout$OM$Nsim==1) {
+    for(y in 1:length(CreateFolderNameList))
+    {
+    plot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
+            las=1,xaxt='n',ylab='',yaxt='n')
+    for(x in 1:nrow(  quants[[14]]))
+      lines(quants[[15]][x,,y],col='#ff000033')
+    if(y==1)
+    {
+      axis(side=2,las=1)
+      mtext(side=2,"Biomass",line=5,cex=.9)
+    }
+    legend("topright",bty='n',,legend=CreateFolderNameList[y])
+   # abline(h=trueBMSY,col="#0000ff99",lty=1)
+  #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
+   # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
+    
+    #legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+    #       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
+    
+    plot(quants[[12]][,,y],type="l",ylim=c(0,max(quants[[12]],na.rm=T)),
+            las=1,xaxt='n',ylab='',yaxt='n')
+    for(x in 1:nrow(quants[[11]]))
+      lines(quants[[11]][x,,y],col='#ff000033')
+    if(y==1)
+    {
+      axis(side=2,las=1)
+      mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
+    }
+    axis(side=1)  
+  }
+  }
 
 legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
 dev.off()
