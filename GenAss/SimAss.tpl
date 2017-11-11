@@ -630,6 +630,20 @@ FUNCTION Find_OFL
   dvariable Fmsy,Rbar,nn,alpha,beta;
   int BMSY_Yr1, BMSY_Yr2,ii,Iyr,kk,jj;
  
+  BMSY_Yr1 = 1;BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
+
+ // Find Rbar (Dynamic or not)
+  Rbar = 0; nn= 0;
+  for (Iyr=BMSY_Yr1;Iyr<=BMSY_Yr2;Iyr++)
+   {
+    Rbar += mfexp(mean_log_rec+rec_dev(Iyr));
+    nn += 1;
+   }
+  Rbar = Rbar / nn;
+
+ // Specify the BMSY proxy
+  Bmsy = SBPRF35 * Rbar;
+
   if(HarvestControl==1)
   {
 	FOFL = F35;
@@ -655,24 +669,12 @@ FUNCTION Find_OFL
   
   if(HarvestControl==4)
   {
-  BMSY_Yr1 = 1;BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
   alpha = 0.05;
   beta = 0.25;
   
   // Define Fmsy
   Fmsy = F35;
   
- // Find Rbar (Dynamic or not)
-  Rbar = 0; nn= 0;
-  for (Iyr=BMSY_Yr1;Iyr<=BMSY_Yr2;Iyr++)
-   {
-    Rbar += mfexp(mean_log_rec+rec_dev(Iyr));
-    nn += 1;
-   }
-  Rbar = Rbar / nn;
-
- // Specify the BMSY proxy
-  Bmsy = SBPRF35 * Rbar;
   // cout << "Rbar" << Rbar << endl;
   // cout << "Bmsy" << Bmsy << endl;
 
