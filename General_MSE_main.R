@@ -823,6 +823,7 @@ for(z in 1:Nsim)
 
  #==copy the .exe into it (where does this come from? github?)
  file.copy(from=paste("../","GenAss/",SimAssExec,sep=""),to=IndSimFolder)
+ file.copy(from=paste("GenAss/",SimAssExec,sep=""),to=IndSimFolder)
  
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object

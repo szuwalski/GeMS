@@ -3,7 +3,7 @@
 #=====================================,,
 #=simulation controls==================,,
 20,,# Nsim : Number of simulated stocks (
-80,,# SimYear : total number of years in simulation
+120,,# SimYear : total number of years in simulation
 50,,# InitYear : year in which the MSE starts (i.e. the number of years for which there are data going into the first assessment)
 1,,"# AssessmentType : 0=No assessment, 1=Production, 2=Age-structured)"
 1,,# FisheryIndepenDat : Included fishery independent survey in assessment?
@@ -33,7 +33,7 @@
 0,,# MaxMovingN : maximum proportion moving by age (scales a logistic curve)
 6,,# Move50n : age at 50% moving (before application of scaling by maximum proportion moving at age)
 10,,# Move95n : age at 95% moving (before application of scaling by maximum proportion moving at age)
-0.45,,# steepnessN : stock recruit parameter
+0.4,,# steepnessN : stock recruit parameter
 0.001,,# sigmaRn : variability around the recruitment curve
 100000,,# RzeroN : virgin recruitment
 ,,
@@ -44,7 +44,7 @@
 50,,# surv95n : length at 95% selection in the survey
 ,,
 #==Define historic fishing mortality for pop 1 =========================================================,,
-"c(seq(0.01,0.3,0.02),seq(0.3,0.2,-0.005),rep(0.2,60))",,# HistoricalFn : fishing mortality over the historic period (i.e. the number of years designated as the year in which the MSE starts above)
+"c(seq(0.01,0.3,0.02),seq(0.3,0.2,-0.005),rep(0.2,100))",,# HistoricalFn : fishing mortality over the historic period (i.e. the number of years designated as the year in which the MSE starts above)
 0.01,,# PastFsdN : standard deviation applied to HistoricalF to generate stochastic past fishing mortality
 4,,"# HarvestControlN : 1 = FMSY; 2 = constant catch, 3 = constant F; 4 = 40/10, "
 0,,"# ConstantCatchN : if above ==2, this sets the constant catch"
@@ -89,7 +89,7 @@
 ,,
 #==Define historic fishing mortality for pop 2=========================================================,,
 #============================================================================================,,
-"c(seq(0.01,0.3,0.02),seq(0.3,0.2,-0.005),rep(0.2,60))",,# HistoricalFs : fishing mortality over the historic period (i.e. the number of years designated as the year in which the MSE starts above)
+"c(seq(0.01,0.3,0.02),seq(0.3,0.2,-0.005),rep(0.2,100))",,# HistoricalFs : fishing mortality over the historic period (i.e. the number of years designated as the year in which the MSE starts above)
 0.01,,# PastFsdS : standard deviation applied to HistoricalF to generate stochastic past fishing mortality
 4,,"# HarvestControlS : 1 = FMSY; 2 = constant catch, 3 = constant F; 4 = 40/10, "
 0,,"# ConstantCatchS : if above ==2, this sets the constant catch"

@@ -33,7 +33,7 @@
 0,,# MaxMovingN : maximum proportion moving by age (scales a logistic curve)
 6,,# Move50n : age at 50% moving (before application of scaling by maximum proportion moving at age)
 10,,# Move95n : age at 95% moving (before application of scaling by maximum proportion moving at age)
-0.65,,# steepnessN : stock recruit parameter
+0.3,,# steepnessN : stock recruit parameter
 0.001,,# sigmaRn : variability around the recruitment curve
 100000,,# RzeroN : virgin recruitment
 ,,
@@ -121,5 +121,5 @@
 #=================================================,,
 # Production model estimation controls,,
 #=================================================,,
-1.5,,# InitBzeroMod : determines what fraction the true Bzero is multiplied by for an initial value for estimation
-0.3,,# InitGrowthRate : initial value for intrinsic growth rate in production model estimation
+1,,# InitBzeroMod : determines what fraction the true Bzero is multiplied by for an initial value for estimation
+0.2,,# InitGrowthRate : initial value for intrinsic growth rate in production model estimation
