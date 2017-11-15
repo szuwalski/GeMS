@@ -20,5 +20,6 @@ for(x in 1:length(CreateFolderNameList))
 }
 
 #==compare estimating M vs. not estimating M when M is varying
+CreateFolderNameList<-c("Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL","Cod_AgeStructure_CTL")
 CreateFolderNameList<-c("Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
 AgeStructureComp(Inout=Inout,CreateFolderNameList=CreateFolderNameList)
