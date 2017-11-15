@@ -525,7 +525,7 @@ TotFdir<-exp(logFdir+fmort_dir_dev)
 cnt<-grep("stNatLen",data2)
 stNatLen<-as.numeric(data2[(cnt+1):(cnt+maxAge)])
 
-png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CreateFolderNameList,".png")))
+png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CreateFolderNameList,".png")),res=1200)
 par(mfrow=c(3,1),mar=c(1,4,1,1),oma=c(3,1,1,1))
 plot(TotRec[1:(yearsDat-1)],type="l",las=1,ylab="Recruitment")
 lines(trueRec[1:(yearsDat-1)],lty=2,col=2)
@@ -563,7 +563,7 @@ trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueFishSelPar[1])/(trueFishSelP
 #legend("bottomright",bty='n',col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("True Survey","Est Survey","True Fishery","Est Fishery"))
 dev.off()
 
-png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CreateFolderNameList,".png")))
+png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CreateFolderNameList,".png")),res=1200)
 par(mfrow=c(2,2),mar=c(.1,.1,.1,.1),oma=c(5,5,1,5))
 #plot(obsSurvBio,yaxt='n',ylim=c(0,max(obsSurvBio,predSurvBio,trueSpbio,na.rm=T)))
 #axis(side=2,las=1)
@@ -598,7 +598,7 @@ legend("topright",bty='n',c("Spawning biomass","True","Estimated"),lty=c(NA,1,2)
 dev.off()
 
 
-png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CreateFolderNameList,".png")))
+png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CreateFolderNameList,".png")),res=1200)
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -610,7 +610,7 @@ plot.new()
 legend("center","Survey")
 dev.off()
 
-png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CreateFolderNameList,".png")))
+png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CreateFolderNameList,".png")),res=1200)
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -875,7 +875,7 @@ HarvestControlRule<-function(FMSY,BMSY,ExploitBio,SpawnBio,alpha,beta,HarvestCon
 }
 #####################################################################
    
-PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,quantity=NA)
+PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,quantity=NA,SimYear=NA,Nsim=NA)
 {
  EstShape<-apply(Estimated[,1:(ncol(Estimated))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
  TrueShape<-apply(Truth[,1:(ncol(Truth))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
@@ -900,13 +900,13 @@ if(!is.na(quantity))
  for(z in 1:Nsim)
   points(Observed[z,]~seq(1,(SimYear-1)),col=DataColor,pch=16)
  }
- polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(EstShape[1,],rev(EstShape[4,])),col=EstimateColor5,border=F)
- polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(EstShape[2,],rev(EstShape[3,])),col=EstimateColor25,border=F)
+ polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(TrueShape[1,1:SimYear-1],rev(TrueShape[4,1:SimYear-1])),col=EstimateColor5,border=F)
+ polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(TrueShape[2,1:SimYear-1],rev(TrueShape[3,1:SimYear-1])),col=EstimateColor25,border=F)
  if(AddLegend==T&length(Observed)<1)
- legend("topright",bty='n',pch=c(15,NA),lty=c(NA,1),col=c(EstimateColor5,TruthColor),legend=c("Estimates","Truth"))
+ legend("topright",bty='n',pch=c(15,NA),lty=c(NA,1),col=c(EstimateColor5,TruthColor),legend=c("Truth","Estimates"))
 
  for(z in 1:Nsim)
-  lines(Truth[z,]~seq(1,(SimYear-1)),col=TruthColor,lty=1)
+  lines(Estimated[z,]~seq(1,(SimYear)),col=TruthColor,lty=1)
 }
 
 #####################################################################
@@ -1750,15 +1750,19 @@ for(x in 1:length(Quant))
 
 }
 
-png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CreateFolderNameList,collapse="_"),".png")))
+png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CreateFolderNameList,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in 1:length(CreateFolderNameList))
 {
-boxplot(trueCPUE[,,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
- las=1,xaxt='n',ylab='',yaxt='n')
-for(x in 1:nrow(estCPUE))
- lines(estCPUE[x,,y],col='#ff000033')
+# boxplot(trueCPUE[,,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
+#  las=1,xaxt='n',ylab='',yaxt='n')
+#   input<-trueCPUE[,,y]
+  # for(x in 1:nrow(estCPUE))
+  #   lines(estCPUE[x,,y],col='#ff000033')
+  
+PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim)
+
 if(y==1)
 {
  axis(side=2,las=1)
@@ -1770,24 +1774,27 @@ abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
 abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
 
 legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
+       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
 
-boxplot(trueTAC[,,y],type="l",ylim=c(0,max(trueTAC,na.rm=T)),
-        las=1,xaxt='n',ylab='',yaxt='n')
-for(x in 1:nrow(estCPUE))
-  lines(estTAC[x,,y],col='#ff000033')
+
+PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim)
+
+# boxplot(trueTAC[,,y],type="l",ylim=c(0,max(trueTAC,na.rm=T)),
+#         las=1,xaxt='n',ylab='',yaxt='n')
+# for(x in 1:nrow(estCPUE))
+#   lines(estTAC[x,,y],col='#ff000033')
 if(y==1)
 {
-  axis(side=2,las=1)
+  # axis(side=2,las=1)
   mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
 }
 }
 axis(side=1)
 
-legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
+legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n',cex=.7)
 dev.off()
 
-png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CreateFolderNameList,collapse="_"),".png")))
+png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CreateFolderNameList,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
 par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 for(y in 1:length(CreateFolderNameList))
 {
@@ -1799,8 +1806,10 @@ RelativeErrorFMSY<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
 yUp   <-max(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
 ydown <-min(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
 
-boxplot(RelativeErrorBMSY[,Inout$OM$InitYear:Inout$OM$SimYear],
- las=1,yaxt='n',xaxt='n',ylim=c(ydown,yUp))
+inShape<-apply(RelativeErrorBMSY[,1:(ncol(RelativeErrorBMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 abline(h=0,lty=2)
 
 if(y==1)
@@ -1810,8 +1819,10 @@ if(y==1)
  mtext(side=2,"Target biomass",line=3.5,cex=.9)
 }
 
-boxplot(RelativeErrorFMSY[,Inout$OM$InitYear:Inout$OM$SimYear],
- las=1,yaxt='n',xaxt='n',ylim=c(ydown,yUp))
+inShape<-apply(RelativeErrorFMSY[,1:(ncol(RelativeErrorFMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 abline(h=0,lty=2)
 
 if(y==1)
@@ -1856,7 +1867,7 @@ for(x in 1:length(CreateFolderNameList))
   F35save[,,x]	<-temp[[2]][TakeRows,]
   OFLsave[,,x]	<-temp[[3]][TakeRows,]
   tB35save[,,x]	<-temp[[4]][TakeRows,]
-  tF35save[,,x]	  <-temp[[5]][TakeRows]
+  tF35save[,,x]	<-temp[[5]][TakeRows]
   tOFLsave[,,x]	<-temp[[6]][TakeRows,]
 } 
 
@@ -1867,7 +1878,7 @@ if(Inout$OM$Nsim>1) {
   for(x in 1:length(CreateFolderNameList))
   {
     BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
-    BigF35[,x]<-apply((F35save[,,x]-tF35save[x])/tF35save[x],2,median,na.rm=T)
+    BigF35[,x]<-apply((F35save[,,x]-tF35save[,,x])/tF35save[,,x],2,median,na.rm=T)
     BigOFL[,x]<-apply((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],2,median,na.rm=T)
   }
 }
@@ -1876,7 +1887,7 @@ if(Inout$OM$Nsim==1) {
   for(x in 1:length(CreateFolderNameList))
   {
     BigB35[,x]<-median((B35save[,,x]-tB35save[,,x])/tB35save[,,x],na.rm=T)
-    BigF35[,x]<-median((F35save[,,x]-tF35save[x])/tF35save[x],na.rm=T)
+    BigF35[,x]<-median((F35save[,,x]-tF35save[,,x])/tF35save[,,x],na.rm=T)
     BigOFL[,x]<-median((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],na.rm=T)
   }
 }
@@ -1934,7 +1945,7 @@ if(Inout$OM$Nsim == 1) {
   }
 }
 
-png(file.path(MSEdir,"plots","CompareRefPoints.png"))
+png(file.path(MSEdir,"plots","CompareRefPoints.png"),height=7,width=3.5,units='in',res=1200)
 par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
 
 inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
@@ -1963,7 +1974,7 @@ dev.off()
 
 quants<-PullTimevary(inFolders=CreateFolderNameList,out=Inout)
 
-png(file.path(MSEdir,"plots","ComparePopulationProcess.png"))
+png(file.path(MSEdir,"plots","ComparePopulationProcess.png"),height=5,width=7.5,units='in',res=1200)
 inmat<-matrix(c(1,1,2,2,3,3,
                 4,4,4,5,5,5),nrow=2,byrow=T)
 layout(inmat)
