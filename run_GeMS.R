@@ -1,4 +1,4 @@
-run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,GeMSops=NA,shutup=F) {
+run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,cores = 1,GeMSops=NA,shutup=F) {
 
 	if(!file.exists("General_MSE_main.R")) {
 		stop(print("Set working directory to folder where GeMS is located."))
@@ -15,16 +15,16 @@ run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,GeMSops=NA,shutup
 			message("Installed packages foreach and doParallel.")
 		}
 		suppressPackageStartupMessages(library(foreach))
-		clus <- getDoParWorkers()
-		if(clus == 1) {message(paste0("Only one core registered. Runs will not be done in parallel.\n",
-								"If you want to do so, \n",
-								"cancel run and run the following: \n",
-								"doParallel::registerDoParallel(parallel::detectCores()-2);  # where 2 is the number of cores to keep free \n"))
+		if(cores == 1) {message(paste0("Only one core registered. Runs will not be done in parallel.\n",
+									  "Set cores=2 or greater, depending on number of cores to be registered."))
 						runparallel <- F
 					}
-		if(clus>1) {
+		if(cores>1) {
 			if(!shutup) message("Running scenarios in parallel.")
-			foreach(mod=1:length(CreateFolderNameList)) %dopar% {
+			cl <- parallel::makeCluster(cores)
+			doParallel::registerDoParallel(cl)
+
+			foreach(mod=1:length(CreateFolderNameList),.export=ls(envir=globalenv())) %dopar% {
 				setwd(dir.main)
 				Inout<-ReadCTLfile(file.path(CurDir,paste0(CreateFolderNameList[mod],".csv")))
 				temp <- list(MSEdir = CurDir, out=Inout,

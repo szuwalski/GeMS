@@ -20,11 +20,9 @@ source("run_GeMS.R")
 # GeMSops is a named list of options used in the GeMS() function
 #	silent = T sends console output into a console.log text file
 #	Adoptions = character string of ADMB options, e.g. -nohess, -gbs, -cbs etc.
-#	runparallel = T runs control files in parallel*
-#		* Requires packages foreach and doParallel, and number of cores must be registered
-#		  E.g.:
-#		  doParallel::registerDoParallel(parallel::detectCores()-2);  # where 2 is the number of cores to keep free
-#
+#	runparallel = T runs control files in parallel
+#	cores = integer stating number of cores to use in parallel processing
+
 run_GeMS(CurDir=tempdir, CreateFolderNameList=OMNames,
 		 GeMSops = list(silent = T, ADoptions = "-gbs 2000000000"))
 
@@ -33,13 +31,10 @@ run_GeMS(CurDir=tempdir, CreateFolderNameList=OMNames,
 #-----------------
 setwd("~/Box\ Sync/GeMS/General-MSE")
 
-nCores <- parallel::detectCores() - 4
-doParallel::registerDoParallel(nCores)
-
 tempdir <- file.path(getwd(), "Cod_5_AgeStructure")
 OMNames<-c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL")
 
 source("run_GeMS.R")
 run_GeMS(CurDir=tempdir, CreateFolderNameList=OMNames,
-	     runparallel = T,
+	     runparallel = T, cores = 2,
 	     GeMSops = list(silent = T, ADoptions = "-gbs 2000000000"))
