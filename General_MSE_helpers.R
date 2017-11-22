@@ -1956,137 +1956,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
       BigMohn[,x]<-mean(temp) 
     }
   }
-}
 
-png(file.path(MSEdir,"plots","CompareRefPoints.png"),height=7,width=3.5,units='in',res=1200)
-par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(10,6,1,1))
-
-inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
-boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
-legend("topleft",c("(a) Retrospective bias"),bty='n')
-mtext(side=2,"Mohn's rho",line=3,cex=.7)
-abline(h=0,lty=2)
-
-boxplot(BigBias,col=ScenCols,xaxt='n',ylim=inYlim,las=1)
-legend("topleft",c("(b) Spawning biomass"),bty='n')
-mtext(side=2,"relative error",line=3,cex=.7)
-abline(h=0,lty=2)
-boxplot(ReB35,col=ScenCols,,ylim=inYlim,xaxt='n',las=1)
-legend("topleft",expression("(c) B"[35]),bty='n')
-mtext(side=2,"relative error",line=3,cex=.7)
-abline(h=0,lty=2)
-boxplot(ReF35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
-legend("topleft",expression("(c) F"[35]),bty='n')
-mtext(side=2,"relative error",line=3,cex=.7)
-abline(h=0,lty=2)
-boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=2,names=CreateFolderNameList)
-abline(h=0,lty=2)
-legend("topleft",c("(e) OFL"),bty='n')
-mtext(side=2,"relative error",line=3,cex=.7)
-dev.off()
-
-quants<-PullTimevary(inFolders=CreateFolderNameList,out=Inout)
-
-png(file.path(MSEdir,"plots","ComparePopulationProcess.png"),height=5,width=7.5,units='in',res=1200)
-inmat<-matrix(c(1,1,2,2,3,3,
-                4,4,4,5,5,5),nrow=2,byrow=T)
-layout(inmat)
-par(mar=c(.1,.1,.1,.1),oma=c(4,5,4,4))
-
-#==RECRUITMENT
-input<-quants[[1]]
-tInput<-quants[[2]] 
-
-plot(-100000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,na.rm=T)),las=1,xaxt='n')
-for(x in 1:length(CreateFolderNameList))
-{
-  color<-seq(1,length(CreateFolderNameList)+1)
-  incol<-adjustcolor(color,alpha.f=.08)
-  tCol<-rgb(0,0,0,0.2)
-  temp<-input[,,x]
-  for(y in 1:dim(input)[1])
-    lines(input[y,,x],col=incol[x])
-} 
-medians<- apply(input,c(2,3),median,na.rm=T)
-for(x in 1:ncol(medians))
-  lines(medians[,x],col=x,cex=2)
-
-abline(v=Inout$OM$InitYear,lty=3)
-
-#==true R
-plotIn<-apply(tInput,2,median)
-plotIn[1]<-NA
-lines(plotIn,col="yellow",lwd=2,lty=2)
-
-legend("bottomleft",bty='n',"(a) Recruitment")
-mtext(side=2,"Numbers",line=4,cex=.7)
-#==FISHING MORTALITY
-input<-quants[[3]]
-NatM<-quants[[7]]
-tInput<-quants[[4]] 
-
-plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
-axis(side=3)
-mtext(side=3,line=2,"Time")
-for(x in 1:length(CreateFolderNameList))
-{
-  color<-seq(1,length(CreateFolderNameList)+1)
-  incol<-adjustcolor(color,alpha.f=.08)
-  tCol<-rgb(0,0,0,0.2)
-  temp<-input[,,x]
-  for(y in 1:dim(input)[1])
-    lines(input[y,,x],col=incol[x])
-} 
-medians<- apply(input,c(2,3),median,na.rm=T)
-for(x in 1:ncol(medians))
-  lines(medians[,x],col=x,cex=2)
-
-abline(v=Inout$OM$InitYear,lty=3)
-
-#==true F
-lines(apply(tInput,2,median),col="yellow",lwd=2,lty=2)
-legend("bottomleft",bty='n',"(b) Fishing mortality")
-
-#==NATURAL MORTALITY
-input<-quants[[7]]
-tInput<-quants[[8]] 
-
-plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
-axis(side=4,las=1)
-for(x in 1:length(CreateFolderNameList))
-{
-  color<-seq(1,length(CreateFolderNameList)+1)
-  incol<-adjustcolor(color,alpha.f=.08)
-  tCol<-rgb(0,0,0,0.2)
-  temp<-input[,,x]
-  for(y in 1:dim(input)[1])
-    lines(input[y,,x],col=incol[x])
-} 
-medians<- apply(input,c(2,3),median,na.rm=T)
-for(x in 1:ncol(medians))
-  lines(medians[,x],col=x,cex=2)
-
-#==true M
-dim(tInput)
-lines(tInput,col="yellow",lwd=2,lty=2)
-
-abline(v=Inout$OM$InitYear,lty=3)
-
-legend("bottomleft",bty='n',"(c) Natural mortality")
-mtext(side=4,"rate (/year)",line=2,cex=.7)
-
-#==SELECTIVITY
-input<-quants[[9]]
-tInput<-quants[[10]] 
-plot(-1000,xlim=c(1,which(input[1,,1,1]>0.99)[3]),ylim=c(0,max(input,na.rm=T)),las=1)
-for(x in 1:length(CreateFolderNameList))
-{
-  color<-seq(1,length(CreateFolderNameList)+1)
-  incol<-adjustcolor(color,alpha.f=.008)
-  tCol<-rgb(0,0,0,0.2)
-  temp<-input[,,,x]
-  for(y in 1:dim(input)[1])
- 
   BigBias<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
   if(Inout$OM$Nsim > 1) {
     for(x in 1:length(CTLNames))
@@ -2103,9 +1973,9 @@ for(x in 1:length(CreateFolderNameList))
       BigBias[,x]<-mean(temp) 
     }
   }
-  
+
   png(file.path(MSEdir,"plots","CompareRefPoints.png"),height=7,width=3.5,units='in',res=1200)
-  par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
+  par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(10,6,1,1))
   
   inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
   boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
@@ -2125,13 +1995,13 @@ for(x in 1:length(CreateFolderNameList))
   legend("topleft",expression("(c) F"[35]),bty='n')
   mtext(side=2,"relative error",line=3,cex=.7)
   abline(h=0,lty=2)
-  boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=1,names=CTLNames)
+  boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=2,names=CTLNames)
   abline(h=0,lty=2)
   legend("topleft",c("(e) OFL"),bty='n')
   mtext(side=2,"relative error",line=3,cex=.7)
   dev.off()
   
-  quants<-PullTimevary(inFolders=CTLNames,out=Inout,MSEdir)
+  quants<-PullTimevary(MSEdir,inFolders=CTLNames,out=Inout)
   
   png(file.path(MSEdir,"plots","ComparePopulationProcess.png"),height=5,width=7.5,units='in',res=1200)
   inmat<-matrix(c(1,1,2,2,3,3,
@@ -2145,7 +2015,6 @@ for(x in 1:length(CreateFolderNameList))
   
   plot(-100000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,na.rm=T)),las=1,xaxt='n')
   for(x in 1:length(CTLNames))
-
   {
     color<-seq(1,length(CTLNames)+1)
     incol<-adjustcolor(color,alpha.f=.08)
