@@ -525,7 +525,7 @@ TotFdir<-exp(logFdir+fmort_dir_dev)
 cnt<-grep("stNatLen",data2)
 stNatLen<-as.numeric(data2[(cnt+1):(cnt+maxAge)])
 
-png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CreateFolderNameList,".png")),res=1200)
+png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
 par(mfrow=c(3,1),mar=c(1,4,1,1),oma=c(3,1,1,1))
 plot(TotRec[1:(yearsDat-1)],type="l",las=1,ylab="Recruitment")
 lines(trueRec[1:(yearsDat-1)],lty=2,col=2)
@@ -563,7 +563,7 @@ trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueFishSelPar[1])/(trueFishSelP
 #legend("bottomright",bty='n',col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("True Survey","Est Survey","True Fishery","Est Fishery"))
 dev.off()
 
-png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CreateFolderNameList,".png")),res=1200)
+png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
 par(mfrow=c(2,2),mar=c(.1,.1,.1,.1),oma=c(5,5,1,5))
 #plot(obsSurvBio,yaxt='n',ylim=c(0,max(obsSurvBio,predSurvBio,trueSpbio,na.rm=T)))
 #axis(side=2,las=1)
@@ -598,7 +598,7 @@ legend("topright",bty='n',c("Spawning biomass","True","Estimated"),lty=c(NA,1,2)
 dev.off()
 
 
-png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CreateFolderNameList,".png")),res=1200)
+png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -610,7 +610,7 @@ plot.new()
 legend("center","Survey")
 dev.off()
 
-png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CreateFolderNameList,".png")),res=1200)
+png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -831,7 +831,7 @@ record<-ssb
      record[x]<-Recruitment(EggsIN=ssb[x],steepnessIN=steepnessN[1],RzeroIN=RzeroN[1],RecErrIN=RecErrN[1],recType="BH",NatMin=NatMn[1],
 							vulnIN=vulnN[1,],matureIN=matureN[1,],weightIN=WeightAtAgeN[1,],LenAtAgeIN=LenAtAgeN[1,],MaxAge=MaxAge,sigmaRin=sigmaRn[1])
    }
-plot(record~ssb,type='l')
+plot(record/10000~ssb,type='l',las=1)
 mtext(side=3,"SSB vs Rec (N)",cex=.7)
 ssb<-seq(1,VirBioS,VirBioS/100)
 record<-ssb
@@ -840,11 +840,11 @@ record<-ssb
      record[x]<-Recruitment(EggsIN=ssb[x],steepnessIN=steepnessS[1],RzeroIN=RzeroS[1],RecErrIN=RecErrS[1],recType="BH",NatMin=NatMs[1],
 							vulnIN=vulnS[1,],matureIN=matureS[1,],weightIN=WeightAtAgeS[1,],LenAtAgeIN=LenAtAgeS[1,],MaxAge=MaxAge,sigmaRin=sigmaRs[1])
    }
-plot(record~ssb,type='l')
+plot(record/10000~ssb,type='l',las=1)
 mtext(side=3,"SSB vs Rec (S)",cex=.7)
 
 
-plot(HistoricalFn,type='l')
+plot(HistoricalFn,type='l',las=1)
 lines(HistoricalFs,lty=2,col=2)
 mtext(side=3,"Historical F",cex=.7)
  }
@@ -875,7 +875,7 @@ HarvestControlRule<-function(FMSY,BMSY,ExploitBio,SpawnBio,alpha,beta,HarvestCon
 }
 #####################################################################
    
-PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,quantity=NA,SimYear=NA,Nsim=NA)
+PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,quantity=NA,SimYear=NA,Nsim=NA,ylimIN=NA)
 {
  EstShape<-apply(Estimated[,1:(ncol(Estimated))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
  TrueShape<-apply(Truth[,1:(ncol(Truth))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
@@ -885,10 +885,15 @@ PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,qu
  EstimateColor5<-"lightgrey"
  TruthColor<-"#FF000033"
 
+ if(!is.na(ylimIN))
+   use_ylim<-ylimIN
+ if(is.na(ylimIN))
+   use_ylim<-c(0,max(EstShape,TrueShape,Observed,na.rm=t))
+ 
 if(bottom==F)
- plot(-100000000000,ylim=c(0,max(EstShape,TrueShape,Observed,na.rm=t)),xlim=c(1,SimYear),las=1,ylab="",xlab="Year",xaxt='n')
+ plot(-100000000000,ylim=use_ylim,xlim=c(1,SimYear),las=1,ylab="",xlab="Year",xaxt='n')
 if(bottom==T)
- plot(-100000000000,ylim=c(0,max(EstShape,TrueShape,Observed,na.rm=t)),xlim=c(1,SimYear),las=1,ylab="",xlab="Year")
+ plot(-100000000000,ylim=use_ylim,xlim=c(1,SimYear),las=1,ylab="",xlab="Year")
 
 if(!is.na(quantity))
  legend("bottomleft",bty='n',legend=quantity)
@@ -1694,11 +1699,13 @@ list(TrueRec,TrueFmort,TrueOFL,TrueCatch,TrueSpbio)
 #=============================================================
 # Production model plots
 #============================================================
-ProductionModelOutput<-function(CreateFolderNameList,MSEdir=CurDir)
+ProductionModelOutput<-function(CreateFolderNameList,MSEdir=CurDir,ylimIN=NA)
 {
 Data<-rep(list(list()))
 for(x in 1:length(CreateFolderNameList))
  Data[[x]]<-readLines(file.path(MSEdir,CreateFolderNameList[x],"ProdOutputs.csv"))
+
+SimYear<-Inout$OM$SimYear
 
 #==estimated and true CPUE
 estCPUE<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
@@ -1803,11 +1810,19 @@ RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
 temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
 RelativeErrorFMSY<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
 
+if(is.na(ylimIN))
+{
 yUp   <-max(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
 ydown <-min(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
+use_ylim<-c(ydown,yUp)
+}
+
+if(!is.na(ylimIN))
+  use_ylim<-ylimIN
+
 
 inShape<-apply(RelativeErrorBMSY[,1:(ncol(RelativeErrorBMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+plot(-100000000000,ylim=use_ylim,las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
 polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 abline(h=0,lty=2)
@@ -1820,13 +1835,14 @@ if(y==1)
 }
 
 inShape<-apply(RelativeErrorFMSY[,1:(ncol(RelativeErrorFMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+plot(-100000000000,ylim=use_ylim,las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
 polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 abline(h=0,lty=2)
 
 if(y==1)
 {
+ axis(side=1)
  axis(side=2,las=1)
  mtext(side=2,"Relative error",line=2.5,cex=.9)
  mtext(side=2,"Target fishing mortality",line=3.5,cex=.9)
@@ -1946,7 +1962,7 @@ if(Inout$OM$Nsim == 1) {
 }
 
 png(file.path(MSEdir,"plots","CompareRefPoints.png"),height=7,width=3.5,units='in',res=1200)
-par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
+par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(10,6,1,1))
 
 inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
 boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
@@ -1966,7 +1982,7 @@ boxplot(ReF35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
 legend("topleft",expression("(c) F"[35]),bty='n')
 mtext(side=2,"relative error",line=3,cex=.7)
 abline(h=0,lty=2)
-boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=1,names=CreateFolderNameList)
+boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=2,names=CreateFolderNameList)
 abline(h=0,lty=2)
 legend("topleft",c("(e) OFL"),bty='n')
 mtext(side=2,"relative error",line=3,cex=.7)

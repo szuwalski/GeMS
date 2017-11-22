@@ -295,7 +295,7 @@ VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
 
-png(file.path(PlotFolder,paste0("LifeHistory_",CreateFolderName,".png")))
+png(file.path(PlotFolder,paste0("LifeHistory_",CreateFolderName,".png")),res=1200,units='in',height=7.5,width=7.5)
 par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
 PlotLifeHistory(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSelS,WeightAtAgeN,
 	WeightAtAgeS,MovementN,MovementS,NatMs,NatMn,VirBioN,VirBioS,RzeroN,RecErrN,steepnessN,steepnessS,
