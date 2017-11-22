@@ -1,56 +1,56 @@
 ###############################################################
 SBPRfunc<-function(F,Rzero,NatM,vuln,mature,weight,LenAtAge,MaxAge)
 {
-#initial conditions
-N<-matrix(ncol=MaxAge,nrow=50)
-N[1,]<-initialN(Rzero,NatM,MaxAge)
-
-for (j in 2:50)
-{
+  #initial conditions
+  N<-matrix(ncol=MaxAge,nrow=50)
+  N[1,]<-initialN(Rzero,NatM,MaxAge)
+  
+  for (j in 2:50)
+  {
  for (i in 2:(MaxAge-1))
   N[j,i]<-N[j-1,i-1]*exp(-F*vuln[i-1])*exp(-NatM)
 
  N[j,MaxAge]<-(N[j-1,MaxAge-1]+N[j-1,MaxAge])*exp(-F*vuln[MaxAge])*exp(-NatM)
  N[j,1]<-Rzero
-}
-SBP<-sum(N[50,]*mature*weight)
-SBPR<-sum(N[50,]*mature*weight)/Rzero
-YPR<-sum(N[50,]*(1-exp(-F*vuln)) *weight)
-list(SBP,SBPR,YPR)
-#return(SBPR)
+  }
+  SBP<-sum(N[50,]*mature*weight)
+  SBPR<-sum(N[50,]*mature*weight)/Rzero
+  YPR<-sum(N[50,]*(1-exp(-F*vuln)) *weight)
+  list(SBP,SBPR,YPR)
+  #return(SBPR)
 }
 
 ###############################################################
 
 Recruitment<-function(EggsIN,steepnessIN,RzeroIN,RecErrIN,recType,NatMin,vulnIN,matureIN,weightIN,LenAtAgeIN,MaxAge,sigmaRin)
 {
-if(recType=="BH")
-{
+  if(recType=="BH")
+  {
  Szero<-unlist(SBPRfunc(0,RzeroIN,NatMin,vulnIN,matureIN,weightIN,LenAtAgeIN,MaxAge)[1])	#since there are only a couple possible values, code could be sped up by changing this
  alpha<-(Szero/RzeroIN)*(1-steepnessIN)/(4*steepnessIN)
  beta<-(5*steepnessIN-1)/(4*steepnessIN*RzeroIN)
  Recruit<-(EggsIN/(alpha+beta*EggsIN))*exp(RecErrIN-(sigmaRin^2)/2)
-}
-if(recType=="Rick")
-{
+  }
+  if(recType=="Rick")
+  {
  Szero<-unlist(SBPRfunc(0,RzeroIN,NatMin,vulnIN,matureIN,weightIN,LenAtAgeIN,MaxAge)[1])
  beta<-log(5*steepnessIN)/(0.8*Szero)
  alpha<-log(RzeroIN/Szero)+(beta*Szero)
  Recruit<-(EggsIN*exp(alpha-beta*EggsIN))*exp(RecErrIN-(sigmaRin^2)/2)
-}
-return(Recruit)
+  }
+  return(Recruit)
 }
 
 ###############################################################
 
 initialN<-function(Rzero,NatM,inAge)
 {
-test		<-rep(0,100)
-test[1]	<-Rzero[1]
-for (i in 2:100)
- {test[i]	<-test[i-1]*exp(-NatM)}
-virInit2	<-c(test[1:(inAge-1)],sum(test[inAge:100]))
-return(virInit2)
+  test		<-rep(0,100)
+  test[1]	<-Rzero[1]
+  for (i in 2:100)
+   {test[i]	<-test[i-1]*exp(-NatM)}
+  virInit2	<-c(test[1:(inAge-1)],sum(test[inAge:100]))
+  return(virInit2)
 }
 
 ###############################################################
@@ -452,7 +452,7 @@ return(predBio)
 }
 
 #################################################################
-AgeAssPlot<-function(REP,CTL,DAT,TRU,data2,MSEdir=CurDir)
+AgeAssPlot<-function(REP,CTL,DAT,TRU,data2,MSEdir,CTLName)
 {
 temp<-grep("survey years",DAT)[1]
 yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
@@ -525,7 +525,9 @@ TotFdir<-exp(logFdir+fmort_dir_dev)
 cnt<-grep("stNatLen",data2)
 stNatLen<-as.numeric(data2[(cnt+1):(cnt+maxAge)])
 
-png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
+
+
+png(file.path(MSEdir,"plots",paste0("PopulationProcessesEst_",CTLName,".png")),res=1200,width=6,height=6,units="in")
 par(mfrow=c(3,1),mar=c(1,4,1,1),oma=c(3,1,1,1))
 plot(TotRec[1:(yearsDat-1)],type="l",las=1,ylab="Recruitment")
 lines(trueRec[1:(yearsDat-1)],lty=2,col=2)
@@ -563,7 +565,9 @@ trueFishSel<-1/( 1 + exp( -1*log(19)*(LengthBin-trueFishSelPar[1])/(trueFishSelP
 #legend("bottomright",bty='n',col=c(1,1,2,2),lty=c(1,2,1,2),legend=c("True Survey","Est Survey","True Fishery","Est Fishery"))
 dev.off()
 
-png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
+
+png(file.path(MSEdir,"plots", paste0("FitsToDataAgeStruc_",CTLName,".png")),res=1200,width=6,height=6,units="in")
+
 par(mfrow=c(2,2),mar=c(.1,.1,.1,.1),oma=c(5,5,1,5))
 #plot(obsSurvBio,yaxt='n',ylim=c(0,max(obsSurvBio,predSurvBio,trueSpbio,na.rm=T)))
 #axis(side=2,las=1)
@@ -598,7 +602,8 @@ legend("topright",bty='n',c("Spawning biomass","True","Estimated"),lty=c(NA,1,2)
 dev.off()
 
 
-png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
+
+png(file.path(MSEdir,"plots",paste0("FitsToSurvLengths_",CTLName,".png")),res=1200,width=6,height=6,units="in")
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -610,7 +615,10 @@ plot.new()
 legend("center","Survey")
 dev.off()
 
-png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CreateFolderNameList,".png")),res=1200,units='in',width=4.5,height=6)
+
+
+png(file.path(MSEdir,"plots",paste0("FitsToCatchLengths_",CTLName,".png")),res=1200,width=6,height=6,units="in")
+
 putIn<-ceiling(sqrt(yearsDat))
 par(mfrow=c(putIn,putIn),mar=c(0.1,.1,.1,.1))
 for(i in 2:yearsDat)
@@ -915,62 +923,62 @@ if(!is.na(quantity))
 }
 
 #####################################################################
-selAtAgeFunc<-function(inputLen,K,Linf,t0,MSEdir=CurDir)
+selAtAgeFunc<-function(inputLen,K,Linf,t0)
  {
   selAtAge<-((log(1-inputLen/Linf)/-K))+t0
  return(selAtAge)
  }
 #####################################################################
-CheckRetro<-function(RetroPeels=6,DrawDir,PlotRetro=0,out,MSEdir=CurDir)
+CheckRetro<-function(RetroPeels=6,DrawDir,PlotRetro=0,out,MSEdir)
 {
-Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
-SimYear		<-out$OM$SimYear			# total number of years in simulation
-InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available)
-
-predSpBioRetro	<-array(dim=c(RetroPeels,SimYear,Nsim))
-trueSpBioRetro    <-matrix(ncol=SimYear,nrow=Nsim)
-
-for(n in 1:Nsim)
-for(v in 0:(RetroPeels-1))
-{
-IndSimFolder<-file.path(DrawDir,n,SimYear-v)
-REP<-readLines(file.path(MSEdir,IndSimFolder,"simass.rep"))
-DAT<-readLines(file.path(MSEdir,IndSimFolder,"simass.DAT"))
-
-temp<-grep("survey years",DAT)[1]
-yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
-temp<-grep("spawning biomass",REP)
-predSpBioRetro[(v+1),(1:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
-
-}
-
-for(n in 1:Nsim)
-{
-IndSimFolder<-file.path(DrawDir,n,SimYear)
-TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
-temp<-grep("spawning biomass",TRU)
-trueSpBioRetro[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
-}
-
-plotSegment<-predSpBioRetro[,((SimYear-RetroPeels-4):SimYear),1]
-if(PlotRetro==1)
-{
-dev.new()
-par(mar=c(4,5,1,1))
-plot(y=plotSegment[1,],x=((SimYear-RetroPeels-4):SimYear),type="l",ylim=c(min(plotSegment,na.rm=T),max(plotSegment,na.rm=T)),lty=2,las=1,
- ylab="",xlab="Year")
-for(x in 2:RetroPeels)
- lines(y=plotSegment[x,],x=((SimYear-RetroPeels-4):SimYear),lty=x+1)
-
- lines(y=trueSpBioRetro[1,((SimYear-RetroPeels-4):SimYear)],x=((SimYear-RetroPeels-4):SimYear),col=2)
-
-legend("topleft",bty='n',lty=1,col=2,"Truth")
-}
-list(predSpBioRetro,trueSpBioRetro)
+  Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
+  SimYear		<-out$OM$SimYear			# total number of years in simulation
+  InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available)
+  
+  predSpBioRetro	<-array(dim=c(RetroPeels,SimYear,Nsim))
+  trueSpBioRetro    <-matrix(ncol=SimYear,nrow=Nsim)
+  
+  for(n in 1:Nsim)
+    for(v in 0:(RetroPeels-1))
+    {
+    IndSimFolder<-file.path(DrawDir,n,SimYear-v)
+    REP<-readLines(file.path(MSEdir,IndSimFolder,"simass.rep"))
+    DAT<-readLines(file.path(MSEdir,IndSimFolder,"simass.DAT"))
+    
+    temp<-grep("survey years",DAT)[1]
+    yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+    temp<-grep("spawning biomass",REP)
+    predSpBioRetro[(v+1),(1:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+  
+  }
+  
+  for(n in 1:Nsim)
+  {
+    IndSimFolder<-file.path(DrawDir,n,SimYear)
+    TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
+    temp<-grep("spawning biomass",TRU)
+    trueSpBioRetro[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+  }
+  
+  plotSegment<-predSpBioRetro[,((SimYear-RetroPeels-4):SimYear),1]
+  if(PlotRetro==1)
+  {
+    dev.new()
+    par(mar=c(4,5,1,1))
+    plot(y=plotSegment[1,],x=((SimYear-RetroPeels-4):SimYear),type="l",ylim=c(min(plotSegment,na.rm=T),max(plotSegment,na.rm=T)),lty=2,las=1,
+     ylab="",xlab="Year")
+    for(x in 2:RetroPeels)
+     lines(y=plotSegment[x,],x=((SimYear-RetroPeels-4):SimYear),lty=x+1)
+    
+     lines(y=trueSpBioRetro[1,((SimYear-RetroPeels-4):SimYear)],x=((SimYear-RetroPeels-4):SimYear),col=2)
+    
+    legend("topleft",bty='n',lty=1,col=2,"Truth")
+  }
+  list(predSpBioRetro,trueSpBioRetro)
 }
 
 #################################################
-CheckGradient<-function(DrawDir,out,MSEdir=CurDir)
+CheckGradient<-function(DrawDir,out,MSEdir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -991,7 +999,7 @@ Gradients[v,n]<-as.numeric(GradientLine[length(GradientLine)])
 return(Gradients)
 }
 #################################################
-CheckReferencePoints<-function(DrawDir,out,MSEdir=CurDir)
+CheckReferencePoints<-function(DrawDir,out,MSEdir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -1122,7 +1130,7 @@ PercLostYield<-LostYield/TrueTACOut
 PercOverfishedTrue<-TrueSpBioOut/TrueBMSYOut[1]
 PercOverfishedEst<-EstCurbioOut/TrueBMSYOut[1]
 
-MyBoxPlot<-function(Inputs,Title,bottomplot=0,refVal=0,MSEdir=CurDir)
+MyBoxPlot<-function(Inputs,Title,bottomplot=0,refVal=0)
 {
  maxVal<-max(Inputs,na.rm=T)
  minVal<-min(Inputs,na.rm=T)
@@ -1405,7 +1413,7 @@ dev.off()
 
 }
 ########################################################
-PullTimevary<-function(inFolders,out,MSEdir=CurDir)
+PullTimevary<-function(inFolders,out,MSEdir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -1432,8 +1440,8 @@ EstOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 
 for(p in 1:length(inFolders))
 {
-DrawDir		<-CreateFolderNameList[p]
-Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[p],".csv")))
+DrawDir		<-inFolders[p]
+Inout			<-ReadCTLfile(file.path(MSEdir,paste0(inFolders[p],".csv")))
 
 IndSimFolder	<-file.path(DrawDir,Nsim,SimYear)
 TRU			<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
@@ -1646,7 +1654,7 @@ list(Recruitment,TrueRec,FishMort,TrueFmort,GrowthVary,TrueGrow,NatMvary,TrueM,S
 }
 
 ########################################################
-PullTrueProj<-function(inFolders,out,MSEdir=CurDir)
+PullTrueProj<-function(inFolders,out,MSEdir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -1663,8 +1671,8 @@ TrueOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(inFolders)))
 
 for(p in 1:length(inFolders))
 {
-DrawDir		<-CreateFolderNameList[p]
-Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[p],"_CTL.csv")))
+DrawDir		<-inFolders[p]
+Inout			<-ReadCTLfile(file.path(MSEdir,paste0(inFolders[p],"_CTL.csv")))
 
 for(n in 1:Nsim)
 {
@@ -1699,25 +1707,26 @@ list(TrueRec,TrueFmort,TrueOFL,TrueCatch,TrueSpbio)
 #=============================================================
 # Production model plots
 #============================================================
-ProductionModelOutput<-function(CreateFolderNameList,MSEdir=CurDir,ylimIN=NA)
+
+ProductionModelOutput<-function(Inout,CTLNames,MSEdir,ylimIN=NA)
 {
 Data<-rep(list(list()))
-for(x in 1:length(CreateFolderNameList))
- Data[[x]]<-readLines(file.path(MSEdir,CreateFolderNameList[x],"ProdOutputs.csv"))
+for(x in 1:length(CTLNames))
+ Data[[x]]<-readLines(file.path(MSEdir,CTLNames[x],"ProdOutputs.csv"))
 
 SimYear<-Inout$OM$SimYear
 
 #==estimated and true CPUE
-estCPUE<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
-trueCPUE<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
-trueBMSY<-rep(0,length(CreateFolderNameList))
-estBMSY<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
-trueFMSY<-rep(0,length(CreateFolderNameList))
-estFMSY<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
-estTAC<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
-trueTAC<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CreateFolderNameList)))
+estCPUE<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CTLNames)))
+trueCPUE<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CTLNames)))
+trueBMSY<-rep(0,length(CTLNames))
+estBMSY<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CTLNames)))
+trueFMSY<-rep(0,length(CTLNames))
+estFMSY<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CTLNames)))
+estTAC<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CTLNames)))
+trueTAC<-array(dim=c(Inout$OM$Nsim,Inout$OM$SimYear,length(CTLNames)))
 
-for(y in 1:length(CreateFolderNameList))
+for(y in 1:length(CTLNames))
 {
  tmp<-grep("est cpue",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+Inout$OM$Nsim)]
@@ -1757,10 +1766,10 @@ for(x in 1:length(Quant))
 
 }
 
-png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CreateFolderNameList,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
-par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CTLNames,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
+par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
-for(y in 1:length(CreateFolderNameList))
+for(y in 1:length(CTLNames))
 {
 # boxplot(trueCPUE[,,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
 #  las=1,xaxt='n',ylab='',yaxt='n')
@@ -1801,9 +1810,9 @@ axis(side=1)
 legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n',cex=.7)
 dev.off()
 
-png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CreateFolderNameList,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
-par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
-for(y in 1:length(CreateFolderNameList))
+png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CTLNames,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
+par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+for(y in 1:length(CTLNames))
 {
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
 RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
@@ -1822,9 +1831,11 @@ if(!is.na(ylimIN))
 
 
 inShape<-apply(RelativeErrorBMSY[,1:(ncol(RelativeErrorBMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-plot(-100000000000,ylim=use_ylim,las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
-polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
-polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
+
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
+polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
+
 abline(h=0,lty=2)
 
 if(y==1)
@@ -1835,9 +1846,11 @@ if(y==1)
 }
 
 inShape<-apply(RelativeErrorFMSY[,1:(ncol(RelativeErrorFMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-plot(-100000000000,ylim=use_ylim,las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
-polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
-polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
+
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
+polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
+
 abline(h=0,lty=2)
 
 if(y==1)
@@ -1855,109 +1868,93 @@ dev.off()
 #############################################################
 #==cOMPARISON OF AGE STRUCTURED MODELS
 ############################################################
-AgeStructureComp<-function(RetroPeels=6,Inout,CreateFolderNameList,MSEdir=CurDir)
+AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
 {
-TakeRows<-(Inout$OM$SimYear-RetroPeels+1):Inout$OM$SimYear
-GradientSave<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList)))
-
-for(x in 1:length(CreateFolderNameList))
-{
-  Inout<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[x],".csv")))
-  GradientSave[,,x]<-CheckGradient(DrawDir=CreateFolderNameList[x],out=Inout)[TakeRows,]
-}
-ScenCols<-c("grey",as.numeric(seq(2,length(CreateFolderNameList),1)))
-
-#==reference points
-TakeRows	<-(Inout$OM$InitYear+1):Inout$OM$SimYear
-B35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-F35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-OFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-tOFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-tF35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-tB35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CreateFolderNameList)))
-
-for(x in 1:length(CreateFolderNameList))
-{
-  temp<-CheckReferencePoints(DrawDir=CreateFolderNameList[x],out=Inout)
-  B35save[,,x]	<-temp[[1]][TakeRows,]
-  F35save[,,x]	<-temp[[2]][TakeRows,]
-  OFLsave[,,x]	<-temp[[3]][TakeRows,]
-  tB35save[,,x]	<-temp[[4]][TakeRows,]
-  tF35save[,,x]	<-temp[[5]][TakeRows]
-  tOFLsave[,,x]	<-temp[[6]][TakeRows,]
-} 
-
-BigB35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-BigF35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-BigOFL<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-if(Inout$OM$Nsim>1) {
-  for(x in 1:length(CreateFolderNameList))
+  TakeRows<-(Inout$OM$SimYear-RetroPeels+1):Inout$OM$SimYear
+  GradientSave<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CTLNames)))
+  
+  for(x in 1:length(CTLNames))
   {
-    BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
-    BigF35[,x]<-apply((F35save[,,x]-tF35save[,,x])/tF35save[,,x],2,median,na.rm=T)
-    BigOFL[,x]<-apply((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],2,median,na.rm=T)
+    Inout<-ReadCTLfile(file.path(MSEdir,paste0(CTLNames[x],".csv")))
+    GradientSave[,,x]<-CheckGradient(DrawDir=CTLNames[x],out=Inout,MSEdir)[TakeRows,]
   }
-}
-
-if(Inout$OM$Nsim==1) {
-  for(x in 1:length(CreateFolderNameList))
+  ScenCols<-c("grey",as.numeric(seq(2,length(CTLNames),1)))
+  
+  #==reference points
+  TakeRows	<-(Inout$OM$InitYear+1):Inout$OM$SimYear
+  B35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CTLNames)))
+  F35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CTLNames)))
+  OFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CTLNames)))
+  tOFLsave	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CTLNames)))
+  tF35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CTLNames)))
+  tB35save	<-array(dim=c(length(TakeRows),Inout$OM$Nsim,length(CTLNames)))
+  
+  for(x in 1:length(CTLNames))
   {
-    BigB35[,x]<-median((B35save[,,x]-tB35save[,,x])/tB35save[,,x],na.rm=T)
-    BigF35[,x]<-median((F35save[,,x]-tF35save[,,x])/tF35save[,,x],na.rm=T)
-    BigOFL[,x]<-median((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],na.rm=T)
+    temp<-CheckReferencePoints(DrawDir=CTLNames[x],out=Inout,MSEdir)
+    B35save[,,x]	<-temp[[1]][TakeRows,]
+    F35save[,,x]	<-temp[[2]][TakeRows,]
+    OFLsave[,,x]	<-temp[[3]][TakeRows,]
+    tB35save[,,x]	<-temp[[4]][TakeRows,]
+    tF35save[,,x]	<-temp[[5]][TakeRows]
+    tOFLsave[,,x]	<-temp[[6]][TakeRows,]
+  } 
+  
+  BigB35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
+  BigF35<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
+  BigOFL<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
+  if(Inout$OM$Nsim>1) {
+    for(x in 1:length(CTLNames))
+    {
+      BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
+      BigF35[,x]<-apply((F35save[,,x]-tF35save[,,x])/tF35save[,,x],2,median,na.rm=T)
+      BigOFL[,x]<-apply((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],2,median,na.rm=T)
+    }
   }
-}
-
-ReB35<-BigB35
-ReF35<-BigF35
-ReOFL<-BigOFL
-
-#=plotting output
-# GeMSplots(out=Inout,SourceFolder=CreateFolderNameList[x])
-MohnsRho<-array(dim=c(RetroPeels-1,Inout$OM$Nsim,length(CreateFolderNameList)))
-SSBbias<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList)))
-TrueOFL<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CreateFolderNameList)))
-
-for(x in 1:length(CreateFolderNameList))
-{
-  Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CreateFolderNameList[x],".csv")))
-  DrawDir		<-CreateFolderNameList[x]
-  RetroOuts		<-CheckRetro(RetroPeels=RetroPeels,DrawDir,PlotRetro=0,out=Inout)
-  MohnsRho[,,x]	<-CalculateMohn(RetroOuts)
-  SSBbias[,,x]	<-CalculateBias(RetroOuts)
-}
-
-BigMohn<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-if(Inout$OM$Nsim > 1) {
-  for(x in 1:length(CreateFolderNameList))
-  {
-    temp<-MohnsRho[,,x]
-    BigMohn[,x]<-apply(temp,2,mean) 
+  
+  if(Inout$OM$Nsim==1) {
+    for(x in 1:length(CTLNames))
+    {
+      BigB35[,x]<-median((B35save[,,x]-tB35save[,,x])/tB35save[,,x],na.rm=T)
+      BigF35[,x]<-median((F35save[,,x]-tF35save[,,x])/tF35save[,,x],na.rm=T)
+      BigOFL[,x]<-median((OFLsave[,,x]-tOFLsave[,,x])/tOFLsave[,,x],na.rm=T)
+    }
   }
-}
-
-if(Inout$OM$Nsim == 1) {
-  for(x in 1:length(CreateFolderNameList))
+  
+  ReB35<-BigB35
+  ReF35<-BigF35
+  ReOFL<-BigOFL
+  
+  #=plotting output
+  # GeMSplots(out=Inout,SourceFolder=CTLNames[x])
+  MohnsRho<-array(dim=c(RetroPeels-1,Inout$OM$Nsim,length(CTLNames)))
+  SSBbias<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CTLNames)))
+  TrueOFL<-array(dim=c(RetroPeels,Inout$OM$Nsim,length(CTLNames)))
+  
+  for(x in 1:length(CTLNames))
   {
-    temp<-MohnsRho[,,x]
-    BigMohn[,x]<-mean(temp) 
+    Inout			<-ReadCTLfile(file.path(MSEdir,paste0(CTLNames[x],".csv")))
+    DrawDir		<-CTLNames[x]
+    RetroOuts		<-CheckRetro(RetroPeels=RetroPeels,DrawDir,PlotRetro=0,out=Inout,MSEdir)
+    MohnsRho[,,x]	<-CalculateMohn(RetroOuts)
+    SSBbias[,,x]	<-CalculateBias(RetroOuts)
   }
-}
-
-BigBias<-matrix(nrow=Inout$OM$Nsim,ncol=length(CreateFolderNameList))
-if(Inout$OM$Nsim > 1) {
-  for(x in 1:length(CreateFolderNameList))
-  {
-    temp<-SSBbias[,,x]
-    BigBias[,x]<-apply(temp,2,mean) 
+  
+  BigMohn<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
+  if(Inout$OM$Nsim > 1) {
+    for(x in 1:length(CTLNames))
+    {
+      temp<-MohnsRho[,,x]
+      BigMohn[,x]<-apply(temp,2,mean) 
+    }
   }
-}
-
-if(Inout$OM$Nsim == 1) {
-  for(x in 1:length(CreateFolderNameList))
-  {
-    temp<-SSBbias[,,x]
-    BigBias[,x]<-mean(temp) 
+  
+  if(Inout$OM$Nsim == 1) {
+    for(x in 1:length(CTLNames))
+    {
+      temp<-MohnsRho[,,x]
+      BigMohn[,x]<-mean(temp) 
+    }
   }
 }
 
@@ -2089,68 +2086,215 @@ for(x in 1:length(CreateFolderNameList))
   tCol<-rgb(0,0,0,0.2)
   temp<-input[,,,x]
   for(y in 1:dim(input)[1])
+ 
+  BigBias<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
+  if(Inout$OM$Nsim > 1) {
+    for(x in 1:length(CTLNames))
+    {
+      temp<-SSBbias[,,x]
+      BigBias[,x]<-apply(temp,2,mean) 
+    }
+  }
+  
+  if(Inout$OM$Nsim == 1) {
+    for(x in 1:length(CTLNames))
+    {
+      temp<-SSBbias[,,x]
+      BigBias[,x]<-mean(temp) 
+    }
+  }
+  
+  png(file.path(MSEdir,"plots","CompareRefPoints.png"),height=7,width=3.5,units='in',res=1200)
+  par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(4,6,1,1))
+  
+  inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
+  boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
+  legend("topleft",c("(a) Retrospective bias"),bty='n')
+  mtext(side=2,"Mohn's rho",line=3,cex=.7)
+  abline(h=0,lty=2)
+  
+  boxplot(BigBias,col=ScenCols,xaxt='n',ylim=inYlim,las=1)
+  legend("topleft",c("(b) Spawning biomass"),bty='n')
+  mtext(side=2,"relative error",line=3,cex=.7)
+  abline(h=0,lty=2)
+  boxplot(ReB35,col=ScenCols,,ylim=inYlim,xaxt='n',las=1)
+  legend("topleft",expression("(c) B"[35]),bty='n')
+  mtext(side=2,"relative error",line=3,cex=.7)
+  abline(h=0,lty=2)
+  boxplot(ReF35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
+  legend("topleft",expression("(c) F"[35]),bty='n')
+  mtext(side=2,"relative error",line=3,cex=.7)
+  abline(h=0,lty=2)
+  boxplot(BigOFL,col=ScenCols,ylim=inYlim,las=1,names=CTLNames)
+  abline(h=0,lty=2)
+  legend("topleft",c("(e) OFL"),bty='n')
+  mtext(side=2,"relative error",line=3,cex=.7)
+  dev.off()
+  
+  quants<-PullTimevary(inFolders=CTLNames,out=Inout,MSEdir)
+  
+  png(file.path(MSEdir,"plots","ComparePopulationProcess.png"),height=5,width=7.5,units='in',res=1200)
+  inmat<-matrix(c(1,1,2,2,3,3,
+                  4,4,4,5,5,5),nrow=2,byrow=T)
+  layout(inmat)
+  par(mar=c(.1,.1,.1,.1),oma=c(4,5,4,4))
+  
+  #==RECRUITMENT
+  input<-quants[[1]]
+  tInput<-quants[[2]] 
+  
+  plot(-100000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,na.rm=T)),las=1,xaxt='n')
+  for(x in 1:length(CTLNames))
+
   {
-    #lines(tInput[y,,x],col=tCol)
-    for(z in 1:dim(input)[3])
-      lines(input[y,,z,x],col=incol[x])
-  }   
-} 
-
-medians<- apply(input,c(2,4),median,na.rm=T)
-for(x in 1:ncol(medians))
-  lines(medians[,x],col=x,cex=2)
-
-lines(tInput[1,,1],col="yellow",lwd=2,lty=2)
-lines(tInput[Inout$OM$SimYear,,1],col="yellow",lwd=2,lty=2)
-mtext(side=2,"Selectivity",line=2.3,cex=.7)
-legend("topleft",bty='n',"(d) Fishery selectivity")
-
-#==GROWTH
-input<-quants[[5]]
-tInput<-quants[[6]] 
-plot(-1000,xlim=c(1,Inout$OM$MaxAge),ylim=c(0,max(input,na.rm=T)),las=1,yaxt='n')
-axis(side=4,las=1)
-for(x in 1:length(CreateFolderNameList))
-{
-  color<-seq(1,length(CreateFolderNameList)+1)
-  incol<-adjustcolor(color,alpha.f=.008)
-  tCol<-rgb(0,0,0,0.2)
-  temp<-input[,,,x]
-  for(y in 1:dim(input)[1])
+    color<-seq(1,length(CTLNames)+1)
+    incol<-adjustcolor(color,alpha.f=.08)
+    tCol<-rgb(0,0,0,0.2)
+    temp<-input[,,x]
+    for(y in 1:dim(input)[1])
+      lines(input[y,,x],col=incol[x])
+  } 
+  medians<- apply(input,c(2,3),median,na.rm=T)
+  for(x in 1:ncol(medians))
+    lines(medians[,x],col=x,cex=2)
+  
+  abline(v=Inout$OM$InitYear,lty=3)
+  
+  #==true R
+  plotIn<-apply(tInput,2,median)
+  plotIn[1]<-NA
+  lines(plotIn,col="yellow",lwd=2,lty=2)
+  
+  legend("bottomleft",bty='n',"(a) Recruitment")
+  mtext(side=2,"Numbers",line=4,cex=.7)
+  #==FISHING MORTALITY
+  input<-quants[[3]]
+  NatM<-quants[[7]]
+  tInput<-quants[[4]] 
+  
+  plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
+  axis(side=3)
+  mtext(side=3,line=2,"Time")
+  for(x in 1:length(CTLNames))
   {
-    #lines(tInput[y,,x],col=tCol)
-    for(z in 1:dim(input)[3])
-      lines(input[y,,z,x],col=incol[x])
-  }   
-} 
-
-medians<- apply(input,c(2,4),median,na.rm=T)
-for(x in 1:ncol(medians))
-  lines(medians[,x],col=x,cex=2)
-mtext(side=4,"Length (cm)",line=2.3,cex=.7)
-
-#==TRUE GROWTH
-lines(tInput[1,,1],col="yellow",lwd=2,lty=2)
-lines(tInput[Inout$OM$SimYear,,1],col="yellow",lwd=2,lty=2)
-legend("topleft",bty='n',"(e) Length at age")
-
-legend("bottomright",bty='n',col=c(1,ScenCols,"yellow"),lty=c(3,rep(1,length(ScenCols)),2),
-       legend=c("Projection begins",CreateFolderNameList,"Truth"),lwd=2)
-mtext(side=1,outer=T,"Age",line=2.3)
-
-dev.off()
-
-
-#================================
-# Plot the comparisons of fits like the production models
-#====================================
-
-
-  png(file.path(MSEdir,"plots",paste0("AgeStructuredFits_",CreateFolderNameList,".png")),height=600,width=900)
-  par(mfcol=c(2,length(CreateFolderNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+    color<-seq(1,length(CTLNames)+1)
+    incol<-adjustcolor(color,alpha.f=.08)
+    tCol<-rgb(0,0,0,0.2)
+    temp<-input[,,x]
+    for(y in 1:dim(input)[1])
+      lines(input[y,,x],col=incol[x])
+  } 
+  medians<- apply(input,c(2,3),median,na.rm=T)
+  for(x in 1:ncol(medians))
+    lines(medians[,x],col=x,cex=2)
+  
+  abline(v=Inout$OM$InitYear,lty=3)
+  
+  #==true F
+  lines(apply(tInput,2,median),col="yellow",lwd=2,lty=2)
+  legend("bottomleft",bty='n',"(b) Fishing mortality")
+  
+  #==NATURAL MORTALITY
+  input<-quants[[7]]
+  tInput<-quants[[8]] 
+  
+  plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
+  axis(side=4,las=1)
+  for(x in 1:length(CTLNames))
+  {
+    color<-seq(1,length(CTLNames)+1)
+    incol<-adjustcolor(color,alpha.f=.08)
+    tCol<-rgb(0,0,0,0.2)
+    temp<-input[,,x]
+    for(y in 1:dim(input)[1])
+      lines(input[y,,x],col=incol[x])
+  } 
+  medians<- apply(input,c(2,3),median,na.rm=T)
+  for(x in 1:ncol(medians))
+    lines(medians[,x],col=x,cex=2)
+  
+  #==true M
+  dim(tInput)
+  lines(tInput,col="yellow",lwd=2,lty=2)
+  
+  abline(v=Inout$OM$InitYear,lty=3)
+  
+  legend("bottomleft",bty='n',"(c) Natural mortality")
+  mtext(side=4,"rate (/year)",line=2,cex=.7)
+  
+  #==SELECTIVITY
+  input<-quants[[9]]
+  tInput<-quants[[10]] 
+  plot(-1000,xlim=c(1,which(input[1,,1,1]>0.99)[3]),ylim=c(0,max(input,na.rm=T)),las=1)
+  for(x in 1:length(CTLNames))
+  {
+    color<-seq(1,length(CTLNames)+1)
+    incol<-adjustcolor(color,alpha.f=.008)
+    tCol<-rgb(0,0,0,0.2)
+    temp<-input[,,,x]
+    for(y in 1:dim(input)[1])
+    {
+      #lines(tInput[y,,x],col=tCol)
+      for(z in 1:dim(input)[3])
+        lines(input[y,,z,x],col=incol[x])
+    }   
+  } 
+  
+  medians<- apply(input,c(2,4),median,na.rm=T)
+  for(x in 1:ncol(medians))
+    lines(medians[,x],col=x,cex=2)
+  
+  lines(tInput[1,,1],col="yellow",lwd=2,lty=2)
+  lines(tInput[Inout$OM$SimYear,,1],col="yellow",lwd=2,lty=2)
+  mtext(side=2,"Selectivity",line=2.3,cex=.7)
+  legend("topleft",bty='n',"(d) Fishery selectivity")
+  
+  #==GROWTH
+  input<-quants[[5]]
+  tInput<-quants[[6]] 
+  plot(-1000,xlim=c(1,Inout$OM$MaxAge),ylim=c(0,max(input,na.rm=T)),las=1,yaxt='n')
+  axis(side=4,las=1)
+  for(x in 1:length(CTLNames))
+  {
+    color<-seq(1,length(CTLNames)+1)
+    incol<-adjustcolor(color,alpha.f=.008)
+    tCol<-rgb(0,0,0,0.2)
+    temp<-input[,,,x]
+    for(y in 1:dim(input)[1])
+    {
+      #lines(tInput[y,,x],col=tCol)
+      for(z in 1:dim(input)[3])
+        lines(input[y,,z,x],col=incol[x])
+    }   
+  } 
+  
+  medians<- apply(input,c(2,4),median,na.rm=T)
+  for(x in 1:ncol(medians))
+    lines(medians[,x],col=x,cex=2)
+  mtext(side=4,"Length (cm)",line=2.3,cex=.7)
+  
+  #==TRUE GROWTH
+  lines(tInput[1,,1],col="yellow",lwd=2,lty=2)
+  lines(tInput[Inout$OM$SimYear,,1],col="yellow",lwd=2,lty=2)
+  legend("topleft",bty='n',"(e) Length at age")
+  
+  legend("bottomright",bty='n',col=c(1,ScenCols,"yellow"),lty=c(3,rep(1,length(ScenCols)),2),
+         legend=c("Projection begins",CTLNames,"Truth"),lwd=2)
+  mtext(side=1,outer=T,"Age",line=2.3)
+  
+  dev.off()
+  
+  
+  #================================
+  # Plot the comparisons of fits like the production models
+  #====================================
+  
+  
+  png(file.path(MSEdir,"plots",paste0("AgeStructuredFits_",CTLNames,".png")),height=600,width=900)
+  par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
   
   if(Inout$OM$Nsim>1) {
-    for(y in 1:length(CreateFolderNameList))
+    for(y in 1:length(CTLNames))
     {
     boxplot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
             las=1,xaxt='n',ylab='',yaxt='n')
@@ -2161,7 +2305,7 @@ dev.off()
       axis(side=2,las=1)
       mtext(side=2,"Biomass",line=5,cex=.9)
     }
-    legend("topright",bty='n',,legend=CreateFolderNameList[y])
+    legend("topright",bty='n',,legend=CTLNames[y])
    # abline(h=trueBMSY,col="#0000ff99",lty=1)
   #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
    # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
@@ -2181,9 +2325,9 @@ dev.off()
     axis(side=1)  
   }
   }
-
+  
     if(Inout$OM$Nsim==1) {
-    for(y in 1:length(CreateFolderNameList))
+    for(y in 1:length(CTLNames))
     {
     plot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
             las=1,xaxt='n',ylab='',yaxt='n')
@@ -2194,7 +2338,7 @@ dev.off()
       axis(side=2,las=1)
       mtext(side=2,"Biomass",line=5,cex=.9)
     }
-    legend("topright",bty='n',,legend=CreateFolderNameList[y])
+    legend("topright",bty='n',,legend=CTLNames[y])
    # abline(h=trueBMSY,col="#0000ff99",lty=1)
   #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
    # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
@@ -2214,109 +2358,109 @@ dev.off()
     axis(side=1)  
   }
   }
-
-legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
-dev.off()
-
-
-#==================================
-# relative error in OFL over time
-# NEED TO GET THIS ONCE FIGURED OUT AT SOME POINT
-#====================================
-OFLrel<-0
-if(OFLrel>0)
-{
-InitYear<-Inout$OM$InitYear
-SimYear<-Inout$OM$SimYear
-
-REofl<-rep(list(list()))
-for(x in 1:length(SaveTrueOFL))
-  REofl[[x]]<-(SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]-SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),])/SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]
-
-emNames<-c("Base","M vary","Growth vary","Sel vary")
-omNames<-c("Base","M vary","Sel vary","Growth vary")
-hexDec<-c("#ff000055","#00ff0055","#0000ff55")
-par(mfrow=c(4,1),mar=c(.1,.1,.1,.1),oma=c(4,4,1,1))
-for(x in 1:length(REofl))
-{
-  #boxplot(REofl[[x]][,,1],col="darkgrey",ylim=c(min(REofl[[x]]),max(REofl[[x]])),xaxt='n',las=1)
   
-  plot(NA,ylim=c(min(unlist(REofl)),max(unlist(REofl))),xlim=c(1,9),xaxt='n',las=1)
-  plotQuant<-REofl[[x]][,,1]
-  sortQuant<-apply(plotQuant,2,sort)
-  #polygon(x=c(seq(1,9),seq(9,1)),y=c(sortQuant[3,],rev(sortQuant[18,])),col="#cfcfcf99",border=F)
-  #lines(sortQuant[3,],col='darkgrey',lty=2)
-  #lines(sortQuant[18,],col='darkgrey',lty=2)
-  lines(apply(sortQuant,2,median),col='darkgrey',lwd=2)
-  for(y in 2:4)
+  legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
+  dev.off()
+  
+  
+  #==================================
+  # relative error in OFL over time
+  # NEED TO GET THIS ONCE FIGURED OUT AT SOME POINT
+  #====================================
+  OFLrel<-0
+  if(OFLrel>0)
   {
-    plotQuant<-REofl[[x]][,,y]
-    sortQuant<-apply(plotQuant,2,sort)
-    # lines(sortQuant[3,],col=y,lty=2)
-    #lines(sortQuant[18,],col=y,lty=2)
-    lines(apply(sortQuant,2,median),col=y,lwd=2)
+  InitYear<-Inout$OM$InitYear
+  SimYear<-Inout$OM$SimYear
+  
+  REofl<-rep(list(list()))
+  for(x in 1:length(SaveTrueOFL))
+    REofl[[x]]<-(SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]-SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),])/SaveTrueOFL[[x]][,(InitYear+1):(SimYear-1),]
+  
+  emNames<-c("Base","M vary","Growth vary","Sel vary")
+  omNames<-c("Base","M vary","Sel vary","Growth vary")
+  hexDec<-c("#ff000055","#00ff0055","#0000ff55")
+  par(mfrow=c(4,1),mar=c(.1,.1,.1,.1),oma=c(4,4,1,1))
+  for(x in 1:length(REofl))
+  {
+    #boxplot(REofl[[x]][,,1],col="darkgrey",ylim=c(min(REofl[[x]]),max(REofl[[x]])),xaxt='n',las=1)
     
-    #polygon(x=c(seq(1,9),seq(9,1)),y=c(sortQuant[3,],rev(sortQuant[18,])),col=hexDec[y-1],border=F)
-    #lines(apply(sortQuant,2,median),col=hexDec[y-1])
-  } 
-  abline(h=0,lty=2)
-  legend('topright',bty='n',omNames[x])
-  if(x==1)
-    legend('topleft',emNames,col=c('darkgrey',2,3,4),pch=15,bty='n')
-}
-axis(side=1)
-mtext(outer=T,side=2,"Relative error in TAC",line=2.5)
-mtext(outer=T,side=1,"Projection year",line=2)
-
-dev.new()
-boxplot(SaveTrueOFL[[1]][,(InitYear+1):(SimYear-1),],col="#00ff0033")
-boxplot(SaveEstOFL[[1]][,(InitYear+1):(SimYear-1),1],add=T,col="#ff000033")
-
-dev.new()
-par(mfrow=c(4,2),mar=c(.1,.1,.1,.1),oma=c(4,5,1,4))
-for(x in 1:length(REofl))
-{
-  plot(NA,ylim=c(min(unlist(SaveEstOFL),na.rm=T),max(unlist(SaveEstOFL),na.rm=T)),xlim=c(1,9),xaxt='n',las=1)
-  plotQuant<-SaveEstOFL[[x]][,51:60,1]
-  sortQuant<-apply(plotQuant,2,sort)
-  lines(apply(sortQuant,2,median),col='darkgrey',lwd=2)
-  for(y in 2:4)
-  {
-    plotQuant<-SaveEstOFL[[x]][,51:60,y]
+    plot(NA,ylim=c(min(unlist(REofl)),max(unlist(REofl))),xlim=c(1,9),xaxt='n',las=1)
+    plotQuant<-REofl[[x]][,,1]
     sortQuant<-apply(plotQuant,2,sort)
-    lines(apply(sortQuant,2,median),col=y,lwd=2)
-  } 
-  abline(h=0,lty=2)
-  legend('topright',bty='n',paste("(",letters[2*x-1],") ",omNames[x],sep=""))
+    #polygon(x=c(seq(1,9),seq(9,1)),y=c(sortQuant[3,],rev(sortQuant[18,])),col="#cfcfcf99",border=F)
+    #lines(sortQuant[3,],col='darkgrey',lty=2)
+    #lines(sortQuant[18,],col='darkgrey',lty=2)
+    lines(apply(sortQuant,2,median),col='darkgrey',lwd=2)
+    for(y in 2:4)
+    {
+      plotQuant<-REofl[[x]][,,y]
+      sortQuant<-apply(plotQuant,2,sort)
+      # lines(sortQuant[3,],col=y,lty=2)
+      #lines(sortQuant[18,],col=y,lty=2)
+      lines(apply(sortQuant,2,median),col=y,lwd=2)
+      
+      #polygon(x=c(seq(1,9),seq(9,1)),y=c(sortQuant[3,],rev(sortQuant[18,])),col=hexDec[y-1],border=F)
+      #lines(apply(sortQuant,2,median),col=hexDec[y-1])
+    } 
+    abline(h=0,lty=2)
+    legend('topright',bty='n',omNames[x])
+    if(x==1)
+      legend('topleft',emNames,col=c('darkgrey',2,3,4),pch=15,bty='n')
+  }
+  axis(side=1)
+  mtext(outer=T,side=2,"Relative error in TAC",line=2.5)
+  mtext(outer=T,side=1,"Projection year",line=2)
   
-  if(x==1)
-    legend('topleft',emNames,col=c('darkgrey',2,3,4),pch=15,bty='n')
-  if(x==4)
-    axis(side=1)
-  #==plot the status true
-  temp<-lapply(SaveSpBio,'[',,51:60,)
-  tempSB<-t(as.matrix(temp[[x]][,,1]))
-  tempB35<-tB35save[1,1,1,x]
-  bigStat<-tempSB/tempB35
-  plot(NA,ylim=c(.75,1.75),xlim=c(1,9),xaxt='n',las=1,yaxt='n',las=1)
-  axis(side=4,las=1)
-  plotQuant<-bigStat
-  lines(apply(plotQuant,1,median),col='darkgrey',lwd=2)
-  for(y in 2:4)
+  dev.new()
+  boxplot(SaveTrueOFL[[1]][,(InitYear+1):(SimYear-1),],col="#00ff0033")
+  boxplot(SaveEstOFL[[1]][,(InitYear+1):(SimYear-1),1],add=T,col="#ff000033")
+  
+  dev.new()
+  par(mfrow=c(4,2),mar=c(.1,.1,.1,.1),oma=c(4,5,1,4))
+  for(x in 1:length(REofl))
   {
-    tempSB<-t(as.matrix(temp[[x]][,,y]))
-    tempB35<-tB35save[1,1,y,x]
+    plot(NA,ylim=c(min(unlist(SaveEstOFL),na.rm=T),max(unlist(SaveEstOFL),na.rm=T)),xlim=c(1,9),xaxt='n',las=1)
+    plotQuant<-SaveEstOFL[[x]][,51:60,1]
+    sortQuant<-apply(plotQuant,2,sort)
+    lines(apply(sortQuant,2,median),col='darkgrey',lwd=2)
+    for(y in 2:4)
+    {
+      plotQuant<-SaveEstOFL[[x]][,51:60,y]
+      sortQuant<-apply(plotQuant,2,sort)
+      lines(apply(sortQuant,2,median),col=y,lwd=2)
+    } 
+    abline(h=0,lty=2)
+    legend('topright',bty='n',paste("(",letters[2*x-1],") ",omNames[x],sep=""))
+    
+    if(x==1)
+      legend('topleft',emNames,col=c('darkgrey',2,3,4),pch=15,bty='n')
+    if(x==4)
+      axis(side=1)
+    #==plot the status true
+    temp<-lapply(SaveSpBio,'[',,51:60,)
+    tempSB<-t(as.matrix(temp[[x]][,,1]))
+    tempB35<-tB35save[1,1,1,x]
     bigStat<-tempSB/tempB35
+    plot(NA,ylim=c(.75,1.75),xlim=c(1,9),xaxt='n',las=1,yaxt='n',las=1)
+    axis(side=4,las=1)
     plotQuant<-bigStat
-    lines(apply(plotQuant,1,median),col=y,lwd=2)
-  } 
-  legend('topright',bty='n',paste("(",letters[2*x],") ",sep=""))
-  abline(h=1,lty=2)
-  if(x==4)
-    axis(side=1)
-}
-mtext(side=4,outer=T,text=expression("B/B"[35]),line=2.5)
-mtext(side=2,outer=T,"Catch",line=3.25)
-mtext(side=1,outer=T,"Projection year",line=2.5)
-}
+    lines(apply(plotQuant,1,median),col='darkgrey',lwd=2)
+    for(y in 2:4)
+    {
+      tempSB<-t(as.matrix(temp[[x]][,,y]))
+      tempB35<-tB35save[1,1,y,x]
+      bigStat<-tempSB/tempB35
+      plotQuant<-bigStat
+      lines(apply(plotQuant,1,median),col=y,lwd=2)
+    } 
+    legend('topright',bty='n',paste("(",letters[2*x],") ",sep=""))
+    abline(h=1,lty=2)
+    if(x==4)
+      axis(side=1)
+  }
+  mtext(side=4,outer=T,text=expression("B/B"[35]),line=2.5)
+  mtext(side=2,outer=T,"Catch",line=3.25)
+  mtext(side=1,outer=T,"Projection year",line=2.5)
+  }
 }

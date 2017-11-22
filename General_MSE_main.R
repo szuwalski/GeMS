@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName,MSEdir=CurDir,silent=F,ADoptions=NA)
+GeMS<-function(out,CreateFolderName,MSEdir,silent=F,ADoptions=NA)
 {
 
 #===============
@@ -294,6 +294,7 @@ VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
+
 
 png(file.path(PlotFolder,paste0("LifeHistory_",CreateFolderName,".png")),res=1200,units='in',height=7.5,width=7.5)
 par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
@@ -1095,7 +1096,7 @@ TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
 data2<-scan(file.path(MSEdir,IndSimFolder,"simass.PAR"),what="character")
 
  if(EstimationPlots==1 & z==Nsim & y == SimYear)
-  AgeAssPlot(REP,CTL,DAT,TRU,data2)
+  AgeAssPlot(REP,CTL,DAT,TRU,data2,MSEdir,CreateFolderName)
 
 temp<-grep("OFL",REP)[2]
 OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
