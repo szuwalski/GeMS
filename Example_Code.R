@@ -6,10 +6,10 @@
 setwd("~/Box\ Sync/GeMS/General-MSE")
 
 # Directory where control files are
-tempdir <- file.path(getwd(), "Cod_5_AgeStructure")
+tempdir <- file.path(getwd(), "TestHCRs")
 
 # Names of control files to be tested
-OMNames<-c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL")
+OMNames<-c("Cod_AgeStructure_CTL_1","Cod_AgeStructure_CTL_2","Cod_AgeStructure_CTL_3","Cod_AgeStructure_CTL_4")
 
 # Loading the wrapper function
 source("run_GeMS.R")
@@ -31,8 +31,8 @@ run_GeMS(CurDir=tempdir, CreateFolderNameList=OMNames,
 #-----------------
 setwd("~/Box\ Sync/GeMS/General-MSE")
 
-tempdir <- file.path(getwd(), "Cod_5_AgeStructure")
-OMNames<-c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL")
+tempdir <- file.path(getwd(), "TestHCRs")
+OMNames<-c("Cod_AgeStructure_CTL_1","Cod_AgeStructure_CTL_2","Cod_AgeStructure_CTL_3","Cod_AgeStructure_CTL_4")
 
 source("run_GeMS.R")
 run_GeMS(CurDir=tempdir, CreateFolderNameList=OMNames,
