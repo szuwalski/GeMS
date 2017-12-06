@@ -5,7 +5,7 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 		stop(print("Set GeMSdir to folder where GeMS is located. Full file path required."))
 	}
 
-	if(!file.exists(file.path(CurDir,paste0(CreateFolderNameList[1])))) {
+	if(!file.exists(file.path(CurDir,paste0(CreateFolderNameList[1],".csv")))) {
 		stop(print("Set CurDir to folder where CTL files are located. Full file path required."))
 	}
 	
