@@ -1,18 +1,18 @@
 rm(list=ls())
-source("C:/GeMS/General_MSE_helpers.R")
-source("C:/GeMS/General_MSE_main.R")
 
-CurDir<-"C:/GeMS/Cod_1_Production"
-setwd(CurDir)
-CreateFolderNameList<-c("Cod_Base_CTL","Cod_LowProd_CTL","Cod_veryLowProd_CTL")
-CreateFolderNameList<-c("Cod_HighProd_CTL")
+GeMS.dir <- "C:/GeMS"
+Cur.dir<-"C:/GeMS/Cod_1_Production/"
 
-#==Loop that reads in CTL files stored in CurDir and executes code
-for(x in 1:length(CreateFolderNameList))
-{
- Inout<-ReadCTLfile(file.path(CurDir,paste0(CreateFolderNameList[x],".csv")))
- GeMS(out=Inout,CreateFolderName=CreateFolderNameList[x])
- ProductionModelOutput(CreateFolderNameList[x],ylimIN=c(-.5,.4))
-}
+source(file.path(GeMS.dir,"run_GeMS.R"))
 
+OMNames<-c("Cod_Base_CTL","Cod_LowProd_CTL")
 
+run_GeMS(GeMSDir=GeMS.dir, CurDir=Cur.dir,
+         CreateFolderNameList=OMNames)
+
+##-----------------
+## Parallel example
+##-----------------
+#run_GeMS(GeMSDir=GeMS.dir, CurDir=Cur.dir,
+#         CreateFolderNameList=OMNames,
+#         runparallel = T, cores = 2)

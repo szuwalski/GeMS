@@ -7,7 +7,7 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName,MSEdir,silent=F,ADoptions=NA)
+GeMS<-function(out,CreateFolderName,MSEdir,GeMSdir,silent=F,ADoptions=NA)
 {
 
 #===============
@@ -825,12 +825,7 @@ for(z in 1:Nsim)
 
  #==copy the .exe into it (where does this come from? github?)
  #==Better way of doing this??
- if (dir.exists("../GenAss")) {
-  file.copy(from=file.path("..","GenAss",SimAssExec),to=IndSimFolder)
- }
- if (dir.exists("GenAss")) {
-  file.copy(from=file.path("GenAss",SimAssExec),to=IndSimFolder)
- }
+file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
 
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object

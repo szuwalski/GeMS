@@ -1,13 +1,16 @@
-run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,cores = 1,GeMSops=NA,shutup=F) {
+run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
+					 runparallel=F,cores = 1,GeMSops=NA,shutup=F) {
 
-	if(!file.exists("General_MSE_main.R")) {
-		stop(print("Set working directory to folder where GeMS is located."))
+	if(!file.exists(file.path(GeMSDir,"General_MSE_main.R"))) {
+		stop(print("Set GeMSdir to folder where GeMS is located. Full file path required."))
 	}
 
-	dir.main <- getwd()
+	if(!file.exists(file.path(CurDir,paste0(CreateFolderNameList[1])))) {
+		stop(print("Set CurDir to folder where CTL files are located. Full file path required."))
+	}
 	
-	source("General_MSE_helpers.R")
-	source("General_MSE_main.R")
+	source(file.path(GeMSDir,"General_MSE_helpers.R"))
+	source(file.path(GeMSDir,"General_MSE_main.R"))
 
 	if(runparallel) {
 		if(!requireNamespace("foreach")) {
@@ -18,16 +21,16 @@ run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,cores = 1,GeMSops
 		if(cores == 1) {message(paste0("Only one core registered. Runs will not be done in parallel.\n",
 									  "Set cores=2 or greater, depending on number of cores to be registered."))
 						runparallel <- F
-					}
+		}
 		if(cores>1) {
 			if(!shutup) message("Running scenarios in parallel.")
 			cl <- parallel::makeCluster(cores)
 			doParallel::registerDoParallel(cl)
 
 			foreach(mod=1:length(CreateFolderNameList),.export=ls(envir=globalenv())) %dopar% {
-				setwd(dir.main)
-				Inout<-ReadCTLfile(file.path(CurDir,paste0(CreateFolderNameList[mod],".csv")))
-				temp <- list(MSEdir = CurDir, out=Inout,
+				setwd(CurDir)
+				Inout<-ReadCTLfile(paste0(CreateFolderNameList[mod],".csv"))
+				temp <- list(MSEdir = CurDir, GeMSdir = GeMSDir, out=Inout,
 							 CreateFolderName = CreateFolderNameList[mod])
 				if(!is.na(GeMSops)) {GeMSvars <- append(temp,GeMSops)}
 				if(is.na(GeMSops)) {GeMSvars <- temp}
@@ -40,9 +43,9 @@ run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,cores = 1,GeMSops
 	if(!runparallel) {
 		if(!shutup) message("Running scenarios in sequence.")
 		for(mod in 1:length(CreateFolderNameList)) {
-				setwd(dir.main)
-				Inout<-ReadCTLfile(file.path(CurDir,paste0(CreateFolderNameList[mod],".csv")))
-				temp <- list(MSEdir = CurDir, out=Inout,
+				setwd(CurDir)
+				Inout<-ReadCTLfile(paste0(CreateFolderNameList[mod],".csv"))
+				temp <- list(MSEdir = CurDir, GeMSdir = GeMSDir, out=Inout,
 							 CreateFolderName = CreateFolderNameList[mod])
 				if(!is.na(GeMSops)) {GeMSvars <- append(temp,GeMSops)}
 				if(is.na(GeMSops)) {GeMSvars <- temp}
@@ -56,7 +59,7 @@ run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,cores = 1,GeMSops
 		if(!shutup) message("Creating combined figures.")
 		OMfile <- ReadCTLfile(file.path(CurDir,paste0(rev(CreateFolderNameList)[1],".csv")))
 		if(OMfile$OM$AssessmentType==1) {
-			ProductionModelOutput(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir = CurDir)
+			ProductionModelOutput(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir=CurDir)
 		}
 
 		if(OMfile$OM$AssessmentType==2) {
@@ -72,7 +75,7 @@ run_GeMS <- function(CurDir,CreateFolderNameList,runparallel=F,cores = 1,GeMSops
 		}
 	}
 
-	setwd(dir.main)
-	if(!shutup) message("End of GeMS run. Returned to original GeMS directory.")
+	setwd(CurDir)
+	if(!shutup) message("End of GeMS run. Returned to MSE directory.")
 
 }
