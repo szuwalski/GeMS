@@ -416,12 +416,14 @@ list(inFn,(EggsN)/(inRec))
 }
 
 ##############################################################
-ProdMod<-function(x,CatchData,IndexData)
+ProdMod<-function(x,CatchData,IndexData,estInit=0)
 {
 K<-abs(x[1])
 r<-abs(x[2])
 predBio<-rep(0,length(IndexData))
 predBio[1]<-K
+if(estInit==1)
+  predBio[1]<-K*x[3]
 for(i in 2:length(CatchData))
 {
  predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
@@ -431,12 +433,14 @@ return(SSQ)
 }
 
 #################################################################
-ProdModPlot<-function(x,CatchData,IndexData,plots=0)
+ProdModPlot<-function(x,CatchData,IndexData,plots=0,estInit=0)
 {
 K<-abs(x[1])
 r<-abs(x[2])
 predBio<-rep(0,length(IndexData)+1)
 predBio[1]<-K
+if(estInit==1)
+  predBio[1]<-K*x[3]
 CatchData<-c(CatchData,0)
 for(i in 2:length(CatchData))
 {
@@ -748,7 +752,9 @@ ReadCTLfile<-function(input)
 
  OM$InitBzeroMod		<-TakeOut("InitBzeroMod",SearchPool)
  OM$InitGrowthRate	<-TakeOut("InitGrowthRate",SearchPool)
-
+ OM$estInit         <-TakeOut("estInit",SearchPool)
+ OM$InitBioProd     <-TakeOut("InitBioProd",SearchPool)
+ 
  OM$TwoPop			<-TakeOut("TwoPop",SearchPool)
 
  list(OM=OM)

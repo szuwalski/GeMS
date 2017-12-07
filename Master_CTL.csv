@@ -123,3 +123,5 @@
 #=================================================,,
 1.5,,# InitBzeroMod : determines what fraction the true Bzero is multiplied by for an initial value for estimation
 0.3,,# InitGrowthRate : initial value for intrinsic growth rate in production model estimation
+0,,# estInit : estimate initial biomass? 1 = yes; 0 = no
+1,,# InitBioProd : percent of K to use as initial biomass (must be positive)

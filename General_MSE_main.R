@@ -282,6 +282,8 @@ InitValSig		<-out$OM$InitValSig
 
 InitBzeroMod	<-out$OM$InitBzeroMod
 InitGrowthRate	<-out$OM$InitGrowthRate
+estInit       <-out$OM$estInit
+InitBioProd   <-out$OM$InitBioProd
 
 #===================================================
 #==Virgin numbers at age, biomass, recruitment
@@ -294,7 +296,6 @@ VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
-
 
 png(file.path(PlotFolder,paste0("LifeHistory_",CreateFolderName,".png")),res=1200,units='in',height=7.5,width=7.5)
 par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
@@ -670,16 +671,20 @@ for(z in 1:Nsim)
  dir.create(CreateFolderName)
  setwd(CreateFolderName)
  if(y==(InitYear+1))
+ {
   x		<-c(InitBzeroMod*(VirBioN),InitGrowthRate)	
- if(y>(InitYear+1))
+  if(estInit==1)
+    x		<-c(InitBzeroMod*(VirBioN),InitGrowthRate,InitBioProd)	
+ }
+  if(y>(InitYear+1))
   x		<-outs$par
 
  inCatch	<-CatchDataN[2:(y-1)]
  inCPUE	<-CPUEDataN[2:(y-1)]
- outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE)
+ outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
 
  Converge[z,y]<-outs$convergence
- PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots)
+ PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
  FMSY[z,y] 	<-abs(outs$par[2])/2
  BMSY[z,y]	<-abs(outs$par[1])/2
  MSY		<-BMSY[z,y]*FMSY[z,y]
