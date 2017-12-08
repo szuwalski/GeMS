@@ -418,7 +418,7 @@ list(inFn,(EggsN)/(inRec))
 ##############################################################
 ProdMod<-function(x,CatchData,IndexData,estInit=0)
 {
-K<-abs(x[1])
+K<-exp(abs(x[1]))
 r<-abs(x[2])
 predBio<-rep(0,length(IndexData))
 predBio[1]<-K
@@ -435,7 +435,7 @@ return(SSQ)
 #################################################################
 ProdModPlot<-function(x,CatchData,IndexData,plots=0,estInit=0)
 {
-K<-abs(x[1])
+K<-exp(abs(x[1]))
 r<-abs(x[2])
 predBio<-rep(0,length(IndexData)+1)
 predBio[1]<-K
@@ -731,6 +731,7 @@ ReadCTLfile<-function(input)
  OM$HCalphaS		<-TakeOut("HCalphaS",SearchPool)
  OM$HCbetaS			<-TakeOut("HCbetaS",SearchPool)
 
+ OM$start_assessment   <- TakeOut("start_assessment",SearchPool)
  OM$SmalNum			<-TakeOut("SmallNum",SearchPool)
  OM$InitSmooth		<-TakeOut("InitSmooth",SearchPool)
  OM$FmortPen		<-TakeOut("FmortPen",SearchPool)
@@ -905,7 +906,7 @@ PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,qu
    use_ylim<-c(0,max(EstShape,TrueShape,Observed,na.rm=t))
  
 if(bottom==F)
- plot(-100000000000,ylim=use_ylim,xlim=c(1,SimYear),las=1,ylab="",xlab="Year",xaxt='n')
+ plot(-100000000000,ylim=use_ylim,xlim=c(1,SimYear),las=1,ylab="",xlab="Year",xaxt='n',yaxt='n')
 if(bottom==T)
  plot(-100000000000,ylim=use_ylim,xlim=c(1,SimYear),las=1,ylab="",xlab="Year")
 
@@ -1782,65 +1783,66 @@ for(y in 1:length(CTLNames))
 #   input<-trueCPUE[,,y]
   # for(x in 1:nrow(estCPUE))
   #   lines(estCPUE[x,,y],col='#ff000033')
+ use_ylim<-c(0,max(trueCPUE,estCPUE,na.rm=T))
   
-PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim)
+  if(y==1)
+  {
+    PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+    axis(side=2,las=1)
+    mtext(side=2,"Biomass",line=5,cex=.9)
+    legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+           legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
+  }
+  if(y>1)
+   PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+ mtext(side=3,CTLNames[y],cex=.7)
+abline(h=trueBMSY[y],col="#0000ff99",lty=1)
+abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+
+use_ylim<-c(0,max(trueTAC,estTAC,na.rm=T))
 
 if(y==1)
 {
- axis(side=2,las=1)
- mtext(side=2,"Biomass",line=5,cex=.9)
-}
-
-abline(h=trueBMSY,col="#0000ff99",lty=1)
-abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
-abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
-
-legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
-
-
-PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim)
-
-# boxplot(trueTAC[,,y],type="l",ylim=c(0,max(trueTAC,na.rm=T)),
-#         las=1,xaxt='n',ylab='',yaxt='n')
-# for(x in 1:nrow(estCPUE))
-#   lines(estTAC[x,,y],col='#ff000033')
-if(y==1)
-{
-  # axis(side=2,las=1)
+  PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim,bottom=T)
   mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
+  legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n',cex=.7)
 }
+if(y>1)
+ {
+  PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+  axis(side=1)
+ }
 }
-axis(side=1)
 
-legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n',cex=.7)
 dev.off()
 
 png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CTLNames,collapse="_"),".png")),res=1200,width=5,height=4.5,units='in')
 par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+RelativeErrorBMSY<-list(list())
+RelativeErrorFMSY<-list(list())
+
 for(y in 1:length(CTLNames))
 {
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
-RelativeErrorBMSY<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
+RelativeErrorBMSY[[y]]<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
 temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
-RelativeErrorFMSY<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
-
-if(is.na(ylimIN))
-{
-yUp   <-max(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
-ydown <-min(RelativeErrorBMSY,RelativeErrorFMSY,na.rm=T)
-use_ylim<-c(ydown,yUp)
+RelativeErrorFMSY[[y]]<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
 }
 
-if(!is.na(ylimIN))
-  use_ylim<-ylimIN
+yUp   <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY)),na.rm=T,probs=c(0.975))
+ydown <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY)),na.rm=T,probs=c(0.025))
+use_ylim<-c(ydown,yUp)
 
+for(y in 1:length(CTLNames))
+{
+inShape<-apply(RelativeErrorBMSY[[y]][,1:(ncol(RelativeErrorBMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
 
-inShape<-apply(RelativeErrorBMSY[,1:(ncol(RelativeErrorBMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-
-plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear),yaxt='n')
 polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
+
+mtext(side=3,CTLNames[y],cex=.7)
 
 abline(h=0,lty=2)
 
@@ -1851,9 +1853,9 @@ if(y==1)
  mtext(side=2,"Target biomass",line=3.5,cex=.9)
 }
 
-inShape<-apply(RelativeErrorFMSY[,1:(ncol(RelativeErrorFMSY))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
+inShape<-apply(RelativeErrorFMSY[[y]][,1:(ncol(RelativeErrorFMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
 
-plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear))
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(Inout$OM$InitYear,Inout$OM$SimYear),yaxt='n')
 polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
 
@@ -1867,7 +1869,6 @@ if(y==1)
  mtext(side=2,"Target fishing mortality",line=3.5,cex=.9)
 }
 }
-
 dev.off()
 }
 

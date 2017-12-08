@@ -261,6 +261,7 @@ HCalphaS		<-out$OM$HCalphaS
 HCbetaS		<-out$OM$HCbetaS
 }
 
+start_assessment<-out$OM$start_assessment
 SmallNum		<-out$OM$SmalNum
 InitSmooth		<-out$OM$InitSmooth	
 FmortPen		<-out$OM$FmortPen
@@ -572,6 +573,7 @@ trueOFL	<-matrix(nrow=Nsim,ncol=SimYear)
 CurBio	<-matrix(nrow=Nsim,ncol=SimYear)
 EstBio	<-matrix(nrow=Nsim,ncol=SimYear)
 Converge	<-matrix(nrow=Nsim,ncol=SimYear)
+est_init_B <-matrix(nrow=Nsim,ncol=SimYear)
 
 #============================================
 # calculate 'true' reference points
@@ -672,21 +674,24 @@ for(z in 1:Nsim)
  setwd(CreateFolderName)
  if(y==(InitYear+1))
  {
-  x		<-c(InitBzeroMod*(VirBioN),InitGrowthRate)	
+  x		<-c(log(InitBzeroMod*(VirBioN)),InitGrowthRate)	
   if(estInit==1)
-    x		<-c(InitBzeroMod*(VirBioN),InitGrowthRate,InitBioProd)	
+    x		<-c(log(InitBzeroMod*(VirBioN)),InitGrowthRate,InitBioProd)	
  }
   if(y>(InitYear+1))
   x		<-outs$par
 
- inCatch	<-CatchDataN[2:(y-1)]
- inCPUE	<-CPUEDataN[2:(y-1)]
+ inCatch	<-CatchDataN[start_assessment:(y-1)]
+ inCPUE	<-CPUEDataN[start_assessment:(y-1)]
  outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
 
  Converge[z,y]<-outs$convergence
  PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
  FMSY[z,y] 	<-abs(outs$par[2])/2
- BMSY[z,y]	<-abs(outs$par[1])/2
+ BMSY[z,y]	<-abs(exp(outs$par[1]))/2
+ if(estInit==1)
+  est_init_B[z,y]<-outs$par[3]
+ 
  MSY		<-BMSY[z,y]*FMSY[z,y]
  CurBio[z,y]<-PredBio[length(PredBio)-1]
  inBio	<-projExpBn[z,y-1]
@@ -706,7 +711,7 @@ for(z in 1:Nsim)
 
  if(y==SimYear)
  {
-  EstBio[z,1:length(PredBio)]<-PredBio
+  EstBio[z,start_assessment:ncol(EstBio)]<-PredBio
  }
  if(y==SimYear & z==Nsim)
  {
@@ -753,7 +758,13 @@ for(z in 1:Nsim)
  cat("#est FMSY","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
  cat(FMSY[m,],"\n",file=inFile,append=TRUE)
-
+ if(estInit==1)
+ {
+   cat("#est initial biomass","\n",file=inFile,append=TRUE)
+   for(m in 1:Nsim)
+     cat(est_init_B[m,],"\n",file=inFile,append=TRUE) 
+ }
+ 
  cat("#data cpue","\n",file=inFile,append=TRUE)
  for(m in 1:Nsim)
  cat(CPUEDataN,"\n",file=inFile,append=TRUE)

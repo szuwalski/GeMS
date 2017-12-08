@@ -100,6 +100,7 @@
 #=========================================================================================================,,
 #==Age structured assessment control,,
 #=======================================================================================,,
+1,,# start_assessment : the year in which historical data for assessment starts (for both age and prod)
 0.0001,,# SmallNum : a small number added to log calculations to avoid taking the log of zero
 3,,# InitSmooth : smoothness for initial size comps
 3,,# FmortPen : a smoothness penalty for F
@@ -123,3 +124,5 @@
 #=================================================,,
 1,,# InitBzeroMod : determines what fraction the true Bzero is multiplied by for an initial value for estimation
 0.2,,# InitGrowthRate : initial value for intrinsic growth rate in production model estimation
+0,,# estInit : 
+1,,# InitBioProd : percent of K initial value for initial biomass

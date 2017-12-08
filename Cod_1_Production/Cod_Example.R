@@ -5,7 +5,7 @@ Cur.dir<-"C:/GeMS/Cod_1_Production/"
 
 source(file.path(GeMS.dir,"run_GeMS.R"))
 
-OMNames<-c("Cod_Base_CTL","Cod_LowProd_CTL")
+OMNames<-c("Cod_LowProd_CTL","Cod_Base_CTL","Cod_HighProd_CTL")
 
 run_GeMS(GeMSDir=GeMS.dir, CurDir=Cur.dir,
          CreateFolderNameList=OMNames)
