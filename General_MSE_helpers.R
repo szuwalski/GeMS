@@ -1984,7 +1984,9 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   png(file.path(MSEdir,"plots","CompareRefPoints.png"),height=7,width=3.5,units='in',res=1200)
   par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(10,6,1,1))
   
-  inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn,BigBias,ReB35,ReF35,BigOFL))
+  inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn[BigMohn<10],
+                                                        BigBias[BigBias<10],ReB35[ReB35<10],
+                                                        ReF35[ReF35<10],BigOFL[BigOFL<10]))
   boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
   legend("topleft",c("(a) Retrospective bias"),bty='n')
   mtext(side=2,"Mohn's rho",line=3,cex=.7)

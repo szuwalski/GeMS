@@ -1016,7 +1016,9 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
  cat("# SelPars_dev95","\n",file="SimAss.PIN",append=TRUE)
  cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
  	
+ #=======================================
  #==.DAT file 
+ #======================================
  file.create("SimAss.DAT")
  cat("#Simulated generalized assessment","\n",file="SimAss.DAT")
  cat("#","\n",file="SimAss.DAT",append=TRUE)
