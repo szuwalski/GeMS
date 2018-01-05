@@ -137,6 +137,7 @@ for(i in 1:SimYear)
 
 #=====================================
 #==fishery selectivitiy============== 
+#=====================================
 sel50n	<-CleanInput(out$OM$sel50n,SimYear)
 sel95n	<-CleanInput(out$OM$sel95n,SimYear)
 vulnN		<-matrix(nrow=SimYear,ncol=MaxAge)
@@ -826,7 +827,7 @@ for(z in 1:Nsim)
 
  #==calculate the TAC based on a SRR or a proxy, depending on data
  #==allow this to be a user defined function of any of the things that can be input
- TAC[z,y]	<-trueSpbio[z,y-1]*(1-exp(-ConstantF))
+ TAC[z,y]	<-trueSpbioN[z,y-1]*(1-exp(-ConstantFn))
  }
 
  #==Age-structured assessment model for setting the TAC

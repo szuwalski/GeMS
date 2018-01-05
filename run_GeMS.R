@@ -9,13 +9,16 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 		stop(print("Set CurDir to folder where CTL files are located. Full file path required."))
 	}
 	
-	source(file.path(GeMSDir,"General_MSE_helpers.R"))
-	source(file.path(GeMSDir,"General_MSE_main.R"))
+	if(sum(grep("ReadCTLfile",ls()))==0) {
+		source(file.path(GeMSDir,"General_MSE_helpers.R"))
+		source(file.path(GeMSDir,"General_MSE_main.R"))
+	}
 
 	if(runparallel) {
 		if(!requireNamespace("foreach")) {
-			install.packages(c("foreach","doParallel"))
-			message("Installed packages foreach and doParallel.")
+			stop(print(paste0("Packages foreach and doParallel need to be installed, and foreach needs to be loaded. Example:\n",
+							  "install.packages(c('foreach','doParallel')\n",
+							  "library(foreach)")))
 		}
 		suppressPackageStartupMessages(library(foreach))
 		if(cores == 1) {message(paste0("Only one core registered. Runs will not be done in parallel.\n",
