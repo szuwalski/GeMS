@@ -12,25 +12,25 @@ DATA_SECTION
   init_vector Ages(1,maxAge)
   init_int LengthBinN
   init_int cpueYr
-  init_ivector cpueYears(1,cpueYr)
+  init_ivector cpueYears(styr,endyr)
   init_int survYr
-  init_ivector survYears(1,survYr)
+  init_ivector survYears(styr,endyr)
   
   !!cout<<"survYears"<<survYears<<endl;
   
   init_int catchLenYr
-  init_ivector catchLenYears(1,survYr)
+  init_ivector catchLenYears(styr,endyr)
   init_vector catchSampN(styr,endyr)
   init_int survLenYr
-  init_ivector survLenYears(1,survYr)
+  init_ivector survLenYears(styr,endyr)
   init_vector survSampN(styr,endyr)
  !!cout<<"SurvLenYear"<<survLenYears<<endl;
  
-  init_vector survBiomass(1,survYr)
+  init_vector survBiomass(styr,endyr)
   init_vector survCV(styr,endyr)
-  init_vector cpueIndex(1,cpueYr)
+  init_vector cpueIndex(styr,endyr)
   init_vector cpueCV(styr,endyr)
-  init_vector catchBiomass(1,survYr)
+  init_vector catchBiomass(styr,endyr)
   init_vector catchCV(styr,endyr)
   init_vector LengthBinsMid(1,LengthBinN)
   !!cout<<"catchBiomass"<<catchBiomass<<endl; 
@@ -222,7 +222,8 @@ PROCEDURE_SECTION
   get_num_at_len();
   // cout<<"Numbers"<<endl;
   evaluate_the_objective_function();
-
+  // cout<<"objfun"<<endl;
+  
     if (mceval_phase())
    {
     // Find_F35();
@@ -502,7 +503,7 @@ FUNCTION evaluate_the_objective_function
  Growth_pen2.initialize();
  Sel50_pen.initialize(); 
  Sel95_pen.initialize(); 
- 
+ // cout<<"IntoOBJfun"<<endl;
   //CPUE biomass
    for(i=styr+1;i<=endyr;i++)
 	CpueBio_like +=  square(log(cpueIndex(i) + smallNum) - log(predCpueBio(i) + smallNum))  / ((log(cpueCV(i)*cpueCV(i)+ 1)  ));
@@ -630,7 +631,7 @@ FUNCTION Find_OFL
   dvariable Fmsy,Rbar,nn,alpha,beta;
   int BMSY_Yr1, BMSY_Yr2,ii,Iyr,kk,jj;
  
-  BMSY_Yr1 = 1;BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
+  BMSY_Yr1 = styr; BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
 
  // Find Rbar (Dynamic or not)
   Rbar = 0; nn= 0;

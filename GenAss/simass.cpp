@@ -44,22 +44,22 @@ model_data::model_data(int argc,char * argv[]) : ad_comm(argc,argv)
   Ages.allocate(1,maxAge,"Ages");
   LengthBinN.allocate("LengthBinN");
   cpueYr.allocate("cpueYr");
-  cpueYears.allocate(1,cpueYr,"cpueYears");
+  cpueYears.allocate(styr,endyr,"cpueYears");
   survYr.allocate("survYr");
-  survYears.allocate(1,survYr,"survYears");
+  survYears.allocate(styr,endyr,"survYears");
 cout<<"survYears"<<survYears<<endl;
   catchLenYr.allocate("catchLenYr");
-  catchLenYears.allocate(1,survYr,"catchLenYears");
+  catchLenYears.allocate(styr,endyr,"catchLenYears");
   catchSampN.allocate(styr,endyr,"catchSampN");
   survLenYr.allocate("survLenYr");
-  survLenYears.allocate(1,survYr,"survLenYears");
+  survLenYears.allocate(styr,endyr,"survLenYears");
   survSampN.allocate(styr,endyr,"survSampN");
 cout<<"SurvLenYear"<<survLenYears<<endl;
-  survBiomass.allocate(1,survYr,"survBiomass");
+  survBiomass.allocate(styr,endyr,"survBiomass");
   survCV.allocate(styr,endyr,"survCV");
-  cpueIndex.allocate(1,cpueYr,"cpueIndex");
+  cpueIndex.allocate(styr,endyr,"cpueIndex");
   cpueCV.allocate(styr,endyr,"cpueCV");
-  catchBiomass.allocate(1,survYr,"catchBiomass");
+  catchBiomass.allocate(styr,endyr,"catchBiomass");
   catchCV.allocate(styr,endyr,"catchCV");
   LengthBinsMid.allocate(1,LengthBinN,"LengthBinsMid");
 cout<<"catchBiomass"<<catchBiomass<<endl; 
@@ -348,6 +348,7 @@ void model_parameters::userfunction(void)
   get_num_at_len();
   // cout<<"Numbers"<<endl;
   evaluate_the_objective_function();
+  // cout<<"objfun"<<endl;
     if (mceval_phase())
    {
     // Find_F35();
@@ -599,6 +600,7 @@ void model_parameters::evaluate_the_objective_function(void)
  Growth_pen2.initialize();
  Sel50_pen.initialize(); 
  Sel95_pen.initialize(); 
+ // cout<<"IntoOBJfun"<<endl;
   //CPUE biomass
    for(i=styr+1;i<=endyr;i++)
 	CpueBio_like +=  square(log(cpueIndex(i) + smallNum) - log(predCpueBio(i) + smallNum))  / ((log(cpueCV(i)*cpueCV(i)+ 1)  ));
@@ -711,7 +713,7 @@ void model_parameters::Find_OFL(void)
   ofstream& post= *pad_post;
   dvariable Fmsy,Rbar,nn,alpha,beta;
   int BMSY_Yr1, BMSY_Yr2,ii,Iyr,kk,jj;
-  BMSY_Yr1 = 1;BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
+  BMSY_Yr1 = styr; BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
  // Find Rbar (Dynamic or not)
   Rbar = 0; nn= 0;
   for (Iyr=BMSY_Yr1;Iyr<=BMSY_Yr2;Iyr++)

@@ -1,18 +1,17 @@
 rm(list=ls())
 
 #==name where the GeMS folder lives on your computer
-dir.GeMS<-"C:/GeMS"
-
-#==source important scripts
-source(file.path(TopDir,"run_GeMS.R"))
-
+GeMS.dir <- "C:/GeMS"
 #==identify the directory where current analysis will be performed and CTL files
 dir.MSE<-"C:/GeMS/Cod_5_AgeStructure"
 
-CreateFolderNameList<-c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
+#==source important scripts
+source(file.path(GeMS.dir,"run_GeMS.R"))
+
+OMNames<-c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
 
 #==Loop that reads in CTL files stored in dir.MSE and executes code
-run_GeMS(GeMSDir=dir.GeMS, CurDir=dir.MSE,
+run_GeMS(GeMSDir=GeMS.dir, CurDir=dir.MSE,
 		 CreateFolderNameList=OMNames)
 
 ##==compare just two scenarios: estimating M vs. not estimating M when M is varying

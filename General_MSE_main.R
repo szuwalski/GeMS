@@ -137,7 +137,6 @@ for(i in 1:SimYear)
 
 #=====================================
 #==fishery selectivitiy============== 
-#=====================================
 sel50n	<-CleanInput(out$OM$sel50n,SimYear)
 sel95n	<-CleanInput(out$OM$sel95n,SimYear)
 vulnN		<-matrix(nrow=SimYear,ncol=MaxAge)
@@ -771,8 +770,9 @@ for(z in 1:Nsim)
  cat(CPUEDataN,"\n",file=inFile,append=TRUE)
  }
 }
-
+#========================================
 #==Projection based model--no assessment
+#======================================= 
  if(AssessmentType == 0)
  {
  #==make folder if it isn't there
@@ -827,10 +827,12 @@ for(z in 1:Nsim)
 
  #==calculate the TAC based on a SRR or a proxy, depending on data
  #==allow this to be a user defined function of any of the things that can be input
- TAC[z,y]	<-trueSpbioN[z,y-1]*(1-exp(-ConstantFn))
+ TAC[z,y]	<-trueSpbio[z,y-1]*(1-exp(-ConstantF))
  }
 
+ #======================================================
  #==Age-structured assessment model for setting the TAC
+ #======================================================
  if(AssessmentType == 2)
  {
  #==make folder if it isn't there
@@ -842,7 +844,7 @@ for(z in 1:Nsim)
 
  #==copy the .exe into it (where does this come from? github?)
  #==Better way of doing this??
-file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
+ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
 
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object
@@ -971,11 +973,11 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
  cat("# log_avg_fmort_dir","\n",file="SimAss.PIN",append=TRUE)
  cat(log(mean(trueFmortN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# fmort_dir_dev","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
  cat("# mean_log_rec","\n",file="SimAss.PIN",append=TRUE)
  cat(log(mean(trueRecN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
  cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_NatM","\n",file="SimAss.PIN",append=TRUE)
  if(EstM > 0) {
  cat(log(mean(NatMn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
@@ -983,8 +985,8 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
  if(EstM <= 0) {
  cat(log(mean(NatMn,na.rm=T)),"\n",file="SimAss.PIN",append=TRUE) 
  }
- cat("# rec_dev","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat("# NatM_dev","\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
  cat("# log_avg_GrowthK","\n",file="SimAss.PIN",append=TRUE)
  if(EstGrowthK > 0) {
  cat(log(mean(VonKn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
@@ -1000,9 +1002,9 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
  cat(log(mean(LinfN,na.rm=T)),"\n",file="SimAss.PIN",append=TRUE)
  }
  cat("# GrowthK_dev","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
  cat("# Linf_dev","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
 
  InputSel50N<-selAtAgeFunc(sel50n,VonKn,LinfN,t0n)
  InputSel95N<-selAtAgeFunc(sel95n,VonKn,LinfN,t0n)
@@ -1013,9 +1015,9 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
  cat(mean(InputSel95N,na.rm=T)*rnorm(1,1,InitValSig),"\n",file="SimAss.PIN",append=TRUE)
 
  cat("# SelPars_dev50","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
  cat("# SelPars_dev95","\n",file="SimAss.PIN",append=TRUE)
- cat(rep(0,y-1),"\n",file="SimAss.PIN",append=TRUE)
+ cat(rep(0,y-start_assessment),"\n",file="SimAss.PIN",append=TRUE)
  	
  #=======================================
  #==.DAT file 
@@ -1024,7 +1026,7 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
  cat("#Simulated generalized assessment","\n",file="SimAss.DAT")
  cat("#","\n",file="SimAss.DAT",append=TRUE)
  cat("#start/end year","\n",file="SimAss.DAT",append=TRUE)
- cat(c(1,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
+ cat(c(start_assessment,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
 
  #==aggregate the length frequencies from the two areas
  cat("#number of ages","\n",file="SimAss.DAT",append=TRUE)
@@ -1036,43 +1038,43 @@ file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
 
  #==aggregate the index of abundance from two areas
  cat("#CPUE years","\n",file="SimAss.DAT",append=TRUE)
- cat((y-1),"\n",file="SimAss.DAT",append=TRUE)
+ cat((y-start_assessment),"\n",file="SimAss.DAT",append=TRUE)
  cat("#years for CPUE","\n",file="SimAss.DAT",append=TRUE)
- cat(seq(1,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
+ cat(seq(start_assessment,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#survey years","\n",file="SimAss.DAT",append=TRUE)
- cat((y-1),"\n",file="SimAss.DAT",append=TRUE)
+ cat((y-start_assessment),"\n",file="SimAss.DAT",append=TRUE)
  cat("#years for survey","\n",file="SimAss.DAT",append=TRUE)
- cat(seq(1,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
+ cat(seq(start_assessment,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#length freq from catch years","\n",file="SimAss.DAT",append=TRUE)
- cat((y-1),"\n",file="SimAss.DAT",append=TRUE)
+ cat((y-start_assessment),"\n",file="SimAss.DAT",append=TRUE)
  cat("#years for length freq catch","\n",file="SimAss.DAT",append=TRUE)
- cat(seq(1,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
+ cat(seq(start_assessment,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
  cat("#catch length sample sizes","\n",file="SimAss.DAT",append=TRUE)
- cat(LenSampleN[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE) 
+ cat(LenSampleN[seq(start_assessment,(y-1))],"\n",file="SimAss.DAT",append=TRUE) 
 
  cat("#length freq from survey years","\n",file="SimAss.DAT",append=TRUE)
- cat((y-1),"\n",file="SimAss.DAT",append=TRUE)
+ cat((y-start_assessment),"\n",file="SimAss.DAT",append=TRUE)
  cat("#years for length freq survey","\n",file="SimAss.DAT",append=TRUE)
- cat(seq(1,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
+ cat(seq(start_assessment,(y-1)),"\n",file="SimAss.DAT",append=TRUE)
  cat("#survey sample sizes","\n",file="SimAss.DAT",append=TRUE)
- cat(LenSampleN[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE) 
+ cat(LenSampleN[seq(start_assessment,(y-1))],"\n",file="SimAss.DAT",append=TRUE) 
 
  cat("#total survey biomass","\n",file="SimAss.DAT",append=TRUE) 
- cat(SurvDataN,"\n",file="SimAss.DAT",append=TRUE)
+ cat(SurvDataN[start_assessment:(y-1)],"\n",file="SimAss.DAT",append=TRUE)
  cat("#survey CV","\n",file="SimAss.DAT",append=TRUE)
- cat(IndexCVn[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
+ cat(IndexCVn[seq(start_assessment,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#total CPUE","\n",file="SimAss.DAT",append=TRUE) 
- cat(CPUEDataN,"\n",file="SimAss.DAT",append=TRUE)
+ cat(CPUEDataN[start_assessment:(y-1)],"\n",file="SimAss.DAT",append=TRUE)
  cat("#CPUE CV","\n",file="SimAss.DAT",append=TRUE)
- cat(IndexCVn[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
+ cat(IndexCVn[seq(start_assessment,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#total catch biomass","\n",file="SimAss.DAT",append=TRUE)
- cat(CatchDataN,"\n",file="SimAss.DAT",append=TRUE)
+ cat(CatchDataN[start_assessment:(y-1)],"\n",file="SimAss.DAT",append=TRUE)
  cat("#catch CV","\n",file="SimAss.DAT",append=TRUE)
- cat(CatchCVn[seq(1,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
+ cat(CatchCVn[seq(start_assessment,(y-1))],"\n",file="SimAss.DAT",append=TRUE)
  cat("#Length Bins","\n",file="SimAss.DAT",append=TRUE)
  cat(LengthBinsMid,"\n",file="SimAss.DAT",append=TRUE)
 
@@ -1080,11 +1082,11 @@ projCatLenFreqN[is.na(projCatLenFreqN)]<-0
 projSurvLenFreqN[is.na(projSurvLenFreqN)]<-0
 
  cat("#catch length counts","\n",file="SimAss.DAT",append=TRUE)
- for(i in 1:(y-1))
+ for(i in start_assessment:(y-1))
   cat(projCatLenFreqN[i,,z],"\n",file="SimAss.DAT",append=TRUE)
 
  cat("#survey length counts","\n",file="SimAss.DAT",append=TRUE)
- for(i in 1:(y-1))
+ for(i in start_assessment:(y-1))
   cat(projSurvLenFreqN[i,,z],"\n",file="SimAss.DAT",append=TRUE)
 
  #==run the code
