@@ -955,7 +955,7 @@ CheckRetro<-function(RetroPeels=6,DrawDir,PlotRetro=0,out,MSEdir)
     temp<-grep("survey years",DAT)[1]
     yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
     temp<-grep("spawning biomass",REP)
-    predSpBioRetro[(v+1),(1:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+    predSpBioRetro[(v+1),(out$OM$start_assessment:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
   
   }
   
@@ -1482,7 +1482,7 @@ temp		<-grep("log_avg_fmort_dir",PAR)[1]
 AvgF		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
 temp		<-grep("fmort_dir_dev",PAR)[1]
 fDevs		<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
-FishMort[n,,p]<-exp(AvgF+fDevs)
+FishMort[n,out$OM$start_assessment:(SimYear-1),p]<-exp(AvgF+fDevs)
 
 #==est spawning biomass
 IndSimFolder2			<-file.path(DrawDir,n,SimYear)
@@ -1495,7 +1495,7 @@ temp		<-grep("mean_log_rec",PAR)[1]
 AvgRec	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
 temp		<-grep("rec_dev",PAR)[1]
 RecDevs	<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
-Recruitment[n,,p]<-exp(AvgRec+RecDevs)
+Recruitment[n,out$OM$start_assessment:(SimYear-1),p]<-exp(AvgRec+RecDevs)
 
 for(w in (InitYear+1):SimYear)
 {
@@ -1562,14 +1562,14 @@ temp			<-grep("log_avg_NatM",PAR)[1]
 avgM			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
 temp			<-grep("m_dev",PAR)[1]
 mDevs			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))[-1]
-NatMvary[n,,p]	<-exp(avgM+mDevs)
+NatMvary[n,out$OM$start_assessment:(SimYear-1),p]	<-exp(avgM+mDevs)
 }
 
 if(Inout$OM$TimeVaryM <=0 )
 {
   temp			<-grep("log_avg_NatM",PAR)[1]
   avgM			<-as.numeric((unlist(strsplit(PAR[temp+1],split=" "))))
-  NatMvary[n,,p]	<-exp(avgM)
+  NatMvary[n,out$OM$start_assessment:(SimYear-1),p]	<-exp(avgM)
 }
 
 #==fishing selectivity combos
