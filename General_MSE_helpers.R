@@ -342,7 +342,6 @@ for (j in 2:100)
 
  }
 obj <-  -1*(tempCatchS[j]+tempCatchN[j])
-if(is.na(obj)) obj<-9E20
 return(obj)
 }
 #================================================================================
@@ -432,7 +431,6 @@ for(i in 2:length(CatchData))
  predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
 }
 SSQ<-sum((predBio-IndexData)^2,na.rm=T)
-if(is.na(SSQ)) SSQ<-9E20
 return(SSQ)
 }
 
