@@ -341,7 +341,9 @@ for (j in 2:100)
    tempCatchS[j]		<-sum(tempCatchAtAgeS[j,]*WeightAtAgeS[RefYear,])
 
  }
-return(-1*(tempCatchS[j]+tempCatchN[j]))
+obj <-  -1*(tempCatchS[j]+tempCatchN[j])
+if(is.na(obj)) obj<-9E20
+return(obj)
 }
 #================================================================================
 #==calculates F35%
@@ -361,12 +363,13 @@ tempCatchAtAgeN	<-matrix(ncol=MaxAge,nrow=100)
 tempCatchAtAgeS	<-matrix(ncol=MaxAge,nrow=100)
 
 Target<-0.35
-Bzero			<-ProjPopDym(fmortN=0,MaxAge=MaxAge,vulnN=vulnN,
-                     	vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
-				WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
-				steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
-				LenAtAgeS=LenAtAgeS,ProxyRec=inRec,RefYear=RefYear,
-				MovementN=MovementN,MovementS=MovementS)[[2]]
+
+Bzero     <-ProjPopDym(fmortN=0,MaxAge=MaxAge,vulnN=vulnN,
+                      vulnS=vulnS,NatMn=NatMn,NatMs=NatMs,matureN=matureN,matureS=matureS,
+                      WeightAtAgeN=WeightAtAgeN, WeightAtAgeS=WeightAtAgeS,steepnessN=steepnessN,
+                      steepnessS=steepnessS,RzeroN=RzeroN,RzeroS=RzeroS,LenAtAgeN=LenAtAgeN,
+                      LenAtAgeS=LenAtAgeS,ProxyRec=inRec,RefYear=RefYear,
+                      MovementN=MovementN,MovementS=MovementS)[[2]]
 
 maxF	<-3
 minF	<-0.01
@@ -418,8 +421,8 @@ list(inFn,(EggsN)/(inRec))
 ##############################################################
 ProdMod<-function(x,CatchData,IndexData,estInit=0)
 {
-K<-exp(abs(x[1]))
-r<-abs(x[2])
+K<-exp(x[1])
+r<-x[2]
 predBio<-rep(0,length(IndexData))
 predBio[1]<-K
 if(estInit==1)
@@ -429,14 +432,15 @@ for(i in 2:length(CatchData))
  predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
 }
 SSQ<-sum((predBio-IndexData)^2,na.rm=T)
+if(is.na(SSQ)) SSQ<-9E20
 return(SSQ)
 }
 
 #################################################################
 ProdModPlot<-function(x,CatchData,IndexData,plots=0,estInit=0)
 {
-K<-exp(abs(x[1]))
-r<-abs(x[2])
+K<-exp(x[1])
+r<-x[2]
 predBio<-rep(0,length(IndexData)+1)
 predBio[1]<-K
 if(estInit==1)

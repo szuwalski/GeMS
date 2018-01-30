@@ -683,12 +683,12 @@ for(z in 1:Nsim)
 
  inCatch	<-CatchDataN[start_assessment:(y-1)]
  inCPUE	<-CPUEDataN[start_assessment:(y-1)]
- outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
-
+# outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
+ outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
  Converge[z,y]<-outs$convergence
  PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
- FMSY[z,y] 	<-abs(outs$par[2])/2
- BMSY[z,y]	<-abs(exp(outs$par[1]))/2
+ FMSY[z,y] 	<-outs$par[2]/2
+ BMSY[z,y]	<-exp(outs$par[1])/2
  if(estInit==1)
   est_init_B[z,y]<-outs$par[3]
  
