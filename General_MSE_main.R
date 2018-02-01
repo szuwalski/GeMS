@@ -780,7 +780,7 @@ for(z in 1:Nsim)
  if(AssessmentType == 1)
  {
  setwd(MSEdir)
- if(!dir.exists) dir.create(CreateFolderName)
+ if(!dir.exists(CreateFolderName)) dir.create(CreateFolderName)
  setwd(CreateFolderName)
  if(y==(InitYear+1))
  {
@@ -887,7 +887,7 @@ for(z in 1:Nsim)
  {
  #==make folder if it isn't there
  setwd(MSEdir)
- dir.create(CreateFolderName)
+ if(!dir.exists(CreateFolderName)) dir.create(CreateFolderName)
  dir.create(file.path(CreateFolderName,z))
  IndSimFolder<-file.path(CreateFolderName,z,y)
  dir.create(IndSimFolder)
@@ -947,7 +947,7 @@ for(z in 1:Nsim)
  {
  #==make folder if it isn't there
  setwd(MSEdir)
- dir.create(CreateFolderName)
+ if(!dir.exists(CreateFolderName)) dir.create(CreateFolderName)
  dir.create(file.path(CreateFolderName,z))
  IndSimFolder<-file.path(CreateFolderName,z,y)
  dir.create(IndSimFolder)
