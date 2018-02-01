@@ -767,9 +767,13 @@ CleanInput<-function(input,SimYear)
 {
 if(length(input)==1)
  output		<-rep(input,SimYear)
-if(length(input)>1)
+if(length(input)>1) {
  output		<-input
- return(output)
+}
+if(length(output)<SimYear) {
+ stop("Check lengths of input vectors match (or are greater than) number of years.")
+}
+return(output)
 }
 #=============================================
 PlotLifeHistory<-function(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSelS,WeightAtAgeN,
@@ -1950,7 +1954,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   }
   
   BigMohn<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
-  if(Inout$OM$Nsim > 1) {
+  if(Inout$OM$Nsim > 1 & (RetroPeels-1)>1) {
     for(x in 1:length(CTLNames))
     {
       temp<-MohnsRho[,,x]
@@ -1958,7 +1962,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
     }
   }
   
-  if(Inout$OM$Nsim == 1) {
+  if(Inout$OM$Nsim == 1 | (RetroPeels-1) == 1) {
     for(x in 1:length(CTLNames))
     {
       temp<-MohnsRho[,,x]
@@ -1967,7 +1971,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   }
 
   BigBias<-matrix(nrow=Inout$OM$Nsim,ncol=length(CTLNames))
-  if(Inout$OM$Nsim > 1) {
+  if(Inout$OM$Nsim > 1 & (RetroPeels-1) > 1) {
     for(x in 1:length(CTLNames))
     {
       temp<-SSBbias[,,x]
@@ -1975,7 +1979,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
     }
   }
   
-  if(Inout$OM$Nsim == 1) {
+  if(Inout$OM$Nsim == 1 | (RetroPeels-1) == 1) {
     for(x in 1:length(CTLNames))
     {
       temp<-SSBbias[,,x]

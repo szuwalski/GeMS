@@ -57,14 +57,14 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 		 }
 	 }
 
+	OMfile <- ReadCTLfile(file.path(CurDir,paste0(rev(CreateFolderNameList)[1],".csv")))
+	if(OMfile$OM$AssessmentType==1) {
+		ProductionModelOutput(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir=CurDir)
+	}
+	
 	if(!shutup) message("End of simulations.")
 	if(length(CreateFolderNameList)>1) {
 		if(!shutup) message("Creating combined figures.")
-		OMfile <- ReadCTLfile(file.path(CurDir,paste0(rev(CreateFolderNameList)[1],".csv")))
-		if(OMfile$OM$AssessmentType==1) {
-			ProductionModelOutput(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir=CurDir)
-		}
-
 		if(OMfile$OM$AssessmentType==2) {
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear < 6) {
 				retpeels <- OMfile$OM$SimYear-OMfile$OM$InitYear

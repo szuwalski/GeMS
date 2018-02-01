@@ -10,6 +10,13 @@
 GeMS<-function(out,CreateFolderName,MSEdir,GeMSdir,silent=F,ADoptions=NA)
 {
 
+echofile <- file.path(MSEdir,paste0(CreateFolderName,"_echo.txt"))
+if(!file.exists(echofile)) file.create(echofile)
+cat(paste0("Run initiated: ",Sys.time(),"\n"),file=echofile,append=F)
+cat(paste0("Best viewed in Excel or some tab-delimited editor.","\n"),file=echofile,append=T)
+cat("## Inputs and Derived Quantities \n",file=echofile,append=T)
+cat(CreateFolderName,"\t # CreateFolderName \n",file=echofile,append=T)
+
 #===============
 #==Checking OS==
 #===============
@@ -37,10 +44,15 @@ if(is.na(ADoptions!=NA)) {
 #==simulation controls==
 #=======================
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
+cat(Nsim,"\t # Nsim \n",file=echofile,append=T)
 SimYear		<-out$OM$SimYear			# total number of years in simulation
+cat(SimYear,"\t # SimYear \n",file=echofile,append=T)
 InitYear		<-out$OM$InitYear			# year in which MSE starts (i.e. the number of years of data available for initial assessment)
+cat(InitYear,"\t # InitYear \n",file=echofile,append=T)
 AssessmentType	<-out$OM$AssessmentType		# 0 = projection only, 1 = production, 2= agestructured
+cat(AssessmentType,"\t # AssessmentType \n",file=echofile,append=T)
 FisheryIndepenDat <-out$OM$FisheryIndepenDat
+cat(FisheryIndepenDat,"\t # FisheryIndepenDat \n",file=echofile,append=T)
 LifeHistoryPlots	<-out$OM$LifeHistoryPlots
 EstimationPlots	<-out$OM$EstimationPlots	# this plots the diagnostics for each run of the estimation model (will be a lot of plots!)
 AssessmentData	<-out$OM$AssessmentData		# this plots the diagnostics for each run of the estimation model (will be a lot of plots!)
@@ -48,25 +60,29 @@ PlotYieldCurve	<-out$OM$PlotYieldCurve
 TwoPop		<-out$OM$TwoPop
 
 PlotFolder<-file.path(MSEdir, "plots")
-dir.create(PlotFolder)
+if(!file.exists(PlotFolder)) dir.create(PlotFolder)
 
 #==sampling uncertainty 
 CatchCVn	<-CleanInput(out$OM$CatchCVn,SimYear)
+cat(CatchCVn,"\t # CatchCVn \n",file=echofile,append=T)
 CatchCVs	<-CatchCVn
 if(TwoPop>0) 
  CatchCVs	<-CleanInput(out$OM$CatchCVs,SimYear)
 
 IndexCVn	<-CleanInput(out$OM$IndexCVn,SimYear)
+cat(IndexCVn,"\t # IndexCVn \n",file=echofile,append=T)
 IndexCVs	<-IndexCVn
 if(TwoPop>0) 
  IndexCVs	<-CleanInput(out$OM$IndexCVs,SimYear)
 
 LenSampleN	<-CleanInput(out$OM$LenSampleN,SimYear)
+cat(LenSampleN,"\t # LenSampleN \n",file=echofile,append=T)
 LenSampleS	<-LenSampleN
 if(TwoPop>0) 
  LenSampleS	<-CleanInput(out$OM$LenSampleS,SimYear)
 
 GrowthSDn	<-CleanInput(out$OM$GrowthSDn,SimYear)
+cat(GrowthSDn,"\t # GrowthSDn \n",file=echofile,append=T)
 GrowthSDs	<-GrowthSDn
 if(TwoPop>0) 
  GrowthSDs	<-CleanInput(out$OM$GrowthSDs,SimYear)
@@ -75,18 +91,23 @@ if(TwoPop>0)
 #=================population dynamics processes============
 #==============================================+===========
 MaxAge<-out$OM$MaxAge
+cat(MaxAge,"\t # MaxAge \n",file=echofile,append=T)
 Ages<-seq(1,MaxAge)
 
 #==natural mortality================
  NatMn	<-CleanInput(out$OM$NatMn,SimYear)
+ cat(NatMn,"\t # NatMn \n",file=echofile,append=T)
  NatMs	<-NatMn
-if(TwoPop>0) 
- NatMs	<-CleanInput(out$OM$NatMn,SimYear)
+ if(TwoPop>0) 
+  NatMs	<-CleanInput(out$OM$NatMn,SimYear)
 
 #==Length at age====================
 VonKn		<-CleanInput(out$OM$VonKn,SimYear)
+cat(VonKn,"\t # VonKn \n",file=echofile,append=T)
 LinfN		<-CleanInput(out$OM$LinfN,SimYear)
+cat(LinfN,"\t # LinfN \n",file=echofile,append=T)
 t0n		<-CleanInput(out$OM$t0n,SimYear)
+cat(t0n,"\t # t0n \n",file=echofile,append=T)
 LenAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
 
 LenAtAgeN[1,]<-LinfN[1]*(1-exp(-VonKn[1]*(Ages-t0n[1])))
@@ -94,6 +115,9 @@ LenAtAgeN[,1]<-LenAtAgeN[1,1]
 for(i in 2:SimYear)
  for(j in 2:MaxAge)
   LenAtAgeN[i,j]<-LenAtAgeN[i-1,j-1]+(LinfN[i]-LenAtAgeN[i-1,j-1])*(1-exp(-VonKn[i]))
+cat("# LenAtAgeN \n",file=echofile,append=T)
+cat("# Ages", Ages,"\n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,LenAtAgeN,file=echofile,append=T)
 
 LenAtAgeS<-LenAtAgeN
 
@@ -113,16 +137,22 @@ for(i in 2:SimYear)
 
 #==specify the number of length bins
  BinWidth		<-(max(LenAtAgeS,LenAtAgeN)*1.05)/(out$OM$LengthBinN)
+ cat("\n",BinWidth,"\t # BinWidth \n",file=echofile,append=T)
  LengthBins		<-seq(0,max(LenAtAgeS,LenAtAgeN)*1.05,BinWidth)
+ cat(LengthBins,"\t # LengthBins \n",file=echofile,append=T)
  LengthBinsMid	<-LengthBins[1:(length(LengthBins)-1)] + mean(LengthBins[1:2])
  LengthBinN		<-length(LengthBinsMid)
+ cat(LengthBinN,"\t # LengthBinN \n",file=echofile,append=T)
 
 #==maturity at age==========================
 mat50n	<-CleanInput(out$OM$mat50n,SimYear)
+cat(mat50n,"\t # mat50n \n",file=echofile,append=T)
 mat95n	<-CleanInput(out$OM$mat95n,SimYear)
+cat(mat95n,"\t # mat95n \n",file=echofile,append=T)
 matureN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  matureN[i,]<-1/(1+exp(-1*log(19)*(Ages-mat50n[i])/(mat95n[i]-mat50n[i])))
+write.table(row.names=F,col.names=F,matureN,file=echofile,append=T)
 
 matureS	<-matureN
 
@@ -138,12 +168,16 @@ for(i in 1:SimYear)
 #=====================================
 #==fishery selectivitiy============== 
 sel50n	<-CleanInput(out$OM$sel50n,SimYear)
+cat(sel50n,"\t # sel50n \n",file=echofile,append=T)
 sel95n	<-CleanInput(out$OM$sel95n,SimYear)
+cat(sel95n,"\t # sel95n \n",file=echofile,append=T)
 vulnN		<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  vulnN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-sel50n[i])/(sel95n[i]-sel50n[i])))
 
 vulnN[vulnN<0.01]<-0
+cat("\n # vulnN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,vulnN,file=echofile,append=T)
 vulnS		<-vulnN
 if(TwoPop>0) 
 {
@@ -157,10 +191,14 @@ vulnS[vulnS<0.01]<-0
 }
 #==index selectivity=====================
 surv50n	<-CleanInput(out$OM$surv50n,SimYear)
+cat(surv50n,"\t # surv50n \n",file=echofile,append=T)
 surv95n	<-CleanInput(out$OM$surv95n,SimYear)
+cat(surv95n,"\t # surv95n \n",file=echofile,append=T)
 survSelN		<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  survSelN[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50n[i])/(surv95n[i]-surv50n[i])))
+cat("# survSelN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,survSelN,file=echofile,append=T)
 
 survSelS	<-survSelN
 surv50s	<-surv50n
@@ -177,10 +215,14 @@ for(i in 1:SimYear)
 
 #==weight at age==========================
 alphaN		<-CleanInput(out$OM$alphaN,SimYear)
+cat(alphaN,"\t # alphaN \n",file=echofile,append=T)
 betaN			<-CleanInput(out$OM$betaN,SimYear)
+cat(betaN,"\t # betaN \n",file=echofile,append=T)
 WeightAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  WeightAtAgeN[i,]	<-alphaN[i]*LenAtAgeN[i,]^betaN[i]
+cat("\n # WeightAtAgeN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,WeightAtAgeN,file=echofile,append=T)
 
 WeightAtAgeS	<-WeightAtAgeN
 if(TwoPop>0) 
@@ -194,11 +236,16 @@ for(i in 1:SimYear)
 
 #==movement from box to box==
 MaxMovingN	<-CleanInput(out$OM$MaxMovingN,SimYear)
+cat(MaxMovingN,"\t # MaxMovingN \n",file=echofile,append=T)
 Move50n	<-CleanInput(out$OM$Move50n,SimYear)
+cat(Move50n,"\t # Move50n \n",file=echofile,append=T)
 Move95n	<-CleanInput(out$OM$Move95n,SimYear)
+cat(Move95n,"\t # Move95n \n",file=echofile,append=T)
 MovementN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  MovementN[i,]	<-MaxMovingN[i]/(1+exp(-1*log(19)*(Ages-Move50n[i])/(Move95n[i]-Move50n[i])))
+cat("\n # MovementN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,MovementN,file=echofile,append=T)
 
 MovementS	<-MovementN
 if(TwoPop>0) 
@@ -216,8 +263,11 @@ if(sum(MovementS)>0 | sum(MovementN)>0)
 
 #==recruitment parameters==
 steepnessN	<-CleanInput(out$OM$steepnessN,SimYear)
+cat(steepnessN,"\t # steepnessN \n",file=echofile,append=T)
 sigmaRn	<-CleanInput(out$OM$sigmaRn,SimYear)
+cat(sigmaRn,"\t # sigmaRn \n",file=echofile,append=T)
 RzeroN	<-CleanInput(out$OM$RzeroN,SimYear)
+cat(RzeroN,"\t # RzeroN \n",file=echofile,append=T)
 
 steepnessS	<-steepnessN
 sigmaRs	<-sigmaRn
@@ -231,10 +281,13 @@ RzeroS	<-CleanInput(out$OM$RzeroS,SimYear)
 }
 
 RecErrN	<-matrix(rnorm(SimYear*Nsim,0,sigmaRn),ncol=SimYear,byrow=T)
+cat("# RecErrN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,RecErrN,file=echofile,append=T)
 RecErrS	<-matrix(rnorm(SimYear*Nsim,0,sigmaRs),ncol=SimYear,byrow=T)
 
 #==historic fishing mortality
 HistoricalFn	<-CleanInput(out$OM$HistoricalFn,SimYear)[1:InitYear]
+cat(HistoricalFn,"\t # HistoricalFn \n",file=echofile,append=T)
 PastFsdN		<-out$OM$PastFsdN
 HarvestControlN	<-out$OM$HarvestControlN
 ConstantCatchN	<-out$OM$ConstantCatchN
@@ -262,6 +315,7 @@ HCbetaS		<-out$OM$HCbetaS
 }
 
 start_assessment<-out$OM$start_assessment
+cat(start_assessment,"\t # start_assessment \n",file=echofile,append=T)
 SmallNum		<-out$OM$SmalNum
 InitSmooth		<-out$OM$InitSmooth	
 FmortPen		<-out$OM$FmortPen
@@ -289,13 +343,20 @@ InitBioProd   <-out$OM$InitBioProd
 #===================================================
 #==Virgin numbers at age, biomass, recruitment
 #===================================================
+cat("\n\n # Initialised Population \n",file=echofile,append=T)
 VirInitN		<-initialN(Rzero=RzeroN[1],NatM=NatMn[1],inAge=MaxAge)
+cat("# VirInitN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,VirInitN,file=echofile,append=T)
 VirInitS		<-initialN(Rzero=RzeroS[1],NatM=NatMs[1],inAge=MaxAge)
 
 VirBioN		<-sum(VirInitN*matureN[1,]*WeightAtAgeN[1,])
+cat("\n # VirBioN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,VirBioN,file=echofile,append=T)
 VirBioS		<-sum(VirInitS*matureS[1,]*WeightAtAgeS[1,])
 
 ExploitBioN		<-sum(VirInitN*vulnN[1,]*WeightAtAgeN[1,])
+cat("\n # ExploitBioN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,ExploitBioN,file=echofile,append=T)
 ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
 
 png(file.path(PlotFolder,paste0("LifeHistory_",CreateFolderName,".png")),res=1200,units='in',height=7.5,width=7.5)
@@ -304,6 +365,7 @@ PlotLifeHistory(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSel
 	WeightAtAgeS,MovementN,MovementS,NatMs,NatMn,VirBioN,VirBioS,RzeroN,RecErrN,steepnessN,steepnessS,
 	RzeroS,RecErrS,sigmaRn,sigmaRs,HistoricalFn,HistoricalFs,SimYear,MaxAge)
 dev.off()
+cat("\n ####### PLOTTED LIFE HISTORY ####### \n",file=echofile,append=T)
 
 #=========================================================================
 # INITALIZE THE POPULATION
@@ -323,8 +385,12 @@ tempCatchAtAgeS	<-array(dim=c(InitYear,MaxAge,Nsim))
 HistoricalFsInit	<-matrix(HistoricalFs,ncol=InitYear,nrow=Nsim,byrow=T)
 HistoricalFnInit	<-matrix(HistoricalFn,ncol=InitYear,nrow=Nsim,byrow=T)
 FerrN			<-matrix(rnorm(InitYear*Nsim,1,PastFsdN),ncol=InitYear)
+cat("\n # FerrN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,FerrN,file=echofile,append=T)
 FerrS			<-matrix(rnorm(InitYear*Nsim,1,PastFsdS),ncol=InitYear)
 HistoricalFsIn	<-HistoricalFsInit*FerrN
+cat("\n # HistoricalFsIn \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,HistoricalFsIn,file=echofile,append=T)
 HistoricalFnIn	<-HistoricalFnInit*FerrS
 
 for(k in 1:Nsim)
@@ -366,6 +432,7 @@ for(k in 1:Nsim)
 # BEGIN SIMULATION OF ASSESSMENT AND HARVEST
 #===============================================================
 #==tempNn and tempNs from above are the starting points
+cat("\n\n ## Full Population  \n",file=echofile,append=T)
 projNn	<-array(dim=c(SimYear,MaxAge,Nsim))
 projNs	<-array(dim=c(SimYear,MaxAge,Nsim))
 
@@ -466,6 +533,11 @@ for(x in 1:Nsim)
  projCatLenFreqN[y,,x]<-apply(tempCatAtLenN[,,x],2,sum)
  projCatLenFreqS[y,,x]<-apply(tempCatAtLenS[,,x],2,sum)
 }
+cat(paste0("\n # projCatLenFreqN #array!"," \n"),file=echofile,append=T)
+for(n in 1:Nsim) {
+  cat(paste0(" # projCatLenFreqN sim:",n," \n"),file=echofile,append=T)
+  write.table(row.names=F,col.names=F,projCatLenFreqN[,,n],file=echofile,append=T)
+}
 
 if(AssessmentData==1)
  {
@@ -497,6 +569,11 @@ for(x in 1:Nsim)
  }
  projSurvLenFreqN[y,,x]<-apply(tempSurvAtLenN[,,x],2,sum)
  projSurvLenFreqS[y,,x]<-apply(tempSurvAtLenS[,,x],2,sum)
+}
+cat(paste0("\n # projSurvLenFreqN #array!"," \n"),file=echofile,append=T)
+for(n in 1:Nsim) {
+  cat(paste0(" # projSurvLenFreqN sim:",n," \n"),file=echofile,append=T)  
+  write.table(row.names=F,col.names=F,projSurvLenFreqN[,,n],file=echofile,append=T)
 }
 
 if(AssessmentData==1)
@@ -530,8 +607,26 @@ for(y in 1:InitYear)
  projExpBs[x,y]	<-sum(projNs[y,,x]*vulnS[y,]*WeightAtAgeS[y,])
 }
 }
+cat(paste0("# projNn #array!"," \n"),file=echofile,append=T)
+for(n in 1:Nsim) {
+  cat(paste0("# projNn sim:",n," \n"),file=echofile,append=T)
+  write.table(row.names=F,col.names=F,projNn[,,n],file=echofile,append=T)
+}
+cat("\n # projRecN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,projRecN,file=echofile,append=T)
+cat("\n # projFmortN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,projFmortN,file=echofile,append=T)
+cat("\n # projSSBn \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,projSSBn,file=echofile,append=T)
+cat("\n # projExpBn \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,projExpBn,file=echofile,append=T)
+cat("\n # projSurvN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,projSurvN,file=echofile,append=T)
 
 projCatchN[,1]		<-0
+cat("\n # projCatchN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,projCatchN,file=echofile,append=T)
+
 projCatchS[,1]		<-0
 
 #==fill in true storage arrays
@@ -550,19 +645,33 @@ trueCPUEindS[x,1:InitYear]		<-projExpBs[x,1:InitYear]
 }
 
 CatchErrorN		<-matrix(rnorm(Nsim*SimYear,0,CatchCVn),nrow=Nsim,ncol=SimYear)
+cat("\n # CatchErrorN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,CatchErrorN,file=echofile,append=T)
 CatchErrorS		<-matrix(rnorm(Nsim*SimYear,0,CatchCVs),nrow=Nsim,ncol=SimYear)
 CatchAssessN	<-projCatchN*exp(CatchErrorN-(CatchCVn^2/2))
+cat("\n # CatchAssessN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,CatchAssessN,file=echofile,append=T)
 CatchAssessS	<-projCatchS*exp(CatchErrorS-(CatchCVs^2/2))
 
 CPUEErrorN		<-matrix(rnorm(Nsim*SimYear,0,IndexCVn),nrow=Nsim,ncol=SimYear)
+cat("\n # CPUEErrorN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,CPUEErrorN,file=echofile,append=T)
 CPUEErrorS		<-matrix(rnorm(Nsim*SimYear,0,IndexCVs),nrow=Nsim,ncol=SimYear)
 CPUEAssessN		<-projExpBn*exp(CPUEErrorN-(IndexCVn^2/2))
+cat("\n # CPUEAssessN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,CPUEAssessN,file=echofile,append=T)
 CPUEAssessS		<-projExpBs*exp(CPUEErrorS-(IndexCVs^2/2))
 
 SurvErrorN		<-matrix(rnorm(Nsim*SimYear,0,IndexCVn),nrow=Nsim,ncol=SimYear)
+cat("\n # SurvErrorN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,SurvErrorN,file=echofile,append=T)
 SurvErrorS		<-matrix(rnorm(Nsim*SimYear,0,IndexCVs),nrow=Nsim,ncol=SimYear)
 SurvAssessN		<-projSurvN*exp(SurvErrorN-(IndexCVn^2/2))
+cat("\n # SurveAssessN \n",file=echofile,append=T)
+write.table(row.names=F,col.names=F,SurvAssessN,file=echofile,append=T)
 SurvAssessS		<-projSurvS*exp(SurvErrorS-(IndexCVs^2/2))
+
+cat(paste0("Input Ended: ",Sys.time(),"\n"),file=echofile,append=T)
 
 #==storage for management and assessment quantities
 FMSY		<-matrix(nrow=Nsim,ncol=SimYear)
@@ -634,6 +743,7 @@ trueB35[,InitYear]  <-trueSBPR35[InitYear]*apply(trueRecN,1,mean,na.rm=T)
 
 #=================================================================================
 #==BEGIN PROJECTIONS===========================================================
+#=================================================================================
 
 for(z in 1:Nsim)
 {
@@ -670,7 +780,7 @@ for(z in 1:Nsim)
  if(AssessmentType == 1)
  {
  setwd(MSEdir)
- dir.create(CreateFolderName)
+ if(!dir.exists) dir.create(CreateFolderName)
  setwd(CreateFolderName)
  if(y==(InitYear+1))
  {
