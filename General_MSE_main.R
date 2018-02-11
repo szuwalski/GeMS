@@ -7,13 +7,13 @@
 # written by Cody Szuwalski, 11/2015
 ###################################################################
 
-GeMS<-function(out,CreateFolderName,MSEdir,GeMSdir,silent=F,ADoptions=NA)
+GeMS<-function(out,CreateFolderName,MSEdir,GeMSdir=NULL,silent=F,ADsilent=T,ADoptions=NA)
 {
 
 echofile <- file.path(MSEdir,paste0(CreateFolderName,"_echo.txt"))
 if(!file.exists(echofile)) file.create(echofile)
-cat(paste0("Run initiated: ",Sys.time(),"\n"),file=echofile,append=F)
-cat(paste0("Best viewed in Excel or some tab-delimited editor.","\n"),file=echofile,append=T)
+cat(paste0("# Run initiated: ",Sys.time(),"\n"),file=echofile,append=F)
+cat(paste0("# Best viewed in Excel or some tab-delimiting editor.","\n"),file=echofile,append=T)
 cat("## Inputs and Derived Quantities \n",file=echofile,append=T)
 cat(CreateFolderName,"\t # CreateFolderName \n",file=echofile,append=T)
 
@@ -32,7 +32,7 @@ if(os == "windows") {
   SimAssComm <- "simass -nohess"
 }
 
-if(silent) {
+if(ADsilent) {
   SimAssComm <- paste(SimAssComm, ">console.log", sep = " ") # saves console output to a file "console.log"
 }
 
@@ -152,6 +152,7 @@ cat(mat95n,"\t # mat95n \n",file=echofile,append=T)
 matureN	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  matureN[i,]<-1/(1+exp(-1*log(19)*(Ages-mat50n[i])/(mat95n[i]-mat50n[i])))
+cat("# matureN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,matureN,file=echofile,append=T)
 
 matureS	<-matureN
@@ -212,6 +213,10 @@ survSelS	<-matrix(nrow=SimYear,ncol=MaxAge)
 for(i in 1:SimYear)
  survSelS[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50s[i])/(surv95s[i]-surv50s[i])))
 }
+
+if(sel50n>LinfN | sel95n>LinfN | surv50n>LinfN | surv50n>LinfN) {stop("Gear is attempting to select fish larger than what's in the population (one or more of the selectivity parameters is greater than Linf)")}
+if(TwoPop>0) if(sel50s>LinfS | sel95s>LinfS | surv50s>LinfS | surv50s>LinfS) {stop("Gear is attempting to select fish larger than what's in the population (one or more of the selectivity parameters is greater than Linf)")}
+
 
 #==weight at age==========================
 alphaN		<-CleanInput(out$OM$alphaN,SimYear)
@@ -385,11 +390,13 @@ tempCatchAtAgeS	<-array(dim=c(InitYear,MaxAge,Nsim))
 HistoricalFsInit	<-matrix(HistoricalFs,ncol=InitYear,nrow=Nsim,byrow=T)
 HistoricalFnInit	<-matrix(HistoricalFn,ncol=InitYear,nrow=Nsim,byrow=T)
 FerrN			<-matrix(rnorm(InitYear*Nsim,1,PastFsdN),ncol=InitYear)
-cat("\n # FerrN \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# FerrN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,FerrN,file=echofile,append=T)
 FerrS			<-matrix(rnorm(InitYear*Nsim,1,PastFsdS),ncol=InitYear)
 HistoricalFsIn	<-HistoricalFsInit*FerrN
-cat("\n # HistoricalFsIn \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# HistoricalFsIn \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,HistoricalFsIn,file=echofile,append=T)
 HistoricalFnIn	<-HistoricalFnInit*FerrS
 
@@ -432,7 +439,8 @@ for(k in 1:Nsim)
 # BEGIN SIMULATION OF ASSESSMENT AND HARVEST
 #===============================================================
 #==tempNn and tempNs from above are the starting points
-cat("\n\n ## Full Population  \n",file=echofile,append=T)
+cat("\n\n",file=echofile,append=T)
+cat("## Full Population  \n",file=echofile,append=T)
 projNn	<-array(dim=c(SimYear,MaxAge,Nsim))
 projNs	<-array(dim=c(SimYear,MaxAge,Nsim))
 
@@ -533,9 +541,10 @@ for(x in 1:Nsim)
  projCatLenFreqN[y,,x]<-apply(tempCatAtLenN[,,x],2,sum)
  projCatLenFreqS[y,,x]<-apply(tempCatAtLenS[,,x],2,sum)
 }
-cat(paste0("\n # projCatLenFreqN #array!"," \n"),file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat(paste0("# projCatLenFreqN #array! \n"),file=echofile,append=T)
 for(n in 1:Nsim) {
-  cat(paste0(" # projCatLenFreqN sim:",n," \n"),file=echofile,append=T)
+  cat(paste0("# projCatLenFreqN sim: ",n," \n"),file=echofile,append=T)
   write.table(row.names=F,col.names=F,projCatLenFreqN[,,n],file=echofile,append=T)
 }
 
@@ -570,9 +579,10 @@ for(x in 1:Nsim)
  projSurvLenFreqN[y,,x]<-apply(tempSurvAtLenN[,,x],2,sum)
  projSurvLenFreqS[y,,x]<-apply(tempSurvAtLenS[,,x],2,sum)
 }
-cat(paste0("\n # projSurvLenFreqN #array!"," \n"),file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat(paste0("# projSurvLenFreqN #array!"," \n"),file=echofile,append=T)
 for(n in 1:Nsim) {
-  cat(paste0(" # projSurvLenFreqN sim:",n," \n"),file=echofile,append=T)  
+  cat(paste0("# projSurvLenFreqN sim:",n," \n"),file=echofile,append=T)  
   write.table(row.names=F,col.names=F,projSurvLenFreqN[,,n],file=echofile,append=T)
 }
 
@@ -612,19 +622,25 @@ for(n in 1:Nsim) {
   cat(paste0("# projNn sim:",n," \n"),file=echofile,append=T)
   write.table(row.names=F,col.names=F,projNn[,,n],file=echofile,append=T)
 }
-cat("\n # projRecN \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# projRecN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,projRecN,file=echofile,append=T)
-cat("\n # projFmortN \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# projFmortN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,projFmortN,file=echofile,append=T)
-cat("\n # projSSBn \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# projSSBn \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,projSSBn,file=echofile,append=T)
-cat("\n # projExpBn \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# projExpBn \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,projExpBn,file=echofile,append=T)
-cat("\n # projSurvN \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# projSurvN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,projSurvN,file=echofile,append=T)
 
 projCatchN[,1]		<-0
-cat("\n # projCatchN \n",file=echofile,append=T)
+cat("\n",file=echofile,append=T)
+cat("# projCatchN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,projCatchN,file=echofile,append=T)
 
 projCatchS[,1]		<-0
@@ -954,7 +970,9 @@ for(z in 1:Nsim)
 
  #==copy the .exe into it (where does this come from? github?)
  #==Better way of doing this??
- file.copy(from=file.path(GeMSdir,"GenAss",SimAssExec),to=IndSimFolder)
+ execfile <- file.path(GeMSdir,"GenAss",SimAssExec)
+ if(!file.exists(GeMSdir)) stop("Executable file not found. Please set GeMSdir to GeMS directory. \n e.g. C:/GeMS")
+ file.copy(from=execfile,to=IndSimFolder)
 
  #==write the true values
  #==Probably don't need this if it is stored in the MSE object
@@ -1366,7 +1384,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge,sigmaRin=sigmaRs[y])
    trueRecN[z,y]		<-projNn[y,1,z]
 
-  print(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,sep=""))
+  if(!silent) cat(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,sep=""))
   
   trueB35[z,y]  <-trueSBPR35[y]*mean(trueRecN[z,],na.rm=T)
  } # end y

@@ -40,6 +40,7 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 		
 				do.call(GeMS, args = GeMSvars)
 			}
+			stopImplicitCluster()
 		}
 	}
 
