@@ -1452,6 +1452,15 @@ TrueM   <-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 TrueOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 EstOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(inFolders)))
 
+predSurvBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(inFolders)))
+obsSurvBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(inFolders)))
+predCpueBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(inFolders)))
+cpueIndex<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(inFolders)))
+predCatchBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(inFolders)))
+obsCatchBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(inFolders)))
+yearsDat<-rep(0,length(inFolders))
+
+
 for(p in seq_along(inFolders))
 {
 DrawDir		<-inFolders[p]
@@ -1662,9 +1671,41 @@ for(x in 1:SimYear)
 TrueM			<-Inout$OM$NatMn
 if(length(TrueM)==1)
  TrueM		<-rep(TrueM,SimYear)
+
+
+
+#==pull observed and fitted values
+for(n in 1:Nsim)
+{
+  IndSimFolder	<-file.path(DrawDir,n,SimYear)
+  REP			<-readLines(file.path(MSEdir,IndSimFolder,"simass.rep"))
+  DAT			<-readLines(file.path(MSEdir,IndSimFolder,"simass.dat"))
+  
+temp<-grep("survey years",DAT)[1]
+yearsDat[p]<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+
+temp<-grep("pred survey bio",REP)
+predSurvBio[n,,p]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat[p]+1)]
+temp<-grep("obs survey bio",REP)
+obsSurvBio[n,,p]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat[p]+1)]
+
+temp<-grep("pred cpue bio",REP)
+predCpueBio[n,,p] <-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat[p]+1)]
+temp<-grep("obs cpue bio",REP)
+cpueIndex[n,,p] <-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat[p]+1)]
+
+temp<-grep("pred catch bio",REP)
+predCatchBio[n,,p]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat[p]+1)]
+temp<-grep("obs catch bio",REP)
+obsCatchBio[n,,p]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat[p]+1)]
+
 }
 
-list(Recruitment,TrueRec,FishMort,TrueFmort,GrowthVary,TrueGrow,NatMvary,TrueM,SelVary,TrueSel,EstOFL,TrueOFL,TrueCatch,TrueSpbio,EstSpbio)
+}
+
+list(Recruitment,TrueRec,FishMort,TrueFmort,GrowthVary,TrueGrow,NatMvary,TrueM,SelVary,
+     TrueSel,EstOFL,TrueOFL,TrueCatch,TrueSpbio,EstSpbio,
+     predSurvBio,obsSurvBio,predCpueBio,cpueIndex,predCatchBio,obsCatchBio)
 }
 
 ########################################################
@@ -1922,7 +1963,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   
   for(x in seq_along(CTLNames))
   {
-    temp<-CheckReferencePoints(DrawDir=CTLNames[x],out=Inout,MSEdir)
+    temp<-CheckReferencePoints(DrawDir=CTLNames[x],out=Inout,MSEdir=MSEdir)
     B35save[,,x]	<-temp[[1]][TakeRows,]
     F35save[,,x]	<-temp[[2]][TakeRows,]
     OFLsave[,,x]	<-temp[[3]][TakeRows,]
@@ -2193,81 +2234,65 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   
   
   #================================
-  # Plot the comparisons of fits like the production models
+  # Plot the estimates of spawning biomass
   #====================================
   
-  
-  png(file.path(MSEdir,"plots",paste0("AgeStructuredFits_",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
-  par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
-  
-  if(Inout$OM$Nsim>1) {
-    for(y in seq_along(CTLNames))
+  plot_stuff_inside<-function(input1,input2,title,CTLNames)
+  {
+    par(mfcol=c(1,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+    if(Inout$OM$Nsim>1) 
     {
-    boxplot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
-            las=1,xaxt='n',ylab='',yaxt='n')
-    for(x in 1:nrow(  quants[[14]]))
-      lines(quants[[15]][x,,y],col='#ff000033')
-    if(y==1)
-    {
-      axis(side=2,las=1)
-      mtext(side=2,"Biomass",line=5,cex=.9)
+      for(y in seq_along(CTLNames))
+      {
+        boxplot(input1[,,y],type="l",ylim=c(0,max(input1,input2,na.rm=T)),
+                las=1,xaxt='n',ylab='',yaxt='n')
+        for(x in 1:nrow(  input2))
+          lines(input2[x,,y],col='#ff000066')
+        if(y==1)
+        {
+          axis(side=2,las=1)
+          mtext(side=2,title,line=5,cex=.9)
+        }
+        axis(side=1)
+        mtext(side=3,bty='n',text=CTLNames[y])
+      }
     }
-    legend("topright",bty='n',,legend=CTLNames[y])
-   # abline(h=trueBMSY,col="#0000ff99",lty=1)
-  #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
-   # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
     
-    #legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-    #       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
-    
-    boxplot(quants[[12]][,,y],type="l",ylim=c(0,max(quants[[12]],na.rm=T)),
-            las=1,xaxt='n',ylab='',yaxt='n')
-    for(x in 1:nrow(quants[[11]]))
-      lines(quants[[11]][x,,y],col='#ff000033')
-    if(y==1)
-    {
-      axis(side=2,las=1)
-      mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
-    }
-    axis(side=1)  
-  }
-  }
-  
     if(Inout$OM$Nsim==1) {
-    for(y in seq_along(CTLNames))
-    {
-    plot(quants[[14]][,,y],type="l",ylim=c(0,max(quants[[14]],na.rm=T)),
-            las=1,xaxt='n',ylab='',yaxt='n')
-    for(x in 1:nrow(  quants[[14]]))
-      lines(quants[[15]][x,,y],col='#ff000033')
-    if(y==1)
-    {
-      axis(side=2,las=1)
-      mtext(side=2,"Biomass",line=5,cex=.9)
+      for(y in seq_along(CTLNames))
+      {
+        plot(input1[,,y],type="l",ylim=c(0,max(input1,input2,na.rm=T)),
+             las=1,xaxt='n',ylab='',yaxt='n')
+        for(x in 1:nrow(  input2))
+          lines(input2[x,,y],col='#ff000066')
+        if(y==1)
+        {
+          axis(side=2,las=1)
+          mtext(side=2,title,line=5,cex=.9)
+        }
+        mtext(side=3,bty='n',text=CTLNames[y])
+        axis(side=1)  
+      }
     }
-    legend("topright",bty='n',,legend=CTLNames[y])
-   # abline(h=trueBMSY,col="#0000ff99",lty=1)
-  #  abline(h=max(estBMSY,na.rm=T),col="#00800099",lty=2)
-   # abline(h=min(estBMSY,na.rm=T),col="#00800099",lty=2)
     
-    #legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-    #       legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n')
-    
-    plot(quants[[12]][,,y],type="l",ylim=c(0,max(quants[[12]],na.rm=T)),
-            las=1,xaxt='n',ylab='',yaxt='n')
-    for(x in 1:nrow(quants[[11]]))
-      lines(quants[[11]][x,,y],col='#ff000033')
-    if(y==1)
-    {
-      axis(side=2,las=1)
-      mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
-    }
-    axis(side=1)  
-  }
+    legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
   }
   
-  legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
+  
+  png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  plot_stuff_inside(input1=quants[[14]],input2=quants[[15]],title="Biomass",CTLNames=CTLNames)
   dev.off()
+  png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNames=CTLNames)
+  dev.off()
+  png(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNames=CTLNames)
+  dev.off()
+  png(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNames=CTLNames)
+  dev.off()
+ 
+
   
   
   #==================================
