@@ -40,7 +40,7 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 		
 				do.call(GeMS, args = GeMSvars)
 			}
-			stopImplicitCluster()
+			doParallel::stopImplicitCluster()
 		}
 	}
 
@@ -64,7 +64,7 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 	}
 	
 	if(!shutup) message("End of simulations.")
-	if(length(CreateFolderNameList)>1) {
+#	if(length(CreateFolderNameList)>1) {
 		if(!shutup) message("Creating combined figures.")
 		if(OMfile$OM$AssessmentType==2) {
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear < 6) {
@@ -77,7 +77,7 @@ run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
 				AgeStructureComp(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir=CurDir)
 			}
 		}
-	}
+#	}
 
 	setwd(CurDir)
 	if(!shutup) message("End of GeMS run. Returned to MSE directory.")

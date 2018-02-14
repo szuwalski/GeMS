@@ -1844,11 +1844,16 @@ use_ylim<-c(ydown,yUp)
 for(y in seq_along(CTLNames))
 {
 inShape<-apply(RelativeErrorBMSY[[y]][,1:(ncol(RelativeErrorBMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-
 plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(Inout$OM$InitYear,Inout$OM$SimYear),yaxt='n')
-polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
-polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
 
+if((Inout$OM$SimYear-Inout$OM$InitYear)>2) {
+    polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
+  polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
+}
+if((Inout$OM$SimYear-Inout$OM$InitYear)<=2 & (Inout$OM$SimYear-Inout$OM$InitYear)>0) {
+#  plot(0,type="n",xlim=c(0,2),ylim=use_ylim,xlab="Year",ylab="",xaxt='n',yaxt='n')
+  boxplot(RelativeErrorBMSY[[y]][,(Inout$OM$InitYear+1):(Inout$OM$SimYear-1)],add=T,at=(Inout$OM$SimYear-1),axes=F)
+}
 mtext(side=3,CTLNames[y],cex=.7)
 
 abline(h=0,lty=2)
@@ -1861,12 +1866,18 @@ if(y==1)
 }
 
 inShape<-apply(RelativeErrorFMSY[[y]][,1:(ncol(RelativeErrorFMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
-
 plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(Inout$OM$InitYear,Inout$OM$SimYear),yaxt='n')
+
+if((Inout$OM$SimYear-Inout$OM$InitYear)>2) {
 polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[1,1:Inout$OM$SimYear-1],rev(inShape[4,1:Inout$OM$SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(Inout$OM$SimYear-1)),rev(seq(1,(Inout$OM$SimYear-1)))),y=c(inShape[2,1:Inout$OM$SimYear-1],rev(inShape[3,1:Inout$OM$SimYear-1])),col='lightgrey',border=F)
-
+}
 abline(h=0,lty=2)
+
+if((Inout$OM$SimYear-Inout$OM$InitYear)<=2 & (Inout$OM$SimYear-Inout$OM$InitYear)>0) {
+#  plot(0,type="n",xlim=c(0,2),ylim=use_ylim,xlab="Year",ylab="",xaxt='n',yaxt='n')
+  boxplot(RelativeErrorFMSY[[y]][,(Inout$OM$InitYear+1):(Inout$OM$SimYear-1)],add=T,at=(Inout$OM$SimYear-1),axes=F)
+}
 
 if(y==1)
 {
@@ -2039,7 +2050,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   for(x in seq_along(CTLNames))
   {
     #color<-seq(1,length(CTLNames)+1)
-    color<-colorspace::rainbow_hcl(length(CTLNames)+1)
+    color<-colorspace::rainbow_hcl(length(CTLNames))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
     temp<-input[,,x]
@@ -2070,7 +2081,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   for(x in seq_along(CTLNames))
   {
     #color<-seq(1,length(CTLNames)+1)
-    color<-colorspace::rainbow_hcl(length(CTLNames)+1)
+    color<-colorspace::rainbow_hcl(length(CTLNames))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
     temp<-input[,,x]
@@ -2096,7 +2107,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   for(x in seq_along(CTLNames))
   {
     #color<-seq(1,length(CTLNames)+1)
-    color<-colorspace::rainbow_hcl(length(CTLNames)+1)
+    color<-colorspace::rainbow_hcl(length(CTLNames))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
     temp<-input[,,x]
@@ -2123,7 +2134,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   for(x in seq_along(CTLNames))
   {
     #color<-seq(1,length(CTLNames)+1)
-    color<-colorspace::rainbow_hcl(length(CTLNames)+1)
+    color<-colorspace::rainbow_hcl(length(CTLNames))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
     temp<-input[,,,x]
@@ -2152,7 +2163,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   for(x in seq_along(CTLNames))
   {
     #color<-seq(1,length(CTLNames)+1)
-    color<-colorspace::rainbow_hcl(length(CTLNames)+1)
+    color<-colorspace::rainbow_hcl(length(CTLNames))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
     temp<-input[,,,x]
@@ -2174,7 +2185,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   lines(tInput[Inout$OM$SimYear,,1],col="black",lwd=2,lty=2)
   legend("topleft",bty='n',"(e) Length at age")
   
-  legend("bottomright",bty='n',col=c(1,ScenCols,"black"),lty=c(3,rep(1,length(ScenCols)),2),
+  legend("bottomright",bty='n',col=c(1,color,"black"),lty=c(3,rep(1,length(ScenCols)),2),
          legend=c("Projection begins",CTLNames,"Truth"),lwd=2)
   mtext(side=1,outer=T,"Age",line=2.3)
   
