@@ -755,7 +755,7 @@ outsF35in	<-FindF35(MaxAge=MaxAge,vulnN=vulnN,
 
 trueSBPR35[InitYear]<-outsF35in[[2]]
 trueF35[InitYear]	  <-outsF35in[[1]]
-trueB35[,InitYear]  <-trueSBPR35[InitYear]*apply(trueRecN,1,mean,na.rm=T)
+trueB35[,InitYear]  <-trueSBPR35[InitYear]*apply(trueRecN[,start_assessment:SimYear],1,mean,na.rm=T)
 
 #=================================================================================
 #==BEGIN PROJECTIONS===========================================================
@@ -1386,7 +1386,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 
   if(!silent) cat(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,"\n",sep=""))
   
-  trueB35[z,y]  <-trueSBPR35[y]*mean(trueRecN[z,],na.rm=T)
+  trueB35[z,y]  <-trueSBPR35[y]*mean(trueRecN[z,start_assessment:SimYear],na.rm=T)
  } # end y
 } # end z
 
