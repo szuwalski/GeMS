@@ -214,8 +214,8 @@ for(i in 1:SimYear)
  survSelS[i,]	<-1/(1+exp(-1*log(19)*(LenAtAgeN[i,]-surv50s[i])/(surv95s[i]-surv50s[i])))
 }
 
-if(sel50n>LinfN | sel95n>LinfN | surv50n>LinfN | surv50n>LinfN) {stop("Gear is attempting to select fish larger than what's in the population (one or more of the selectivity parameters is greater than Linf)")}
-if(TwoPop>0) if(sel50s>LinfS | sel95s>LinfS | surv50s>LinfS | surv50s>LinfS) {stop("Gear is attempting to select fish larger than what's in the population (one or more of the selectivity parameters is greater than Linf)")}
+if(max(sel50n)>max(LinfN) | max(sel95n)>max(LinfN) | max(surv50n)>max(LinfN) | max(surv50n)>max(LinfN)) {stop("Gear is attempting to select fish larger than what's in the population (one or more of the selectivity parameters is greater than Linf)")}
+if(TwoPop>0) if(max(sel50s)>max(LinfS) | max(sel95s)>max(LinfS) | max(surv50s)>max(LinfS) | max(surv50s)>max(LinfS)) {stop("Gear is attempting to select fish larger than what's in the population (one or more of the selectivity parameters is greater than Linf)")}
 
 
 #==weight at age==========================
@@ -390,15 +390,15 @@ tempCatchAtAgeS	<-array(dim=c(InitYear,MaxAge,Nsim))
 HistoricalFsInit	<-matrix(HistoricalFs,ncol=InitYear,nrow=Nsim,byrow=T)
 HistoricalFnInit	<-matrix(HistoricalFn,ncol=InitYear,nrow=Nsim,byrow=T)
 FerrN			<-matrix(rnorm(InitYear*Nsim,1,PastFsdN),ncol=InitYear)
-cat("\n",file=echofile,append=T)
-cat("# FerrN \n",file=echofile,append=T)
+#cat("\n",file=echofile,append=T)
+cat("\n # FerrN \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,FerrN,file=echofile,append=T)
 FerrS			<-matrix(rnorm(InitYear*Nsim,1,PastFsdS),ncol=InitYear)
-HistoricalFsIn	<-HistoricalFsInit*FerrN
-cat("\n",file=echofile,append=T)
-cat("# HistoricalFsIn \n",file=echofile,append=T)
+HistoricalFsIn  <-HistoricalFsInit*FerrN
+#cat("\n",file=echofile,append=T)
+cat("\n # HistoricalFsIn \n",file=echofile,append=T)
 write.table(row.names=F,col.names=F,HistoricalFsIn,file=echofile,append=T)
-HistoricalFnIn	<-HistoricalFnInit*FerrS
+HistoricalFnIn  <-HistoricalFnInit*FerrS
 
 for(k in 1:Nsim)
 {
@@ -809,8 +809,8 @@ for(z in 1:Nsim)
 
  inCatch	<-CatchDataN[start_assessment:(y-1)]
  inCPUE	<-CPUEDataN[start_assessment:(y-1)]
-# outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
- outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
+ outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
+# outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
  Converge[z,y]<-outs$convergence
  PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
  FMSY[z,y] 	<-outs$par[2]/2
@@ -1384,7 +1384,7 @@ OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
 							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge,sigmaRin=sigmaRs[y])
    trueRecN[z,y]		<-projNn[y,1,z]
 
-  if(!silent) cat(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,sep=""))
+  if(!silent) cat(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,"\n",sep=""))
   
   trueB35[z,y]  <-trueSBPR35[y]*mean(trueRecN[z,],na.rm=T)
  } # end y

@@ -5,6 +5,7 @@
 20,,# Nsim : Number of simulated stocks (
 80,,# SimYear : total number of years in simulation
 50,,# InitYear : year in which the MSE starts (i.e. the number of years for which there are data going into the first assessment)
+1,,# start_assessment : the year of historical data in which to start the assessment FOR BOTH AGE AND PROD MODELS
 1,,"# AssessmentType : 0=No assessment, 1=Production, 2=Age-structured)"
 1,,# FisheryIndepenDat : Included fishery independent survey in assessment?
 0,,# LifeHistoryPlots : Plot the life history?
@@ -123,3 +124,5 @@
 #=================================================,,
 1.5,,# InitBzeroMod : determines what fraction the true Bzero is multiplied by for an initial value for estimation
 0.3,,# InitGrowthRate : initial value for intrinsic growth rate in production model estimation
+0,,# estInit : 
+1,,# InitBioProd : percent of K initial value for initial biomass
