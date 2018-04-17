@@ -898,8 +898,8 @@ HarvestControlRule<-function(FMSY,BMSY,ExploitBio,SpawnBio,alpha,beta,HarvestCon
    
 PolygonPlots<-function(Truth=NA,Estimated=NA,Observed=NA,AddLegend=F,bottom=F,quantity=NA,SimYear=NA,Nsim=NA,ylimIN=NA)
 {
- EstShape<-apply(Estimated[,1:(ncol(Estimated))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
- TrueShape<-apply(Truth[,1:(ncol(Truth))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
+ EstShape<-apply(Estimated[,1:(SimYear)],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
+ TrueShape<-apply(Truth[,1:(SimYear)],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
 
  DataColor<-"#6699ff11"
  EstimateColor25<-"darkgrey"
@@ -1821,49 +1821,67 @@ for(x in seq_along(Quant))
 
 }
 
-png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CTLNames,sep="_",collapse=""),".png")),res=1200,width=5,height=4.5,units='in')
-par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+png(file.path(MSEdir,"plots",paste0("ProductionFits_",paste(CTLNames,sep="_",collapse=""),".png")),res=1200,width=6,height=4,units='in')
+par(mfcol=c(1,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in seq_along(CTLNames))
 {
-# boxplot(trueCPUE[,,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
-#  las=1,xaxt='n',ylab='',yaxt='n')
-#   input<-trueCPUE[,,y]
-  # for(x in 1:nrow(estCPUE))
-  #   lines(estCPUE[x,,y],col='#ff000033')
+ boxplot(trueCPUE[,Inout$OM$start_assessment:Inout$OM$SimYear-1,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
+ las=1,xaxt='n',ylab='',yaxt='n')
+  input<-trueCPUE[,Inout$OM$start_assessment:Inout$OM$SimYear-1,y]
+for(x in 1:nrow(estCPUE))
+  lines(estCPUE[x,Inout$OM$start_assessment:Inout$OM$SimYear-1,y],col='#ff000033')
  use_ylim<-c(0,max(trueCPUE,estCPUE,na.rm=T))
-  
-  if(y==1)
-  {
-    PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
-    axis(side=2,las=1)
-    mtext(side=2,"Biomass",line=5,cex=.9)
-    legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-           legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
-  }
-  if(y>1)
-   PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
- mtext(side=3,CTLNames[y],cex=.7)
-abline(h=trueBMSY[y],col="#0000ff99",lty=1)
-abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
-abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
-
-use_ylim<-c(0,max(trueTAC,estTAC,na.rm=T))
-
-if(y==1)
-{
-  PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim,bottom=T)
-  mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
-  legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n',cex=.7)
-}
-if(y>1)
+ axis(1)
+ if(y==1)
  {
-  PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
-  axis(side=1)
+   #PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+   axis(side=2,las=1)
+   mtext(side=2,"Biomass",line=5,cex=.9)
+   legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+          legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
  }
+ if(y>1)
+   #PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+ mtext(side=3,CTLNames[y],cex=.7)
+ abline(h=trueBMSY[y],col="#0000ff99",lty=1)
+ abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+ abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+ 
 }
-
 dev.off()
+
+#   if(y==1)
+#   {
+#     PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+#     axis(side=2,las=1)
+#     mtext(side=2,"Biomass",line=5,cex=.9)
+#     legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+#            legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
+#   }
+#   if(y>1)
+#    PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+#  mtext(side=3,CTLNames[y],cex=.7)
+# abline(h=trueBMSY[y],col="#0000ff99",lty=1)
+# abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+# abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+# 
+# use_ylim<-c(0,max(trueTAC,estTAC,na.rm=T))
+# 
+# if(y==1)
+# {
+#   PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim,bottom=T)
+#   mtext(side=2,"Total allowable catch",line=4.5,cex=.9)
+#   legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n',cex=.7)
+# }
+# if(y>1)
+#  {
+#   PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=Inout$OM$SimYear,Nsim=Inout$OM$Nsim,ylimIN = use_ylim)
+#   axis(side=1)
+#  }
+# }
+# 
+# dev.off()
 
 png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CTLNames,sep="_",collapse=""),".png")),res=1200,width=5,height=4.5,units='in')
 par(mfcol=c(2,length(CTLNames)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
@@ -2049,9 +2067,9 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   png(file.path(MSEdir,"plots",paste0("CompareRefPoints",paste(CTLNames,sep="_",collapse=""),".png")),height=7,width=3.5,units='in',res=1200)
   par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(10,6,1,1))
   
-  inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL),max(BigMohn[BigMohn<10],
+  inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL,na.rm=T),max(BigMohn[BigMohn<10],
                                                         BigBias[BigBias<10],ReB35[ReB35<10],
-                                                        ReF35[ReF35<10],BigOFL[BigOFL<10]))
+                                                        ReF35[ReF35<10],BigOFL[BigOFL<10],na.rm=T))
   boxplot(BigMohn,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
   legend("topleft",c("(a) Retrospective bias"),bty='n')
   mtext(side=2,"Mohn's rho",line=3,cex=.7)
@@ -2280,7 +2298,7 @@ AgeStructureComp<-function(Inout,RetroPeels=6,CTLNames,MSEdir)
   
   
   png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[14]],input2=quants[[15]],title="Biomass",CTLNames=CTLNames)
+  plot_stuff_inside(input1=quants[[14]][,Inout$OM$start_assessment:Inout$OM$SimYear,],input2=quants[[15]][,Inout$OM$start_assessment:Inout$OM$SimYear,],title="Biomass",CTLNames=CTLNames)
   dev.off()
   png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNames,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNames=CTLNames)
