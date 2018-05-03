@@ -5,7 +5,7 @@
 10,,# Nsim : Number of simulated stocks (
 70,,# SimYear : total number of years in simulation
 50,,# InitYear : year in which the MSE starts (i.e. the number of years for which there are data going into the first assessment)
-5,,# start_assessment : the year in which historical data for assessment starts (for both age and prod)
+1,,# start_assessment : the year in which historical data for assessment starts (for both age and prod)
 2,,"# AssessmentType : 0=No assessment, 1=Production, 2=Age-structured)"
 1,,# FisheryIndepenDat : Included fishery independent survey in assessment?
 1,,# LifeHistoryPlots : Plot the life history?

@@ -1,18 +1,15 @@
 rm(list=ls())
-
-GeMS.dir <- "C:/GeMS"
-Cur.dir<-"C:/GeMS/Cod_1_Production/"
-
-source(file.path(GeMS.dir,"run_GeMS.R"))
+library(GeMS)
+Cur.dir<-"C:/GeMS/Examples/Cod_1_Production/"
 
 OMNames<-c("Cod_LowProd_CTL","Cod_Base_CTL","Cod_HighProd_CTL")
 
-run_GeMS(GeMSDir=GeMS.dir, CurDir=Cur.dir,
-         CreateFolderNameList=OMNames)
+run_GeMS(MSEdir=Cur.dir,
+         CTLNameList=OMNames)
 
 ##-----------------
 ## Parallel example
 ##-----------------
-#run_GeMS(GeMSDir=GeMS.dir, CurDir=Cur.dir,
-#         CreateFolderNameList=OMNames,
-#         runparallel = T, cores = 2)
+#run_GeMS(MSEdir=Cur.dir,
+#         CTLNameList=OMNames,
+#         runparallel = T, cores = 3)

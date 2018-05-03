@@ -1,11 +1,9 @@
-rm(list=ls())
-GeMS.dir <- "C:/GeMS"
+library(GeMS)
 Cur.dir<-"C:/GeMS/Cod_2_Selectivity/"
 
-source(file.path(GeMS.dir,"run_GeMS.R"))
 OMNames<-c("Cod_Selectivity_CTL")
 
-run_GeMS(GeMSDir=GeMS.dir, CurDir=Cur.dir,
-         CreateFolderNameList=OMNames)
+run_GeMS(CTLNameList=OMNames,
+		 MSEdir=Cur.dir)
 
 
