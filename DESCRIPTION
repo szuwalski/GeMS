@@ -1,0 +1,19 @@
+Package: GeMS
+Version: 0.0.0.9000
+Title: Generalized Management Strategy Evaluation
+Description: Two box, populations processes in each box can vary over time, movement between boxes can vary over  time, effort in boxes can be allocated asymmetrically production and age-structured estimation models can be tested. -CSS, 11/2015
+Authors@R: c(person("Cody", "Szuwalski", email="c.s.szuwalski@gmail.com", role=c("aut", "cre")),
+             person("Qi","Lee", email="leeqi@ucsb.edu"))
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+ByteCompile: true
+Imports: 
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.0.1
+Suggests: 
+    testthat,
+    foreach,
+    doParallel
+URL: https://github.com/szuwalski/GeMS
+BugReports: https://github.com/szuwalski/GeMS/issues
