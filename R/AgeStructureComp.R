@@ -160,7 +160,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
   mtext(side=2,"relative error",line=3,cex=.7)
   dev.off()
   
-  quants<-PullTimevary(MSEdir,inFolders=CTLNameList,out=out)
+  quants<-PullTimevary(out=out,MSEdir)
   
   png(file.path(MSEdir,"plots",paste0("ComparePopulationProcess_",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   inmat<-matrix(c(1,1,2,2,3,3,

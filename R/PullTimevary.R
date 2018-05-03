@@ -1,6 +1,5 @@
 #' Used to pull parameters from age-structured estimation model output. For use in \code{\link{AgeStructureComp}}
 #' 
-#' @param CTLNameList Vector of CTL files
 #' @param out List output from \code{\link{ReadCTLfile}}
 #' @param MSEdir Directory containing CTL files
 #'
@@ -10,15 +9,12 @@
 #' @examples
 #' \dontrun{
 #' MSEdir <- "~/GeneralMSE/Examples/Cod_5_AgeStructure"
-#' OMNames <- c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
-#' out <- ReadCTLfile(OMNames[1])
-#' AgeStructureComp(out=out,
-#'                  CTLNameList=OMNames,
-#'                  MSEdir=MSEdir,
-#'                  plotNames=c("Base","Fixed M","Estimate M"))
+#' out <- ReadCTLfile("Cod_AgeStructure_CTL")
+#' PullTimevary(out=out,
+#'                  MSEdir=MSEdir)
 #' }
 #' 
-PullTimevary<-function(CTLNames,out,MSEdir)
+PullTimevary<-function(out,MSEdir)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
