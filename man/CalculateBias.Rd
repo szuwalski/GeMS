@@ -2,7 +2,7 @@
 % Please edit documentation in R/CalculateBias.R
 \name{CalculateBias}
 \alias{CalculateBias}
-\title{Calculates bias in spawning stock biomass estimates for use in \code{\link{AgeStructureComp}}}
+\title{Calculate Bias}
 \usage{
 CalculateBias(RetroOuts)
 }

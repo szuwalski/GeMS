@@ -2,19 +2,18 @@
 % Please edit documentation in R/AgeStructureComp.R
 \name{AgeStructureComp}
 \alias{AgeStructureComp}
-\title{Compare and plot age-structured models
-Used within the \code{\link{run_GeMS}} function, can also be run on its own.}
+\title{Age-Structure Comparison}
 \usage{
-AgeStructureComp(out, RetroPeels = 6, CTLNameList, MSEdir, plotNames = NA)
+AgeStructureComp(Inout, RetroPeels = 6, CTLNames, MSEdir)
 }
 \arguments{
-\item{out}{List output from \code{\link{ReadCTLfile}}}
-
 \item{RetroPeels}{Number of years to peel for retrospective analysis}
 
-\item{CTLNameList}{Vector of CTL file names}
-
 \item{MSEdir}{Directory containing CTL files}
+
+\item{out}{List output from \code{\link{ReadCTLfile}}}
+
+\item{CTLNameList}{Vector of CTL file names}
 
 \item{plotNames}{Vector of the same length as CTLNameList with "prettier" names for plotting}
 }
@@ -23,6 +22,7 @@ Plots comparing age-structured estimating models
 }
 \description{
 Compare and plot age-structured models
+
 Used within the \code{\link{run_GeMS}} function, can also be run on its own.
 }
 \examples{

@@ -2,18 +2,18 @@
 % Please edit documentation in R/CheckRetro.R
 \name{CheckRetro}
 \alias{CheckRetro}
-\title{Extracts calculated retrospective bias from age-structured model runs for use in \code{\link{AgeStructureComp}}}
+\title{Check Retrospective}
 \usage{
-CheckRetro(CTLName, out, MSEdir, RetroPeels = 6, PlotRetro = 0)
+CheckRetro(RetroPeels = 6, DrawDir, PlotRetro = 0, out, MSEdir)
 }
 \arguments{
-\item{CTLName}{Name of CTL file}
-
-\item{out}{List from \code{\link{ReadCTLfile}}}
-
 \item{RetroPeels}{Number of years to conduct retrospective analysis}
 
 \item{PlotRetro}{1/0 value to plot retrospective analyses}
+
+\item{out}{List from \code{\link{ReadCTLfile}}}
+
+\item{CTLName}{Name of CTL file}
 
 \item{MSEDir}{Directory containing CTL file}
 }

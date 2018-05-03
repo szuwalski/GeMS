@@ -4,14 +4,12 @@
 \alias{PullTimevary}
 \title{Used to pull parameters from age-structured estimation model output. For use in \code{\link{AgeStructureComp}}}
 \usage{
-PullTimevary(CTLNames, out, MSEdir)
+PullTimevary(out, MSEdir)
 }
 \arguments{
 \item{out}{List output from \code{\link{ReadCTLfile}}}
 
 \item{MSEdir}{Directory containing CTL files}
-
-\item{CTLNameList}{Vector of CTL files}
 }
 \value{
 List of quantities
@@ -22,12 +20,9 @@ Used to pull parameters from age-structured estimation model output. For use in 
 \examples{
 \dontrun{
 MSEdir <- "~/GeneralMSE/Examples/Cod_5_AgeStructure"
-OMNames <- c("Cod_AgeStructure_CTL","Cod_Age_Mvary_CTL","Cod_Age_Mvary_estM_CTL")
-out <- ReadCTLfile(OMNames[1])
-AgeStructureComp(out=out,
-                 CTLNameList=OMNames,
-                 MSEdir=MSEdir,
-                 plotNames=c("Base","Fixed M","Estimate M"))
+out <- ReadCTLfile("Cod_AgeStructure_CTL")
+PullTimevary(out=out,
+                 MSEdir=MSEdir)
 }
 
 }

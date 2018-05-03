@@ -4,14 +4,14 @@
 \alias{CheckGradient}
 \title{Extracts gradients from age-structured model runs for use in \code{\link{AgeStructureComp}}}
 \usage{
-CheckGradient(CTLName, out, MSEdir)
+CheckGradient(DrawDir, out, MSEdir)
 }
 \arguments{
-\item{CTLName}{Name of CTL file}
-
 \item{out}{List from \code{\link{ReadCTLfile}}}
 
 \item{MSEdir}{Directory containing CTL file}
+
+\item{CTLName}{Name of CTL file}
 }
 \value{
 Matrix of gradients

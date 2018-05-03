@@ -4,12 +4,12 @@
 \alias{GeMSplots}
 \title{More plots.. currently commented out from \code{\link{AgeStructureComp}}}
 \usage{
-GeMSplots(CTLName, out, MSEdir)
+GeMSplots(SourceFolder, out)
 }
 \arguments{
-\item{CTLName}{Name of CTL file}
-
 \item{out}{List output from \code{\link{ReadCTLfile}}}
+
+\item{CTLName}{Name of CTL file}
 
 \item{MSEdir}{Directory containing CTL files}
 }
