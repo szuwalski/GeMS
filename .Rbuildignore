@@ -1,0 +1,5 @@
+^LICENSE\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
+^R/General_MSE_helpers\.R$
+^\.travis\.yml$
