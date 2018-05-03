@@ -1,85 +1,81 @@
-run_GeMS <- function(CreateFolderNameList,GeMSDir,CurDir,
-					 runparallel=F,cores = 1,GeMSops=NA,shutup=F) {
+#' Function to run GeMS
+#' 
+#' @description Main function to run a full Generalized MSE.
+#' 
+#' @param CTLNameList Vector of CTL files
+#' @param MSEdir Directory containing CTL files
+#' @param runparallel Logical; operating models should be run in parallel. If you're doing this, make sure that \pkg{foreach} is loaded, using \code{library(foreach)}
+#' @param cores Number of cores to be used for parallel runs
+#' @param silent Logical; Show output on console
+#' @param ... Anything to be passed to \code{\link{GeMS}}, including \code{ADoptions} and \code{ADsilent} for ADMB options.
+#'
+#' @return \code{\link{GeMS}} output
+#'
+#' @seealso \code{\link{GeMS}}
+#' @export
+#' @examples
+#' \dontrun{
+#' OMNames <- c("Cod_LowProd_CTL","Cod_Base_CTL","Cod_HighProd_CTL")
+#' MSEdir <- "~/GeneralMSE/Examples/Cod_1_Production"
+#' run_GeMS(OMNames, MSEdir)
+#' }
+run_GeMS <- function(CTLNameList,MSEdir=getwd(),
+					 runparallel=F,cores = 1,silent=T,...) {
 
-	if(!file.exists(file.path(GeMSDir,"General_MSE_main.R"))) {
-		stop(print("Set GeMSdir to folder where GeMS is located. Full file path required."))
-	}
-
-	if(!file.exists(file.path(CurDir,paste0(CreateFolderNameList[1],".csv")))) {
-		stop(print("Set CurDir to folder where CTL files are located. Full file path required."))
-	}
-	
-	if(sum(grep("ReadCTLfile",ls()))==0) {
-		source(file.path(GeMSDir,"General_MSE_helpers.R"))
-		source(file.path(GeMSDir,"General_MSE_main.R"))
-	}
-
+  if(!file.exists(file.path(MSEdir,paste0(CTLNameList[1],".csv")))) stop("Set MSEdir to directory containing CTL files.")
 	if(runparallel) {
-		if(!requireNamespace("foreach")) {
+		if(!requireNamespace("foreach",quietly=T)) {
 			stop(print(paste0("Packages foreach and doParallel need to be installed, and foreach needs to be loaded. Example:\n",
 							  "install.packages(c('foreach','doParallel')\n",
 							  "library(foreach)")))
 		}
-		suppressPackageStartupMessages(library(foreach))
 		if(cores == 1) {message(paste0("Only one core registered. Runs will not be done in parallel.\n",
 									  "Set cores=2 or greater, depending on number of cores to be registered."))
 						runparallel <- F
 		}
 		if(cores>1) {
-			if(!shutup) message("Running scenarios in parallel.")
+			if(!silent) message("Running scenarios in parallel.")
 			cl <- parallel::makeCluster(cores)
 			doParallel::registerDoParallel(cl)
 
-			foreach(mod=1:length(CreateFolderNameList),.export=ls(envir=globalenv())) %dopar% {
-				setwd(CurDir)
-				Inout<-ReadCTLfile(paste0(CreateFolderNameList[mod],".csv"))
-				temp <- list(MSEdir = CurDir, GeMSdir = GeMSDir, out=Inout,
-							 CreateFolderName = CreateFolderNameList[mod])
-				if(!is.na(GeMSops)) {GeMSvars <- append(temp,GeMSops)}
-				if(is.na(GeMSops)) {GeMSvars <- temp}
-		
-				do.call(GeMS, args = GeMSvars)
+			foreach(mod=1:length(CTLNameList),.export=ls(envir=globalenv())) %dopar% {
+			  Inout<-ReadCTLfile(file.path(MSEdir,CTLNameList[mod]))
+			  do.call(GeMS, args = list(out=Inout,CTLName=CTLNameList[mod],
+			                            MSEdir=MSEdir,silent=silent,...))
 			}
 			doParallel::stopImplicitCluster()
 		}
 	}
 
 	if(!runparallel) {
-		if(!shutup) message("Running scenarios in sequence.")
-		for(mod in 1:length(CreateFolderNameList)) {
-				setwd(CurDir)
-				Inout<-ReadCTLfile(paste0(CreateFolderNameList[mod],".csv"))
-				temp <- list(MSEdir = CurDir, GeMSdir = GeMSDir, out=Inout,
-							 CreateFolderName = CreateFolderNameList[mod])
-				if(!is.na(GeMSops)) {GeMSvars <- append(temp,GeMSops)}
-				if(is.na(GeMSops)) {GeMSvars <- temp}
-		
-				do.call(GeMS, args = GeMSvars)
+		if(!silent) message("Running scenarios in sequence.")
+		for(mod in 1:length(CTLNameList)) {
+				Inout<-ReadCTLfile(file.path(MSEdir,CTLNameList[mod]))
+				do.call(GeMS, args = list(out=Inout,CTLName=CTLNameList[mod],
+				                          MSEdir=MSEdir,silent=silent,...))
 		 }
 	 }
 
-	OMfile <- ReadCTLfile(file.path(CurDir,paste0(rev(CreateFolderNameList)[1],".csv")))
+	OMfile <- ReadCTLfile(file.path(MSEdir,paste0(rev(CTLNameList)[1])))
 	if(OMfile$OM$AssessmentType==1) {
-		ProductionModelOutput(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir=CurDir)
+		ProductionModelOutput(out=OMfile,CTLNameList=CTLNameList,MSEdir=MSEdir)
 	}
 	
-	if(!shutup) message("End of simulations.")
-#	if(length(CreateFolderNameList)>1) {
-		if(!shutup) message("Creating combined figures.")
+	if(!silent) message("End of simulations.")
+#	if(length(CTLNameList)>1) {
+		if(!silent) message("Creating combined figures.")
 		if(OMfile$OM$AssessmentType==2) {
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear < 6) {
 				retpeels <- OMfile$OM$SimYear-OMfile$OM$InitYear
 				message(paste0("Number of years for retrospective peels == ", retpeels, "."))
-				AgeStructureComp(Inout=OMfile,CTLNames=CreateFolderNameList,RetroPeels=retpeels,MSEdir=CurDir)
+				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,RetroPeels=retpeels,MSEdir=MSEdir)
 			}
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear >= 6) {
 				message("Number of years for retrospective peels == 6.")
-				AgeStructureComp(Inout=OMfile,CTLNames=CreateFolderNameList,MSEdir=CurDir)
+				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,MSEdir=MSEdir)
 			}
 		}
 #	}
-
-	setwd(CurDir)
-	if(!shutup) message("End of GeMS run. Returned to MSE directory.")
+	if(!silent) message("End of GeMS run.")
 
 }
