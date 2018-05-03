@@ -1,4 +1,5 @@
-#' Extracts calculated retrospective bias from age-structured model runs for use in \code{\link{AgeStructureComp}}
+#' Check Retrospective
+#' @description Extracts calculated retrospective bias from age-structured model runs for use in \code{\link{AgeStructureComp}}
 #'
 #' @param RetroPeels Number of years to conduct retrospective analysis
 #' @param CTLName Name of CTL file

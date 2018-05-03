@@ -16,7 +16,10 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' GeMS(out=ReadCTLfile("Cod_LowProd_CTL.csv"),CTLName="Cod_LowProd_CTL",MSEdir="~/Cod_1_Produtction",ADoptions="-gbs 1000000",ADsilent=T)
+#' CTLName <- "Cod_LowProd_CTL"
+#' out <- ReadCTLfile(CTLName)
+#' MSEdir <- "~/Examples/Cod_1_Production"
+#' GeMS(out,CTLName,MSEdir,ADoptions="-gbs 1000000")
 #' }
 
 GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=F,...)

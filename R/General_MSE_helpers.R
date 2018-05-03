@@ -1,4 +1,5 @@
-###############################################################
+# NOT FOR USE
+##############################################################
 SBPRfunc<-function(F,Rzero,NatM,vuln,mature,weight,LenAtAge,MaxAge)
 {
   #initial conditions

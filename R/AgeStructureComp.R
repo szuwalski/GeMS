@@ -1,5 +1,6 @@
-#' Compare and plot age-structured models
-#' Used within the \code{\link{run_GeMS}} function, can also be run on its own.
+#' Age-Structure Comparison
+#' @description Compare and plot age-structured models
+#' @description Used within the \code{\link{run_GeMS}} function, can also be run on its own.
 #' 
 #' @param out List output from \code{\link{ReadCTLfile}}
 #' @param RetroPeels Number of years to peel for retrospective analysis

@@ -1,4 +1,5 @@
-#' Calculates bias in spawning stock biomass estimates for use in \code{\link{AgeStructureComp}}
+#' Calculate Bias
+#' @description Calculates bias in spawning stock biomass estimates for use in \code{\link{AgeStructureComp}}
 #'
 #' @param RetroOuts Output from \code{\link{CheckRetro}}
 #'
