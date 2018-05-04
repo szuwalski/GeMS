@@ -5,12 +5,12 @@
 \title{Reference Points
 Extracts reference points from age-structured model runs for use in \code{\link{AgeStructureComp}}}
 \usage{
-CheckReferencePoints(DrawDir, out, MSEdir)
+CheckReferencePoints(CTLName, out, MSEdir)
 }
 \arguments{
-\item{out}{List from \code{\link{ReadCTLfile}}}
-
 \item{CTLName}{Name of CTL file}
+
+\item{out}{List from \code{\link{ReadCTLfile}}}
 
 \item{MSEDir}{Directory containing CTL file}
 }

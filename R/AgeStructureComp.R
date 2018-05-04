@@ -31,7 +31,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
   for(x in seq_along(CTLNameList))
   {
     out<-ReadCTLfile(file.path(MSEdir,paste0(CTLNameList[x])))
-    GradientSave[,,x]<-CheckGradient(DrawDir=CTLNameList[x],out=out,MSEdir)[TakeRows,]
+    GradientSave[,,x]<-CheckGradient(CTLName=CTLNameList[x],out=out,MSEdir)[TakeRows,]
   }
   #ScenCols<-c("grey",as.numeric(seq(2,length(CTLNameList),1)))
   ScenCols<-colorspace::rainbow_hcl(length(CTLNameList))

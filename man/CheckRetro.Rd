@@ -4,16 +4,16 @@
 \alias{CheckRetro}
 \title{Check Retrospective}
 \usage{
-CheckRetro(RetroPeels = 6, DrawDir, PlotRetro = 0, out, MSEdir)
+CheckRetro(CTLName, out, MSEdir, RetroPeels = 6, PlotRetro = 0)
 }
 \arguments{
-\item{RetroPeels}{Number of years to conduct retrospective analysis}
-
-\item{PlotRetro}{1/0 value to plot retrospective analyses}
+\item{CTLName}{Name of CTL file}
 
 \item{out}{List from \code{\link{ReadCTLfile}}}
 
-\item{CTLName}{Name of CTL file}
+\item{RetroPeels}{Number of years to conduct retrospective analysis}
+
+\item{PlotRetro}{1/0 value to plot retrospective analyses}
 
 \item{MSEDir}{Directory containing CTL file}
 }

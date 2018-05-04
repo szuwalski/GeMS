@@ -4,16 +4,16 @@
 \alias{AgeStructureComp}
 \title{Age-Structure Comparison}
 \usage{
-AgeStructureComp(Inout, RetroPeels = 6, CTLNames, MSEdir)
+AgeStructureComp(out, RetroPeels = 6, CTLNameList, MSEdir, plotNames = NA)
 }
 \arguments{
-\item{RetroPeels}{Number of years to peel for retrospective analysis}
-
-\item{MSEdir}{Directory containing CTL files}
-
 \item{out}{List output from \code{\link{ReadCTLfile}}}
 
+\item{RetroPeels}{Number of years to peel for retrospective analysis}
+
 \item{CTLNameList}{Vector of CTL file names}
+
+\item{MSEdir}{Directory containing CTL files}
 
 \item{plotNames}{Vector of the same length as CTLNameList with "prettier" names for plotting}
 }

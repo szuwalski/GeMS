@@ -5,7 +5,7 @@
 \title{Function to plot age-structured models
 Used within the \code{\link{GeMS}} function, not to be run on its own.}
 \usage{
-AgeAssPlot(REP, CTL, DAT, TRU, data2, MSEdir, CTLName)
+AgeAssPlot(REP, CTL, DAT, TRU, data2, MSEdir, CTLNameList)
 }
 \arguments{
 \item{REP}{Read SimAss.rep file}

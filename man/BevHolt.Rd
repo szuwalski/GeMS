@@ -5,7 +5,7 @@
 \title{Function that calculates negative log-likelihood for Beverton-Holt recruitment function. For use in \code{\link{StockRecCheck}}
 Some overlap with \code{\link{calcBHrec}}}
 \usage{
-BevHolt(x)
+BevHolt(x, spbio)
 }
 \arguments{
 \item{x}{Vector of Beverton-Holt parameters c(alpha, beta, sigma)}
