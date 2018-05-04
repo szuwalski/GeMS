@@ -1,5 +1,5 @@
 Package: GeMS
-Version: 0.0.0.9000
+Version: 1.0.0
 Title: Generalized Management Strategy Evaluation
 Description: Two box, populations processes in each box can vary over time, movement between boxes can vary over  time, effort in boxes can be allocated asymmetrically production and age-structured estimation models can be tested. -CSS, 11/2015
 Authors@R: c(person("Cody", "Szuwalski", email="c.s.szuwalski@gmail.com", role=c("aut", "cre")),

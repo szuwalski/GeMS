@@ -23,16 +23,17 @@
 #' 
 ProdMod<-function(x,CatchData,IndexData,estInit=0)
 {
-K<-exp(x[1])
-r<-x[2]
-predBio<-rep(0,length(IndexData))
-predBio[1]<-K
-if(estInit==1)
-  predBio[1]<-K*x[3]
-for(i in 2:length(CatchData))
-{
- predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
-}
-SSQ<-sum((predBio-IndexData)^2,na.rm=T)
-return(SSQ)
+	K<-exp(x[1])
+	r<-x[2]
+		predBio<-rep(0,length(IndexData))
+		predBio[1]<-K
+		if(estInit==1)
+		  predBio[1]<-K*x[3]
+		for(i in 2:length(CatchData))
+		{
+		 predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
+		}
+
+		SSQ<-sum((predBio-IndexData)^2)
+		return(SSQ)
 }

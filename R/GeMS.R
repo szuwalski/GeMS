@@ -823,10 +823,10 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    }
     if(y>(InitYear+1))
     x		<-outs$par
-  
    inCatch	<-CatchDataN[start_assessment:(y-1)]
    inCPUE	<-CPUEDataN[start_assessment:(y-1)]
-   outs		<-nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
+   outs		<-suppressWarnings(nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit))
+   if(sum(is.na(outs$par))>0) {stop("Production model failed to converge.")}
    #outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
    Converge[z,y]<-outs$convergence
    PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)

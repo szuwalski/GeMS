@@ -37,8 +37,9 @@ run_GeMS <- function(CTLNameList,MSEdir=getwd(),
 			if(!silent) message("Running scenarios in parallel.")
 			cl <- parallel::makeCluster(cores)
 			doParallel::registerDoParallel(cl)
-
-			foreach(mod=1:length(CTLNameList),.export=ls(envir=globalenv())) %dopar% {
+			suppressPackageStartupMessages(library(foreach))
+			foreach::foreach(mod=1:length(CTLNameList)) %dopar% {
+			  library(GeMS)
 			  Inout<-ReadCTLfile(file.path(MSEdir,CTLNameList[mod]))
 			  do.call(GeMS, args = list(out=Inout,CTLName=CTLNameList[mod],
 			                            MSEdir=MSEdir,silent=silent,...))
