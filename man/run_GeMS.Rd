@@ -18,7 +18,7 @@ run_GeMS(CTLNameList, MSEdir = getwd(), runparallel = F, cores = 1,
 
 \item{silent}{Logical; Show output on console}
 
-\item{...}{Anything to be passed to \code{\link{GeMS}}, including \code{ADoptions} and \code{ADsilent} for ADMB options.}
+\item{...}{Anything to be passed to \code{\link{GeMS}} or \code{\link{AgeStructureComp}} or \code{\link{ProductionModelOutput}}. Can include \code{plotNames}, \code{ADoptions} and \code{ADsilent} for ADMB options.}
 }
 \value{
 \code{\link{GeMS}} output

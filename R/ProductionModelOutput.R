@@ -190,13 +190,12 @@ plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$Ini
 polygon(x=c(seq(1,(out$OM$SimYear-1)),rev(seq(1,(out$OM$SimYear-1)))),y=c(inShape[1,1:out$OM$SimYear-1],rev(inShape[4,1:out$OM$SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(out$OM$SimYear-1)),rev(seq(1,(out$OM$SimYear-1)))),y=c(inShape[2,1:out$OM$SimYear-1],rev(inShape[3,1:out$OM$SimYear-1])),col='lightgrey',border=F)
 }
-abline(h=0,lty=2)
 
 if((out$OM$SimYear-out$OM$InitYear)<=2 & (out$OM$SimYear-out$OM$InitYear)>0) {
   plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,out$OM$SimYear),yaxt='n',xaxt='n')
   boxplot(RelativeErrorFMSY[[y]][,(out$OM$InitYear+1):(out$OM$SimYear-1)],add=T,at=(out$OM$SimYear-1),axes=F)
 }
-
+abline(h=0,lty=2)
 if(y==1)
 {
 # axis(side=1)

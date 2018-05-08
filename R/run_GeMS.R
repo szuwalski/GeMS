@@ -7,7 +7,7 @@
 #' @param runparallel Logical; operating models should be run in parallel. If you're doing this, make sure that \pkg{foreach} is loaded, using \code{library(foreach)}
 #' @param cores Number of cores to be used for parallel runs
 #' @param silent Logical; Show output on console
-#' @param ... Anything to be passed to \code{\link{GeMS}}, including \code{ADoptions} and \code{ADsilent} for ADMB options.
+#' @param ... Anything to be passed to \code{\link{GeMS}} or \code{\link{AgeStructureComp}} or \code{\link{ProductionModelOutput}}. Can include \code{plotNames}, \code{ADoptions} and \code{ADsilent} for ADMB options.
 #'
 #' @return \code{\link{GeMS}} output
 #'
@@ -22,7 +22,7 @@
 run_GeMS <- function(CTLNameList,MSEdir=getwd(),
 					 runparallel=F,cores = 1,silent=T,...) {
 
-  if(!file.exists(file.path(MSEdir,paste0(CTLNameList[1],".csv")))) stop("Set MSEdir to directory containing CTL files.")
+  if(!file.exists(file.path(MSEdir,paste0(CTLNameList[1],".csv")))) stop("Set MSEdir to directory containing CTL files. The default uses your current working directory.")
 	if(runparallel) {
 		if(!requireNamespace("foreach",quietly=T)) {
 			stop(print(paste0("Packages foreach and doParallel need to be installed, and foreach needs to be loaded. Example:\n",

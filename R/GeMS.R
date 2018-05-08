@@ -25,7 +25,7 @@
 GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=F,...)
 {
   CurDir<-getwd()
-  if(!file.exists(file.path(MSEdir,paste0(CTLName,".csv")))) stop("Set MSEdir to directory containing CTL files")
+  if(!file.exists(file.path(MSEdir,paste0(CTLName,".csv")))) stop(paste0(file.path(MSEdir,paste0(CTLName,".csv")), " does not exist. Set MSEdir to directory containing CTL files."))
   if(echo) echofile <- file.path(MSEdir,paste0(CTLName,"_echo.txt"))
   if(echo) {if(!file.exists(echofile)) file.create(echofile)}
   if(echo) cat(paste0("# Run initiated: ",Sys.time(),"\n"),file=echofile,append=F)
@@ -826,7 +826,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    inCatch	<-CatchDataN[start_assessment:(y-1)]
    inCPUE	<-CPUEDataN[start_assessment:(y-1)]
    outs		<-suppressWarnings(nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit))
-   if(sum(is.na(outs$par))>0) {stop("Production model failed to converge.")}
+   if(sum(is.na(outs$par))>0) {stop("Production model converged on NaNs. Not really sure why. Try changing your starting values?")}
    #outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
    Converge[z,y]<-outs$convergence
    PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)

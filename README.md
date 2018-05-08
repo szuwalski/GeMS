@@ -32,6 +32,6 @@ run_GeMS(OMNames,dir.MSE)
 ##-----------------
 ## Parallel example
 ##-----------------
-# run_GeMS(OMNames,dir.MSE,
-#	        runparallel = T, cores = 3)
+run_GeMS(OMNames,dir.MSE,
+         runparallel = T, cores = 3)
 ```
