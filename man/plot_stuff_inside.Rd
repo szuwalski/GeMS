@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_stuff_inside.R
 \name{plot_stuff_inside}
 \alias{plot_stuff_inside}
-\title{Compare model estimates
-Used within the \code{\link{AgeStructureComp}} function to compare true values with estimated values.}
+\title{Compare model estimates}
 \usage{
 plot_stuff_inside(input1, input2, title, CTLNameList, plotNames = NA,
   nSim = Nsim)
@@ -25,6 +24,5 @@ plot_stuff_inside(input1, input2, title, CTLNameList, plotNames = NA,
 Plot comparing age-structured estimating models
 }
 \description{
-Compare model estimates
 Used within the \code{\link{AgeStructureComp}} function to compare true values with estimated values.
 }

@@ -36,24 +36,24 @@ REP<-readLines(file.path(IndSimFolder,"simass.REP"))
 TRU<-readLines(file.path(IndSimFolder,"TrueQuantities.DAT"))
 
 temp<-grep("B35",REP)[1]
-B35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+B35[v,n]<-suppressWarnings(as.numeric((unlist(strsplit(REP[temp+1],split=" ")))))
 
 temp<-grep("F35",REP)[2]
-F35[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+F35[v,n]<-suppressWarnings(as.numeric((unlist(strsplit(REP[temp+1],split=" ")))))
 
 temp<-grep("OFL",REP)[2]
-OFL[v,n]<-as.numeric((unlist(strsplit(REP[temp+1],split=" "))))
+OFL[v,n]<-suppressWarnings(as.numeric((unlist(strsplit(REP[temp+1],split=" ")))))
 
 if(v==SimYear)
 {
 temp<-grep("B35",TRU)
-tB35[,n] <-as.numeric((unlist(strsplit(TRU[temp+n],split=" "))))
+tB35[,n] <-suppressWarnings(as.numeric((unlist(strsplit(TRU[temp+n],split=" ")))))
 
 temp<-grep("OFL",TRU)
-tOFL[,n]<-as.numeric((unlist(strsplit(TRU[temp+n],split=" ")))) 
+tOFL[,n]<-suppressWarnings(as.numeric((unlist(strsplit(TRU[temp+n],split=" "))))) 
 }
 temp<-grep("F35",TRU)
-tF35 <-as.numeric((unlist(strsplit(TRU[temp+1],split=" ")))) 
+tF35 <-suppressWarnings(as.numeric((unlist(strsplit(TRU[temp+1],split=" ")))))
 
 
 }

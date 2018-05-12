@@ -1,5 +1,6 @@
 #' Compare model estimates
-#' Used within the \code{\link{AgeStructureComp}} function to compare true values with estimated values.
+#' 
+#' @description Used within the \code{\link{AgeStructureComp}} function to compare true values with estimated values.
 #' 
 #' @param input1 Array of true quantities
 #' @param input2 Array of estimated quantities 

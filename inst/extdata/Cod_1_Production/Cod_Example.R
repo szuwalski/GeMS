@@ -1,5 +1,5 @@
 library(GeMS)
-Cur.dir<-system.file("Cod_1_Production",package="GeMS")
+Cur.dir<-system.file("extdata/Cod_1_Production",package="GeMS")
 
 OMNames<-c("Cod_LowProd_CTL","Cod_Base_CTL","Cod_HighProd_CTL")
 

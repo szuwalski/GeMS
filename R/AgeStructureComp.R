@@ -161,7 +161,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
   mtext(side=2,"relative error",line=3,cex=.7)
   dev.off()
   
-  quants<-PullTimevary(out=out,MSEdir)
+  quants<-PullTimevary(out=out,MSEdir,CTLNameList)
   
   png(file.path(MSEdir,"plots",paste0("ComparePopulationProcess_",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   inmat<-matrix(c(1,1,2,2,3,3,
@@ -323,16 +323,16 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
   # Plot the estimates of spawning biomass
   #====================================
   png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames)
+  plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
   png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames)
+  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
   png(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames)
+  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
   png(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames)
+  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
  
 

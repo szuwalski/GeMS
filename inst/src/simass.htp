@@ -1,5 +1,5 @@
-#if !defined(_SIMASS_)
-#  define _SIMASS_
+#if !defined(_SimAss_)
+#  define _SimAss_
 
 class model_data : public ad_comm{
   ofstream *   pad_post;

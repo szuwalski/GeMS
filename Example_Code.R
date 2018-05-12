@@ -5,7 +5,7 @@
 library(GeMS)
 
 # Set directory where control files are
-dir.MSE <- system.file("Cod_1_Production",package="GeMS") #Located in the Examples/ folder
+dir.MSE <- system.file("extdata/Cod_1_Production",package="GeMS") #Located in the extdata/ folder
 
 # Names of control files to be tested
 OMNames<-c("Cod_LowProd_CTL", "Cod_Base_CTL", "Cod_HighProd_CTL")

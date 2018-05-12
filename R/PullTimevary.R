@@ -2,6 +2,7 @@
 #' 
 #' @param out List output from \code{\link{ReadCTLfile}}
 #' @param MSEdir Directory containing CTL files
+#' @param CTLNameList Vector of CTL names
 #'
 #' @return List of quantities
 #'
@@ -9,12 +10,14 @@
 #' @examples
 #' \dontrun{
 #' MSEdir <- "~/GeneralMSE/Examples/Cod_5_AgeStructure"
-#' out <- ReadCTLfile("Cod_AgeStructure_CTL")
+#' CTLName <- "Cod_Age_Structure_CTL"
+#' out <- ReadCTLfile(CTLName)
 #' PullTimevary(out=out,
-#'                  MSEdir=MSEdir)
+#'              MSEdir=MSEdir,
+#'              CTLNameList=CTLName)
 #' }
 #' 
-PullTimevary<-function(out,MSEdir)
+PullTimevary<-function(out,MSEdir,CTLNameList)
 {
 Nsim			<-out$OM$Nsim			# number of simulations to do in the MSE
 SimYear		<-out$OM$SimYear			# total number of years in simulation
@@ -24,57 +27,57 @@ Ages			<-seq(1,MaxAge)
 t0			<-out$OM$t0s		# check this later when going to spatial
 AssYear <- out$OM$start_assessment
 
-Recruitment	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(CTLNames)))
-FishMort	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(CTLNames)))
-TrueRec	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-TrueFmort	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-TrueCatch	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-TrueSpbio	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-EstSpbio	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-NatMvary	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(CTLNames)))
-SelVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(CTLNames))) 
-GrowthVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(CTLNames)))
-TrueGrow	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(CTLNames)))
-TrueSel	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(CTLNames)))
-TrueM   <-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-TrueOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
-EstOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNames)))
+Recruitment	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(CTLNameList)))
+FishMort	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(CTLNameList)))
+TrueRec	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+TrueFmort	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+TrueCatch	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+TrueSpbio	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+EstSpbio	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+NatMvary	<-array(dim=c(nrow=(Nsim),ncol=SimYear-1,length(CTLNameList)))
+SelVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(CTLNameList))) 
+GrowthVary	<-array(dim=c(SimYear,MaxAge,Nsim,length(CTLNameList)))
+TrueGrow	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(CTLNameList)))
+TrueSel	<-array(dim=c(nrow=SimYear,ncol=MaxAge,length(CTLNameList)))
+TrueM   <-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+TrueOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
+EstOFL	<-array(dim=c(nrow=(Nsim),ncol=SimYear,length(CTLNameList)))
 
-predSurvBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNames)))
-obsSurvBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNames)))
-predCpueBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNames)))
-cpueIndex<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNames)))
-predCatchBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNames)))
-obsCatchBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNames)))
-yearsDat<-rep(0,length(CTLNames))
+predSurvBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNameList)))
+obsSurvBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNameList)))
+predCpueBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNameList)))
+cpueIndex<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNameList)))
+predCatchBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNameList)))
+obsCatchBio<-array(dim=c(nrow=(Nsim),ncol=length(AssYear:SimYear)-1,length(CTLNameList)))
+yearsDat<-rep(0,length(CTLNameList))
 
 
-for(p in seq_along(CTLNames))
+for(p in seq_along(CTLNameList))
 {
-DrawDir		<-CTLNames[p]
-out			<-ReadCTLfile(file.path(MSEdir,paste0(CTLNames[p])))
+DrawDir		<-CTLNameList[p]
+out			<-ReadCTLfile(file.path(MSEdir,paste0(CTLNameList[p])))
 
 IndSimFolder	<-file.path(DrawDir,Nsim,SimYear)
 TRU			<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
 
 #==true
 temp		<-grep("fishing mortality",TRU)
-TrueFmort[,,p]<-matrix(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" "))),ncol=SimYear,byrow=T)
+TrueFmort[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
 
 #==true Catch
 temp		<-grep("Catch",TRU)
-TrueCatch[,,p]<-matrix(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" "))),ncol=SimYear,byrow=T)
+TrueCatch[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
 
 #==true Spawning biomass
 temp		<-grep("spawning biomass",TRU)
-TrueSpbio[,,p]<-matrix(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" "))),ncol=SimYear,byrow=T)
+TrueSpbio[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
 
 temp		<-grep("recruitment",TRU)
-TrueRec[,,p]<-matrix(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" "))),ncol=SimYear,byrow=T)
+TrueRec[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
 
 #==OFL 
 temp			<-grep("OFL",TRU)
-TrueOFL[,,p]	<-matrix(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" "))),ncol=SimYear,byrow=T)
+TrueOFL[,,p]	<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
 
 for(n in 1:Nsim)
 {

@@ -19,7 +19,7 @@ devtools::install_github("szuwalski/GeMS")
 library(GeMS)
 
 # Set directory where control files are
-dir.MSE <- system.file("Cod_1_Production",package="GeMS") #Located in the Examples/ folder of the GeMS directory
+dir.MSE <- system.file("extdata/Cod_1_Production",package="GeMS") #Located in the extdata/ folder of the GeMS package directory
 
 # Names of control files to be tested
 OMNames<-c("Cod_LowProd_CTL", "Cod_Base_CTL", "Cod_HighProd_CTL")
@@ -31,6 +31,7 @@ run_GeMS(OMNames,dir.MSE)
 
 ##-----------------
 ## Parallel example
+## (requires the foreach and doParallel packages)
 ##-----------------
 run_GeMS(OMNames,dir.MSE,
          runparallel = T, cores = 3)

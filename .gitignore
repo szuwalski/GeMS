@@ -1,7 +1,13 @@
 .Rproj.user
 .Rhistory
 .RData
-GeMS Notes.txt
-General-MSE.Rproj
-Paper_LQ/
+.Ruserdata
 Personal Examples/
+Paper_LQ/
+GeMS Notes.txt
+GeMS.Rproj
+inst/extdata/Cod_1_Production/Cod_HighProd_CTL/
+inst/extdata/Cod_1_Production/Cod_LowProd_CTL/
+inst/extdata/Cod_5_AgeStructure/Cod_AgeStructure_CTL/
+inst/extdata/Cod_5_AgeStructure/Cod_Age_Mvary_CTL/
+inst/extdata/Cod_5_AgeStructure/Cod_Age_Mvary_estM_CTL/

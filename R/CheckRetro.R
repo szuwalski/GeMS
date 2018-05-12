@@ -35,9 +35,9 @@ CheckRetro<-function(CTLName,out,MSEdir,RetroPeels=6,PlotRetro=0)
     DAT<-readLines(file.path(MSEdir,IndSimFolder,"simass.DAT"))
     
     temp<-grep("survey years",DAT)[1]
-    yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+    yearsDat<-suppressWarnings(as.numeric(unlist(strsplit(DAT[temp+1],split=" "))))
     temp<-grep("spawning biomass",REP)
-    predSpBioRetro[(v+1),(out$OM$start_assessment:(SimYear-v-1)),n]<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+    predSpBioRetro[(v+1),(out$OM$start_assessment:(SimYear-v-1)),n]<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)])
   
   }
   
@@ -46,7 +46,7 @@ CheckRetro<-function(CTLName,out,MSEdir,RetroPeels=6,PlotRetro=0)
     IndSimFolder<-file.path(CTLName,n,SimYear)
     TRU<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
     temp<-grep("spawning biomass",TRU)
-    trueSpBioRetro[n,]<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+    trueSpBioRetro[n,]<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" "))))
   }
   
   plotSegment<-predSpBioRetro[,((SimYear-RetroPeels-4):SimYear),1]

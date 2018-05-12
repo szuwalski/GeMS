@@ -1258,7 +1258,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
     AgeAssPlot(REP,CTL,DAT,TRU,data2,MSEdir,CTLName)
   
   temp<-grep("OFL",REP)[2]
-  OFL<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
+  OFL<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))
   
    #==calculate the TAC based on a SRR or a proxy, depending on data
    TAC[z,y]	<-OFL

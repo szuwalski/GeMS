@@ -1,5 +1,5 @@
 library(GeMS)
-Cur.dir<-system.file("Cod_2_Selectivity",package="GeMS")
+Cur.dir<-system.file("extdata/Cod_2_Selectivity",package="GeMS")
 
 OMNames<-c("Cod_Selectivity_CTL")
 

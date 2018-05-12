@@ -58,14 +58,14 @@ temp<-grep("obs catch bio",REP)
 obsCatchBio<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
 
 temp<-grep("obs surv len freq",REP)
-obsSurlen<-matrix(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" "))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
+obsSurlen<-matrix(suppressWarnings(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" ")))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
 temp<-grep("pred surv len freq",REP)
-predSurlen<-matrix(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" "))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
+predSurlen<-matrix(suppressWarnings(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" ")))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
 
 temp<-grep("obs catch len freq",REP)
-obsCatchlen<-matrix(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" "))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
+obsCatchlen<-matrix(suppressWarnings(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" ")))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
 temp<-grep("pred catch len freq",REP)
-predCatchlen<-matrix(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" "))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
+predCatchlen<-matrix(suppressWarnings(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" ")))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
 
 #==================================================
 #   Par file plots

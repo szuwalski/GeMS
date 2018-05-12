@@ -42,38 +42,38 @@ for(y in seq_along(CTLNameList))
  tmp<-grep("est cpue",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
 for(x in seq_along(Quant))
- estCPUE[x,,y]<-as.numeric(unlist(strsplit(Quant[x],split=" ")))
+ estCPUE[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
 
 tmp<-grep("true CPUE",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
 for(x in seq_along(Quant))
- trueCPUE[x,,y]<-as.numeric(unlist(strsplit(Quant[x],split=" ")))
+ trueCPUE[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
 
 tmp<-grep("true BMSY",Data[[y]])
-trueBMSY[y]<-as.numeric(Data[[y]][(tmp+1)])
+trueBMSY[y]<-suppressWarnings(as.numeric(Data[[y]][(tmp+1)])[1])
 
 tmp<-grep("est BMSY",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
 for(x in seq_along(Quant))
- estBMSY[x,,y]<-as.numeric(unlist(strsplit(Quant[x],split=" ")))
+ estBMSY[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
 
 tmp<-grep("true FMSY",Data[[y]])
-trueFMSY[y]<-as.numeric(Data[[y]][(tmp+1)])
+trueFMSY[y]<-suppressWarnings(as.numeric(Data[[y]][(tmp+1)])[1])
 
 tmp<-grep("est FMSY",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
 for(x in seq_along(Quant))
- estFMSY[x,,y]<-as.numeric(unlist(strsplit(Quant[x],split=" ")))
+ estFMSY[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
 
  tmp<-grep("est total allowable catch",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
 for(x in seq_along(Quant))
- estTAC[x,,y]<-as.numeric(unlist(strsplit(Quant[x],split=" ")))
+ estTAC[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
 
 tmp<-grep("true total allowable catch",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
 for(x in seq_along(Quant))
- trueTAC[x,,y]<-as.numeric(unlist(strsplit(Quant[x],split=" ")))
+ trueTAC[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
 
 }
 
@@ -211,3 +211,4 @@ dev.off()
 #names(RefPointsError) <- c("OM","RefPoint","Year")
 
 }
+
