@@ -826,8 +826,8 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    inCatch	<-CatchDataN[start_assessment:(y-1)]
    inCPUE	<-CPUEDataN[start_assessment:(y-1)]
    outs		<-suppressWarnings(nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit))
-   if(sum(is.na(outs$par))>0) {stop("Production model converged on NaNs. Not really sure why. Try changing your starting values?")}
    #outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
+   if(sum(is.na(outs$par))>0) {stop("Production model converged on NaNs. Not really sure why. Try changing your starting values?")}
    Converge[z,y]<-outs$convergence
    PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
    FMSY[z,y] 	<-outs$par[2]/2

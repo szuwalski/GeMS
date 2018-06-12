@@ -8,12 +8,10 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 ByteCompile: true
-Imports: 
+Imports: foreach,
+         doParallel
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.0.1
-Suggests: 
-    testthat,
-    foreach,
-    doParallel
+Suggests: testthat
 URL: https://github.com/szuwalski/GeMS
 BugReports: https://github.com/szuwalski/GeMS/issues

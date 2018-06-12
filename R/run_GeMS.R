@@ -4,7 +4,7 @@
 #' 
 #' @param CTLNameList Vector of CTL files
 #' @param MSEdir Directory containing CTL files
-#' @param runparallel Logical; operating models should be run in parallel. If you're doing this, make sure that \pkg{foreach} is loaded, using \code{library(foreach)}
+#' @param runparallel Logical; operating models should be run in parallel. If you're doing this, note that the package \pkg{foreach} will be loaded.
 #' @param cores Number of cores to be used for parallel runs
 #' @param silent Logical; Show output on console
 #' @param ... Anything to be passed to \code{\link{GeMS}} or \code{\link{AgeStructureComp}} or \code{\link{ProductionModelOutput}}. Can include \code{plotNames}, \code{ADoptions} and \code{ADsilent} for ADMB options.
@@ -18,6 +18,9 @@
 #' OMNames <- c("Cod_LowProd_CTL","Cod_Base_CTL","Cod_HighProd_CTL")
 #' MSEdir <- "~/GeneralMSE/Examples/Cod_1_Production"
 #' run_GeMS(OMNames, MSEdir)
+#' 
+#' # or
+#' run_GeMS(OMNames, MSEdir, runparallel=T, cores=2, plotNames = c("Low Productivity", "Base", "High Productivity"))
 #' }
 run_GeMS <- function(CTLNameList,MSEdir=getwd(),
 					 runparallel=F,cores = 1,silent=T,...) {
@@ -35,9 +38,9 @@ run_GeMS <- function(CTLNameList,MSEdir=getwd(),
 		}
 		if(cores>1) {
 			if(!silent) message("Running scenarios in parallel.")
-			cl <- parallel::makeCluster(cores)
-			doParallel::registerDoParallel(cl)
-			suppressPackageStartupMessages(library(foreach))
+			#cl <- parallel::makeCluster(cores)
+			doParallel::registerDoParallel(cores)
+			library(foreach)
 			foreach::foreach(mod=1:length(CTLNameList)) %dopar% {
 			  library(GeMS)
 			  Inout<-ReadCTLfile(file.path(MSEdir,CTLNameList[mod]))
@@ -69,11 +72,11 @@ run_GeMS <- function(CTLNameList,MSEdir=getwd(),
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear < 6) {
 				retpeels <- OMfile$OM$SimYear-OMfile$OM$InitYear
 				message(paste0("Number of years for retrospective peels == ", retpeels, "."))
-				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,RetroPeels=retpeels,MSEdir=MSEdir)
+				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,RetroPeels=retpeels,MSEdir=MSEdir,...)
 			}
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear >= 6) {
 				message("Number of years for retrospective peels == 6.")
-				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,MSEdir=MSEdir)
+				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,MSEdir=MSEdir,...)
 			}
 		}
 #	}
