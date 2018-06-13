@@ -71,7 +71,7 @@ run_GeMS <- function(CTLNameList,MSEdir=getwd(),
 		if(OMfile$OM$AssessmentType==2) {
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear < 6) {
 				retpeels <- OMfile$OM$SimYear-OMfile$OM$InitYear
-				message(paste0("Number of years for retrospective peels == ", retpeels, "."))
+				if(!silent) message(paste0("Number of years for retrospective peels == ", retpeels, "."))
 				AgeStructureComp(out=OMfile,CTLNameList=CTLNameList,RetroPeels=retpeels,MSEdir=MSEdir,...)
 			}
 			if(OMfile$OM$SimYear-OMfile$OM$InitYear >= 6) {

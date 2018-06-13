@@ -279,7 +279,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    MovementS[i,]	<-MaxMovingS[i]/(1+exp(-1*log(19)*(Ages-Move50s[i])/(Move95s[i]-Move50s[i])))
   }
   
-  if(silent) {
+  if(!silent) {
     if(sum(MovementS)>0 | sum(MovementN)>0) 
     {print("Movement is occuring between populations")}
   }
@@ -773,7 +773,8 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   
   trueSBPR35[InitYear]<-outsF35in[[2]]
   trueF35[InitYear]	  <-outsF35in[[1]]
-  trueB35[,InitYear]  <-trueSBPR35[InitYear]*apply(trueRecN[,start_assessment:SimYear],1,mean,na.rm=T)
+  if(Nsim>1) trueB35[,InitYear]  <-trueSBPR35[InitYear]*apply(trueRecN[,start_assessment:SimYear],1,mean,na.rm=T)
+  if(Nsim==1) trueB35[,InitYear]  <-trueSBPR35[InitYear]*mean(trueRecN[,start_assessment:SimYear],na.rm=T)
   
   #=================================================================================
   #==BEGIN PROJECTIONS===========================================================

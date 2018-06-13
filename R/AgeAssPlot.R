@@ -16,46 +16,46 @@
 AgeAssPlot<-function(REP,CTL,DAT,TRU,data2,MSEdir,CTLNameList)
 {
 temp<-grep("survey years",DAT)[1]
-yearsDat<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+yearsDat<-suppressWarnings(as.numeric(unlist(strsplit(DAT[temp+1],split=" "))))
 temp<-grep("number of ages",DAT)[1]
-maxAge<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+maxAge<-suppressWarnings(as.numeric(unlist(strsplit(DAT[temp+1],split=" "))))
 AgeBin<-seq(1,maxAge)
 temp<-grep("Length Bin",DAT)[1]
-LengthBin<-as.numeric(unlist(strsplit(DAT[temp+1],split=" ")))
+LengthBin<-suppressWarnings(as.numeric(unlist(strsplit(DAT[temp+1],split=" "))))
 
 temp<-grep("recruitment",TRU)
-trueRec<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueRec<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" "))))
 temp<-grep("Catch",TRU)
-trueCatch<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat)]
+trueCatch<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))[1:(yearsDat)])
 temp<-grep("survey selectivity",TRU)
-trueSurvSelPar<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueSurvSelPar<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" "))))
 temp<-grep("fishery selectivity",TRU)
-trueFishSelPar<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueFishSelPar<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" "))))
 temp<-grep("fishing mortality",TRU)
-trueFmort<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueFmort<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" "))))
 temp<-grep("spawning biomass",TRU)
-trueSpbio<-as.numeric(unlist(strsplit(TRU[temp+1],split=" ")))
+trueSpbio<-suppressWarnings(as.numeric(unlist(strsplit(TRU[temp+1],split=" "))))
 
 temp<-grep("spawning biomass",REP)
-predSpBio<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+predSpBio<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 temp<-grep("B35",REP)
-B35<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))
+B35<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))
 
 
 temp<-grep("pred survey bio",REP)
-predSurvBio<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+predSurvBio<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 temp<-grep("obs survey bio",REP)
-obsSurvBio<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+obsSurvBio<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 
 temp<-grep("pred cpue bio",REP)
-predCpueBio <-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+predCpueBio <-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 temp<-grep("obs cpue bio",REP)
-cpueIndex <-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+cpueIndex <-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 
 temp<-grep("pred catch bio",REP)
-predCatchBio<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+predCatchBio<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 temp<-grep("obs catch bio",REP)
-obsCatchBio<-as.numeric(unlist(strsplit(REP[temp+1],split=" ")))[2:(yearsDat+1)]
+obsCatchBio<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))[2:(yearsDat+1)]
 
 temp<-grep("obs surv len freq",REP)
 obsSurlen<-matrix(suppressWarnings(as.numeric(unlist(strsplit(REP[(temp+1):(temp+yearsDat)],split=" ")))),nrow=yearsDat,byrow=T)[,2:(length(LengthBin)+1)]
@@ -71,20 +71,20 @@ predCatchlen<-matrix(suppressWarnings(as.numeric(unlist(strsplit(REP[(temp+1):(t
 #   Par file plots
 #================================================
 cnt<-grep("mean_log_rec",data2)
-meanREC<-as.numeric(data2[cnt+1])
+meanREC<-suppressWarnings(as.numeric(data2[cnt+1]))
 cnt<-grep("rec_dev",data2)
-recDevs<-as.numeric(data2[(cnt+1):(cnt+yearsDat)])
+recDevs<-suppressWarnings(as.numeric(data2[(cnt+1):(cnt+yearsDat)]))
 TotRec<-exp(meanREC+recDevs)
 
 fmortYrs<-seq(1,yearsDat)
 cnt<-grep("log_avg_fmort_dir",data2)
-logFdir<-as.numeric(data2[cnt+1])
+logFdir<-suppressWarnings(as.numeric(data2[cnt+1]))
 cnt<-grep("fmort_dir_dev",data2)
-fmort_dir_dev<-as.numeric(data2[(cnt+1):(cnt+length(fmortYrs))])
+fmort_dir_dev<-suppressWarnings(as.numeric(data2[(cnt+1):(cnt+length(fmortYrs))]))
 TotFdir<-exp(logFdir+fmort_dir_dev)
 
 cnt<-grep("stNatLen",data2)
-stNatLen<-as.numeric(data2[(cnt+1):(cnt+maxAge)])
+stNatLen<-suppressWarnings(as.numeric(data2[(cnt+1):(cnt+maxAge)]))
 
 
 
@@ -98,19 +98,19 @@ barplot(exp(stNatLen))
 #==plot estimated selectivities
 
 cnt<-grep("srv_sel50",data2)
-sel50surv<-as.numeric(data2[cnt+1])
+sel50surv<-suppressWarnings(as.numeric(data2[cnt+1]))
 cnt<-grep("srv_sel95",data2)
-sel95surv<-as.numeric(data2[cnt+1])
+sel95surv<-suppressWarnings(as.numeric(data2[cnt+1]))
 
 cnt<-grep("log_avg_SelPars50",data2)
-sel50fish<-exp(as.numeric(data2[cnt+1]))
+sel50fish<-exp(suppressWarnings(as.numeric(data2[cnt+1])))
 cnt<-grep("log_avg_SelPars95",data2)
-sel95fish<-exp(as.numeric(data2[cnt+1]))
+sel95fish<-exp(suppressWarnings(as.numeric(data2[cnt+1])))
 
 cnt<-grep("SelPars_dev50",data2)
-sel50_dir_dev<-as.numeric(data2[(cnt+1):(cnt+length(fmortYrs))])
+sel50_dir_dev<-suppressWarnings(as.numeric(data2[(cnt+1):(cnt+length(fmortYrs))]))
 cnt<-grep("SelPars_dev95",data2)
-sel95_dir_dev<-as.numeric(data2[(cnt+1):(cnt+length(fmortYrs))])
+sel95_dir_dev<-suppressWarnings(as.numeric(data2[(cnt+1):(cnt+length(fmortYrs))]))
 
 SurvSel<-1/( 1 + exp( -1*log(19)*(AgeBin-sel50surv)/(sel95surv-sel50surv)))
 FishSel<-1/( 1 + exp( -1*log(19)*(AgeBin-sel50fish)/(sel95fish-sel50fish)))
