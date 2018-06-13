@@ -9,7 +9,8 @@ Encoding: UTF-8
 LazyData: true
 ByteCompile: true
 Imports: foreach,
-         doParallel
+         doParallel,
+         colorspace
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.0.1
 Suggests: testthat

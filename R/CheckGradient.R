@@ -27,7 +27,7 @@ for(n in 1:Nsim)
 for(v in (InitYear+1):SimYear)
 {
 IndSimFolder<-file.path(MSEdir,CTLName,n,v)
-PAR<-readLines(file.path(IndSimFolder,"simass.par"))
+PAR<-readLines(file.path(IndSimFolder,"SimAss.par"))
 
 temp<-grep("gradient",PAR)[1]
 GradientLine<-(unlist(strsplit(PAR[temp],split=" ")))
