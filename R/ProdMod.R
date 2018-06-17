@@ -25,7 +25,7 @@ ProdMod<-function(x,CatchData,IndexData,estInit=0)
 {
 	K<-exp(x[1])
 	r<-x[2]
-	if(sum(x<0)>0) return(Inf)
+	if(sum(is.na(x))>0 | sum(x<0)>0) return(Inf)
 		predBio<-rep(0,length(IndexData))
 		predBio[1]<-K
 		if(estInit==1)
