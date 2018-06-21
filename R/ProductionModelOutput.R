@@ -82,50 +82,50 @@ par(mfcol=c(1,length(CTLNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 
 for(y in seq_along(CTLNameList))
 {
- boxplot(trueCPUE[,out$OM$start_assessment:out$OM$SimYear-1,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
- las=1,xaxt='n',ylab='',yaxt='n')
-  input<-trueCPUE[,out$OM$start_assessment:out$OM$SimYear-1,y]
-for(x in 1:nrow(estCPUE))
-  lines(estCPUE[x,out$OM$start_assessment:out$OM$SimYear-1,y],col='#ff000033')
+#  boxplot(trueCPUE[,out$OM$start_assessment:out$OM$SimYear-1,y],type="l",ylim=c(0,max(trueCPUE,na.rm=T)),
+#  las=1,xaxt='n',ylab='',yaxt='n')
+#   input<-trueCPUE[,out$OM$start_assessment:out$OM$SimYear-1,y]
+# for(x in 1:nrow(estCPUE))
+#   lines(estCPUE[x,out$OM$start_assessment:out$OM$SimYear-1,y],col='#ff000033')
+#  use_ylim<-c(0,max(trueCPUE,estCPUE,na.rm=T))
+#  axis(1)
+#  if(y==1)
+#  {
+#    #PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
+#    mtext(side=3,plotNames[y],cex=.7)
+#    axis(side=2,las=1)
+#    mtext(side=2,"Biomass",line=4,cex=.9)
+#    legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+#           legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
+#  }
+#  if(y>1)
+#    #PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
+#  mtext(side=3,plotNames[y],cex=.7)
+#  abline(h=trueBMSY[y],col="#0000ff99",lty=1)
+#  abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+#  abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+#  
+# }
+# par(mfrow=c(1,1))
+# mtext(side=1,"Year",line=3,cex=.9)
+# dev.off()
  use_ylim<-c(0,max(trueCPUE,estCPUE,na.rm=T))
- axis(1)
- if(y==1)
- {
-   #PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
-   mtext(side=3,plotNames[y],cex=.7)
-   axis(side=2,las=1)
-   mtext(side=2,"Biomass",line=4,cex=.9)
-   legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-          legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
- }
- if(y>1)
-   #PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
- mtext(side=3,plotNames[y],cex=.7)
- abline(h=trueBMSY[y],col="#0000ff99",lty=1)
- abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
- abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
- 
-}
-par(mfrow=c(1,1))
-mtext(side=1,"Year",line=3,cex=.9)
-dev.off()
+  if(y==1)
+  {
+    PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
+    axis(side=2,las=1)
+    mtext(side=2,"Biomass",line=5,cex=.9)
+    legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
+           legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
+  }
+  if(y>1)
+   PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
+ mtext(side=3,CTLNameList[y],cex=.7)
+abline(h=trueBMSY[y],col="#0000ff99",lty=1)
+abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
+abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
 
-#   if(y==1)
-#   {
-#     PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
-#     axis(side=2,las=1)
-#     mtext(side=2,"Biomass",line=5,cex=.9)
-#     legend("topright",col=c(1,2,"#0000ff99","#00800077"),pch=c(15,NA,NA,NA),lty=c(NA,1,1,2),
-#            legend=c("Observations","Estimates","True BMSY","Estimated BMSY range"),bty='n',cex=.7)
-#   }
-#   if(y>1)
-#    PolygonPlots(Truth=trueCPUE[,,y],Estimated=estCPUE[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
-#  mtext(side=3,CTLNameList[y],cex=.7)
-# abline(h=trueBMSY[y],col="#0000ff99",lty=1)
-# abline(h=max(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
-# abline(h=min(estBMSY[,,y],na.rm=T),col="#00800099",lty=2)
-# 
-# use_ylim<-c(0,max(trueTAC,estTAC,na.rm=T))
+use_ylim<-c(0,max(trueTAC,estTAC,na.rm=T))
 # 
 # if(y==1)
 # {
@@ -138,9 +138,9 @@ dev.off()
 #   PolygonPlots(Truth=trueTAC[,,y],Estimated=estTAC[,,y],SimYear=out$OM$SimYear,Nsim=out$OM$Nsim,ylimIN = use_ylim)
 #   axis(side=1)
 #  }
-# }
-# 
-# dev.off()
+}
+
+dev.off()
 
 png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CTLNameList,sep="_",collapse=""),".png")),res=1200,width=5,height=4.5,units='in')
 par(mfcol=c(3,length(CTLNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
@@ -188,7 +188,7 @@ if(y==1)
 inShape<-apply(RelativeErrorFMSY[[y]][,1:(ncol(RelativeErrorFMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
 
 if((SimYear-out$OM$InitYear)>2) {
-plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,out$OM$SimYear),yaxt='n')
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,out$OM$SimYear),yaxt='n',xaxt='n')
 polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
 polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 }
