@@ -7,6 +7,7 @@
 #' @param CTLNameList Vector of CTL file names
 #' @param MSEdir Directory containing CTL files
 #' @param plotNames Vector of the same length as CTLNameList with "prettier" names for plotting
+#' @param Nruns Number of runs to plot in Population Processes plots (selectivity and growth)
 #'
 #' @return Plots comparing age-structured estimating models
 #'
@@ -22,9 +23,10 @@
 #'                  plotNames=c("Base","Fixed M","Estimate M"))
 #' }
 #' 
-AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
+AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nruns=NA)
 {
   if(is.na(plotNames[1])) plotNames <- CTLNameList
+  if(is.na(Nruns)) Nruns<-out$OM$Nsim
   TakeRows<-(out$OM$SimYear-RetroPeels+1):out$OM$SimYear
   GradientSave<-array(dim=c(RetroPeels,out$OM$Nsim,length(CTLNameList)))
   
@@ -166,6 +168,8 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
   png(file.path(MSEdir,"plots",paste0("ComparePopulationProcess_",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   inmat<-matrix(c(1,1,2,2,3,3,
                   4,4,4,5,5,5),nrow=2,byrow=T)
+  runs2plot<-sample(1:out$OM$Nsim,Nruns)
+  if(Nruns<out$OM$Nsim) cat(paste0("Plotting population processes from run numbers: ",paste(runs2plot,collapse=" "),".\n"))
   layout(inmat)
   par(mar=c(.1,.1,.1,.1),oma=c(4,5,4,4))
   
@@ -246,7 +250,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
     lines(medians[,x],col=color[x],cex=2)
   
   #==true M
-  dim(tInput)
+  #dim(tInput)
   lines(tInput,col="black",lwd=1.5,lty=2)
   
   abline(v=out$OM$InitYear,lty=3)
@@ -268,7 +272,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
     for(y in 1:dim(input)[1])
     {
       #lines(tInput[y,,x],col=tCol)
-      for(z in 1:dim(input)[3])
+      for(z in seq_along(runs2plot))
         lines(input[y,,z,x],col=incol[x])
     }   
   } 
@@ -297,7 +301,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA)
     for(y in 1:dim(input)[1])
     {
       #lines(tInput[y,,x],col=tCol)
-      for(z in 1:dim(input)[3])
+      for(z in seq_along(runs2plot))
         lines(input[y,,z,x],col=incol[x])
     }   
   } 

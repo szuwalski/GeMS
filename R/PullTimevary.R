@@ -247,21 +247,27 @@ if(length(tLinf)==1)
 
 for(x in 1:SimYear)
  TrueGrow[x,,p]	<-tLinf[x]*(1-exp(-tGrowthK[x]*(Ages-t0)))
+	
+ sel50n<-CleanInput(out$OM$sel50n,out$OM$SimYear)
+ sel95n<-CleanInput(out$OM$sel95n,out$OM$SimYear)
+ vonKn<-CleanInput(out$OM$vonKn,out$OM$SimYear)
+ LinfN<-CleanInput(out$OM$LinfN,out$OM$SimYear)
+ t0n<-CleanInput(out$OM$t0n,out$OM$SimYear)
 
- tSel50<-selAtAgeFunc(out$OM$sel50n,out$OM$VonKn,out$OM$LinfN,out$OM$t0n)
- tSel95<-selAtAgeFunc(out$OM$sel95n,out$OM$VonKn,out$OM$LinfN,out$OM$t0n)
+ tSel50<-selAtAgeFunc(sel50n,VonKn,LinfN,t0n)
+ tSel95<-selAtAgeFunc(sel95n,VonKn,LinfN,t0n)
 
-if(length(tSel50)==1)
- tSel50		<-rep(tSel50,out$OM$SimYear)
-if(length(tSel95)==1)
- tSel95		<-rep(tSel95,out$OM$SimYear)
+#if(length(tSel50)==1)
+# tSel50		<-rep(tSel50,out$OM$SimYear)
+#if(length(tSel95)==1)
+# tSel95		<-rep(tSel95,out$OM$SimYear)
 
 for(x in 1:SimYear)
  TrueSel[x,,p]	<-1/( 1 + exp( -1*log(19)*(Ages-tSel50[x])/(tSel95[x]-tSel50[x])))
 
-TrueM			<-out$OM$NatMn
-if(length(TrueM)==1)
- TrueM		<-rep(TrueM,SimYear)
+TrueM			<-CleanInput(out$OM$NatMn,out$OM$SimYear)
+#if(length(TrueM)==1)
+# TrueM		<-rep(TrueM,SimYear)
 
 
 

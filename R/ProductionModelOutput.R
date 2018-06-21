@@ -143,20 +143,21 @@ dev.off()
 # dev.off()
 
 png(file.path(MSEdir,"plots",paste0("ProductionRefPoints_",paste(CTLNameList,sep="_",collapse=""),".png")),res=1200,width=5,height=4.5,units='in')
-par(mfcol=c(2,length(CTLNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
+par(mfcol=c(3,length(CTLNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
 RelativeErrorBMSY<-list(list())
 RelativeErrorFMSY<-list(list())
-
+RelativeErrorTAC<-list(list())
 for(y in seq_along(CTLNameList))
 {
 temp<-sweep(estBMSY[,,y],MAR=2,trueBMSY[y],FUN="-")
 RelativeErrorBMSY[[y]]<-sweep(temp,MAR=2,trueBMSY[y],FUN="/")
 temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
 RelativeErrorFMSY[[y]]<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
+RelativeErrorTAC[[y]]<-(estTAC[,,y]-trueTAC[,,y])/trueTAC[,,y]
 }
 
-yUp   <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY)),na.rm=T,probs=c(0.975))
-ydown <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY)),na.rm=T,probs=c(0.025))
+yUp   <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY),unlist(RelativeErrorTAC)),na.rm=T,probs=c(0.975))
+ydown <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY),unlist(RelativeErrorTAC)),na.rm=T,probs=c(0.025))
 use_ylim<-c(ydown,yUp)
 
 for(y in seq_along(CTLNameList))
@@ -164,11 +165,11 @@ for(y in seq_along(CTLNameList))
 inShape<-apply(RelativeErrorBMSY[[y]][,1:(ncol(RelativeErrorBMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
 plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xaxt='n',xlim=c(out$OM$InitYear,out$OM$SimYear),yaxt='n')
 
-if((out$OM$SimYear-out$OM$InitYear)>2) {
-    polygon(x=c(seq(1,(out$OM$SimYear-1)),rev(seq(1,(out$OM$SimYear-1)))),y=c(inShape[1,1:out$OM$SimYear-1],rev(inShape[4,1:out$OM$SimYear-1])),col='darkgrey',border=F)
-  polygon(x=c(seq(1,(out$OM$SimYear-1)),rev(seq(1,(out$OM$SimYear-1)))),y=c(inShape[2,1:out$OM$SimYear-1],rev(inShape[3,1:out$OM$SimYear-1])),col='lightgrey',border=F)
+if((SimYear-out$OM$InitYear)>2) {
+  polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
+  polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 }
-if((out$OM$SimYear-out$OM$InitYear)<=2 & (out$OM$SimYear-out$OM$InitYear)>0) {
+if((SimYear-out$OM$InitYear)<=2 & (SimYear-out$OM$InitYear)>0) {
 #  plot(0,type="n",xlim=c(0,2),ylim=use_ylim,xlab="Year",ylab="",xaxt='n',yaxt='n')
   boxplot(RelativeErrorBMSY[[y]][,(out$OM$InitYear+1):(out$OM$SimYear-1)],add=T,at=(out$OM$SimYear-1),axes=F)
 }
@@ -183,17 +184,18 @@ if(y==1)
  mtext(side=2,"Target biomass",line=3.5,cex=.9)
 }
 
+# Plot FMSY
 inShape<-apply(RelativeErrorFMSY[[y]][,1:(ncol(RelativeErrorFMSY[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
 
-if((out$OM$SimYear-out$OM$InitYear)>2) {
+if((SimYear-out$OM$InitYear)>2) {
 plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,out$OM$SimYear),yaxt='n')
-polygon(x=c(seq(1,(out$OM$SimYear-1)),rev(seq(1,(out$OM$SimYear-1)))),y=c(inShape[1,1:out$OM$SimYear-1],rev(inShape[4,1:out$OM$SimYear-1])),col='darkgrey',border=F)
-polygon(x=c(seq(1,(out$OM$SimYear-1)),rev(seq(1,(out$OM$SimYear-1)))),y=c(inShape[2,1:out$OM$SimYear-1],rev(inShape[3,1:out$OM$SimYear-1])),col='lightgrey',border=F)
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 }
 
 if((out$OM$SimYear-out$OM$InitYear)<=2 & (out$OM$SimYear-out$OM$InitYear)>0) {
-  plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,out$OM$SimYear),yaxt='n',xaxt='n')
-  boxplot(RelativeErrorFMSY[[y]][,(out$OM$InitYear+1):(out$OM$SimYear-1)],add=T,at=(out$OM$SimYear-1),axes=F)
+  plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n',xaxt='n')
+  boxplot(RelativeErrorFMSY[[y]][,(out$OM$InitYear+1):(SimYear-1)],add=T,at=(SimYear-1),axes=F)
 }
 abline(h=0,lty=2)
 if(y==1)
@@ -202,6 +204,28 @@ if(y==1)
  axis(side=2,las=1)
  mtext(side=2,"Relative error",line=2.5,cex=.9)
  mtext(side=2,"Target fishing mortality",line=3.5,cex=.9)
+}
+
+# Plot TAC
+inShape<-apply(RelativeErrorTAC[[y]][,1:(ncol(RelativeErrorTAC[[y]]))],2,quantile,probs=c(.05,.25,.75,.95),na.rm=T)
+
+if((SimYear-out$OM$InitYear)>2) {
+plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n')
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
+polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
+}
+
+if((SimYear-out$OM$InitYear)<=2 & (SimYear-out$OM$InitYear)>0) {
+  plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n',xaxt='n')
+  boxplot(RelativeErrorTAC[[y]][,(out$OM$InitYear+1):(SimYear-1)],add=T,at=(SimYear-1),axes=F)
+}
+abline(h=0,lty=2)
+if(y==1)
+{
+# axis(side=1)
+ axis(side=2,las=1)
+ mtext(side=2,"Relative error",line=2.5,cex=.9)
+ mtext(side=2,"Total Allowable Catch",line=3.5,cex=.9)
 }
 }
 dev.off()
