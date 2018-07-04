@@ -248,9 +248,9 @@ tLinf			<-CleanInput(out$OM$LinfN,SimYear)
 for(x in 1:SimYear)
  TrueGrow[x,,p]	<-tLinf[x]*(1-exp(-tGrowthK[x]*(Ages-t0)))
 	
- sel50n<-CleanInput(out$OM$sel50n,out$OM$SimYear)
- sel95n<-CleanInput(out$OM$sel95n,out$OM$SimYear)
- t0n<-CleanInput(out$OM$t0n,out$OM$SimYear)
+ sel50n<-CleanInput(out$OM$sel50n,SimYear)
+ sel95n<-CleanInput(out$OM$sel95n,SimYear)
+ t0n<-CleanInput(out$OM$t0n,SimYear)
 
  tSel50<-selAtAgeFunc(sel50n,tGrowthK,tLinf,t0n)
  tSel95<-selAtAgeFunc(sel95n,tGrowthK,tLinf,t0n)

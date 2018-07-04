@@ -16,7 +16,7 @@ CleanInput<-function(input,SimYear)
 if(length(input)==1)
  output		<-rep(input,SimYear)
 if(length(input)>1) {
- output		<-input
+ output		<-input[1:SimYear]
 }
 if(length(output)<SimYear) {
  stop("Check lengths of input vectors match (or are greater than) number of years.")
