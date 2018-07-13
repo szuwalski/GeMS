@@ -8,6 +8,7 @@
 #' @param MSEdir Directory containing CTL files
 #' @param plotNames Vector of the same length as CTLNameList with "prettier" names for plotting
 #' @param Nruns Number of runs to plot in Population Processes plots (selectivity and growth)
+#' @param plottiff Logical; make plots in TFF instead of PNG?
 #'
 #' @return Plots comparing age-structured estimating models
 #'
@@ -23,7 +24,7 @@
 #'                  plotNames=c("Base","Fixed M","Estimate M"))
 #' }
 #' 
-AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nruns=NA)
+AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nruns=NA,plottiff=F)
 {
   if(is.na(plotNames[1])) plotNames <- CTLNameList
   if(is.na(Nruns)) Nruns<-out$OM$Nsim
@@ -132,7 +133,8 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
     }
   }
 
-  png(file.path(MSEdir,"plots",paste0("CompareRefPoints",paste(CTLNameList,sep="_",collapse=""),".png")),height=7,width=3.5,units='in',res=1200)
+  if(!plottiff)png(file.path(MSEdir,"plots",paste0("CompareRefPoints",paste(CTLNameList,sep="_",collapse=""),".png")),height=7,width=3.5,units='in',res=1200)
+  if(plottiff)tiff(file.path(MSEdir,"plots",paste0("CompareRefPoints",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=2.5,units='in',res=1200)
   par(mfrow=c(5,1),mar=c(.1,.1,.3,.1),oma=c(10,6,1,1))
   
   inYlim<-c(min(BigMohn,BigBias,ReB35,ReF35,BigOFL,na.rm=T),max(BigMohn[BigMohn<10],
@@ -145,27 +147,28 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   
   boxplot(BigBias,col=ScenCols,xaxt='n',ylim=inYlim,las=1)
   legend("topleft",c("(b) Spawning biomass"),bty='n')
-  mtext(side=2,"relative error",line=3,cex=.7)
+  mtext(side=2,"Relative Error",line=3,cex=.7)
   abline(h=0,lty=2)
   boxplot(ReB35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
   legend("topleft",expression("(c) B"[35]),bty='n')
-  mtext(side=2,"relative error",line=3,cex=.7)
+  mtext(side=2,"Relative Error",line=3,cex=.7)
   abline(h=0,lty=2)
   boxplot(ReF35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
   legend("topleft",expression("(c) F"[35]),bty='n')
-  mtext(side=2,"relative error",line=3,cex=.7)
+  mtext(side=2,"Relative Error",line=3,cex=.7)
   abline(h=0,lty=2)
   boxplot(BigOFL,col=ScenCols,ylim=inYlim,xaxt='n',las=2)
   axis(1, labels = FALSE)
   text(seq_along(plotNames)+.15, par("usr")[3]-.1, labels = plotNames, srt = 45, adj = c(1.1,1.1), xpd = NA, cex=1.1)
   abline(h=0,lty=2)
   legend("topleft",c("(e) OFL"),bty='n')
-  mtext(side=2,"relative error",line=3,cex=.7)
+  mtext(side=2,"Relative Error",line=3,cex=.7)
   dev.off()
   
   quants<-PullTimevary(out=out,MSEdir,CTLNameList)
   
-  png(file.path(MSEdir,"plots",paste0("ComparePopulationProcess_",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(!plottiff)png(file.path(MSEdir,"plots",paste0("ComparePopulationProcess_",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(plottiff)tiff(file.path(MSEdir,"plots",paste0("ComparePopulationProcess_",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=4,width=6,units='in',res=1200)
   inmat<-matrix(c(1,1,2,2,3,3,
                   4,4,4,5,5,5),nrow=2,byrow=T)
   runs2plot<-sample(1:out$OM$Nsim,Nruns)
@@ -326,16 +329,20 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   #================================
   # Plot the estimates of spawning biomass
   #====================================
-  png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(!plottiff)png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(plottiff)tiff(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
   plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
-  png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(!plottiff)png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(plottiff)tiff(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
   plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
-  png(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(!plottiff)png(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(plottiff)tiff(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
   plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
-  png(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(!plottiff)png(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
+  if(plottiff)tiff(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
   plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
   dev.off()
  
