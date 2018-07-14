@@ -289,12 +289,12 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   if(echo) cat(steepnessN,"\t # steepnessN \n",file=echofile,append=T)
   sigmaRn	<-CleanInput(out$OM$sigmaRn,SimYear)
   if(echo) cat(sigmaRn,"\t # sigmaRn \n",file=echofile,append=T)
-  RzeroN	<-CleanInput(out$OM$RzeroN,SimYear)
+  RzeroN <-CleanInput(out$OM$RzeroN,SimYear)
   if(echo) cat(RzeroN,"\t # RzeroN \n",file=echofile,append=T)
   
   steepnessS	<-steepnessN
   sigmaRs	<-sigmaRn
-  RzeroS	<-RzeroN
+  RzeroS <-RzeroN
   
   if(TwoPop>0)
   {
@@ -382,8 +382,8 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   if(echo) write.table(row.names=F,col.names=F,ExploitBioN,file=echofile,append=T)
   ExploitBioS		<-sum(VirInitS*vulnS[1,]*WeightAtAgeS[1,])
   
-  png(file.path(PlotFolder,paste0("LifeHistory_",CTLName,".png")),res=1200,units='in',height=7.5,width=7.5)
-  par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,3,1,1))
+  png(file.path(PlotFolder,paste0("LifeHistory_",CTLName,".png")),res=600,units='in',height=6,width=6)
+  par(mfrow=c(4,4),mar=c(3,3,0,0),oma=c(1,1,1,1))
   PlotLifeHistory(LenAtAgeN,LenAtAgeS,matureN,matureS,vulnN,vulnS,survSelN,survSelS,WeightAtAgeN,
   	WeightAtAgeS,MovementN,MovementS,NatMs,NatMn,VirBioN,VirBioS,RzeroN,RecErrN,steepnessN,steepnessS,
   	RzeroS,RecErrS,sigmaRn,sigmaRs,HistoricalFn,HistoricalFs,SimYear,MaxAge)
