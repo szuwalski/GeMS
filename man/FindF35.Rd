@@ -5,8 +5,8 @@
 \title{Calculates F35 for \code{\link{GeMS}}}
 \usage{
 FindF35(MaxAge, vulnN, vulnS, NatMn, NatMs, matureN, matureS, WeightAtAgeN,
-  WeightAtAgeS, steepnessN, steepnessS, RzeroN, RzeroS, LenAtAgeN, LenAtAgeS,
-  inRec, RefYear, fmortSin = 0, MovementN, MovementS)
+  WeightAtAgeS, steepnessN, steepnessS, RzeroN, RzeroS, LenAtAgeN,
+  LenAtAgeS, inRec, RefYear, fmortSin = 0, MovementN, MovementS)
 }
 \arguments{
 \item{MaxAge}{Maximum age}

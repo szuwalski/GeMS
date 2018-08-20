@@ -12,7 +12,7 @@ Imports: foreach,
          doParallel,
          colorspace
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Suggests: testthat
 URL: https://github.com/szuwalski/GeMS
 BugReports: https://github.com/szuwalski/GeMS/issues

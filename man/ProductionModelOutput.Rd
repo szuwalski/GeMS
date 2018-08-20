@@ -4,7 +4,8 @@
 \alias{ProductionModelOutput}
 \title{Compare Production Model Outputs}
 \usage{
-ProductionModelOutput(out, CTLNameList, MSEdir, ylimIN = NA, plotNames = NA)
+ProductionModelOutput(out, CTLNameList, MSEdir, ylimIN = NA,
+  plotNames = NA)
 }
 \arguments{
 \item{out}{List ouput from \code{\link{ReadCTLfile}}}

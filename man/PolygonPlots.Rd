@@ -4,8 +4,9 @@
 \alias{PolygonPlots}
 \title{Plots polygons}
 \usage{
-PolygonPlots(Truth = NA, Estimated = NA, Observed = NA, AddLegend = F,
-  bottom = F, quantity = NA, SimYear = NA, Nsim = NA, ylimIN = NA)
+PolygonPlots(Truth = NA, Estimated = NA, Observed = NA,
+  AddLegend = F, bottom = F, quantity = NA, SimYear = NA,
+  Nsim = NA, ylimIN = NA)
 }
 \value{
 Plots plots plots

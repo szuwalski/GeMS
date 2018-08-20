@@ -21,7 +21,7 @@ Used to pull parameters from age-structured estimation model output. For use in 
 }
 \examples{
 \dontrun{
-MSEdir <- "~/GeneralMSE/Examples/Cod_5_AgeStructure"
+MSEdir <- "~/GeMS/inst/extdata/Cod_5_AgeStructure"
 CTLName <- "Cod_Age_Structure_CTL"
 out <- ReadCTLfile(CTLName)
 PullTimevary(out=out,

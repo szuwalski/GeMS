@@ -4,10 +4,10 @@
 \alias{FindFMSY}
 \title{Calculates yield at F, to be passed to optimizing function}
 \usage{
-FindFMSY(x, MaxAge, VirInitN, VirInitS, vulnN, vulnS, NatMn, NatMs, matureN,
-  matureS, WeightAtAgeN, WeightAtAgeS, steepnessN, steepnessS, RzeroN, RzeroS,
-  LenAtAgeN, LenAtAgeS, sigmaRn, sigmaRs, RefYear, inputFs = 0, MovementN,
-  MovementS)
+FindFMSY(x, MaxAge, VirInitN, VirInitS, vulnN, vulnS, NatMn, NatMs,
+  matureN, matureS, WeightAtAgeN, WeightAtAgeS, steepnessN, steepnessS,
+  RzeroN, RzeroS, LenAtAgeN, LenAtAgeS, sigmaRn, sigmaRs, RefYear,
+  inputFs = 0, MovementN, MovementS)
 }
 \arguments{
 \item{x}{Historical fishing mortality for nothern population}

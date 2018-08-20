@@ -12,7 +12,7 @@ run_GeMS(CTLNameList, MSEdir = getwd(), runparallel = F, cores = 1,
 
 \item{MSEdir}{Directory containing CTL files}
 
-\item{runparallel}{Logical; operating models should be run in parallel. If you're doing this, make sure that \pkg{foreach} is loaded, using \code{library(foreach)}}
+\item{runparallel}{Logical; operating models should be run in parallel. If you're doing this, note that the package \pkg{foreach} will be loaded.}
 
 \item{cores}{Number of cores to be used for parallel runs}
 
@@ -31,6 +31,9 @@ Main function to run a full Generalized MSE.
 OMNames <- c("Cod_LowProd_CTL","Cod_Base_CTL","Cod_HighProd_CTL")
 MSEdir <- "~/GeneralMSE/Examples/Cod_1_Production"
 run_GeMS(OMNames, MSEdir)
+
+# or
+run_GeMS(OMNames, MSEdir, runparallel=T, cores=2, plotNames = c("Low Productivity", "Base", "High Productivity"))
 }
 }
 \seealso{

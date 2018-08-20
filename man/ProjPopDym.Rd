@@ -4,10 +4,10 @@
 \alias{ProjPopDym}
 \title{Project population dynamics}
 \usage{
-ProjPopDym(fmortN, fmortS = 0, MaxAge, vulnN, vulnS, NatMn, NatMs, matureN,
-  matureS, WeightAtAgeN, WeightAtAgeS, steepnessN, steepnessS, RzeroN, RzeroS,
-  LenAtAgeN, LenAtAgeS, ProxyRec = 0, sigmaRn, sigmaRs, RefYear, MovementN,
-  MovementS)
+ProjPopDym(fmortN, fmortS = 0, MaxAge, vulnN, vulnS, NatMn, NatMs,
+  matureN, matureS, WeightAtAgeN, WeightAtAgeS, steepnessN, steepnessS,
+  RzeroN, RzeroS, LenAtAgeN, LenAtAgeS, ProxyRec = 0, sigmaRn, sigmaRs,
+  RefYear, MovementN, MovementS)
 }
 \value{
 List of projected yield and biomass

@@ -4,8 +4,8 @@
 \alias{Recruitment}
 \title{Recruitment function}
 \usage{
-Recruitment(EggsIN, steepnessIN, RzeroIN, RecErrIN, recType, NatMin, vulnIN,
-  matureIN, weightIN, LenAtAgeIN, MaxAge, sigmaRin)
+Recruitment(EggsIN, steepnessIN, RzeroIN, RecErrIN, recType, NatMin,
+  vulnIN, matureIN, weightIN, LenAtAgeIN, MaxAge, sigmaRin)
 }
 \arguments{
 \item{EggsIN}{Vector of egg mass}

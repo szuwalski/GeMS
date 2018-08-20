@@ -4,10 +4,11 @@
 \alias{PlotLifeHistory}
 \title{Plot Life History}
 \usage{
-PlotLifeHistory(LenAtAgeN, LenAtAgeS, matureN, matureS, vulnN, vulnS, survSelN,
-  survSelS, WeightAtAgeN, WeightAtAgeS, MovementN, MovementS, NatMs, NatMn,
-  VirBioN, VirBioS, RzeroN, RecErrN, steepnessN, steepnessS, RzeroS, RecErrS,
-  sigmaRn, sigmaRs, HistoricalFn, HistoricalFs, SimYear, MaxAge)
+PlotLifeHistory(LenAtAgeN, LenAtAgeS, matureN, matureS, vulnN, vulnS,
+  survSelN, survSelS, WeightAtAgeN, WeightAtAgeS, MovementN, MovementS,
+  NatMs, NatMn, VirBioN, VirBioS, RzeroN, RecErrN, steepnessN, steepnessS,
+  RzeroS, RecErrS, sigmaRn, sigmaRs, HistoricalFn, HistoricalFs, SimYear,
+  MaxAge)
 }
 \arguments{
 \item{LenAtAgeN}{Matrix of lengths at age for northern population}

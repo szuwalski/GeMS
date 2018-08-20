@@ -4,7 +4,8 @@
 \alias{AgeStructureComp}
 \title{Age-Structure Comparison}
 \usage{
-AgeStructureComp(out, RetroPeels = 6, CTLNameList, MSEdir, plotNames = NA)
+AgeStructureComp(out, RetroPeels = 6, CTLNameList, MSEdir,
+  plotNames = NA, Nruns = NA, plottiff = F)
 }
 \arguments{
 \item{out}{List output from \code{\link{ReadCTLfile}}}
@@ -16,6 +17,10 @@ AgeStructureComp(out, RetroPeels = 6, CTLNameList, MSEdir, plotNames = NA)
 \item{MSEdir}{Directory containing CTL files}
 
 \item{plotNames}{Vector of the same length as CTLNameList with "prettier" names for plotting}
+
+\item{Nruns}{Number of runs to plot in Population Processes plots (selectivity and growth)}
+
+\item{plottiff}{Logical; make plots in TFF instead of PNG?}
 }
 \value{
 Plots comparing age-structured estimating models
