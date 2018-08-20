@@ -5,7 +5,6 @@
 #' @param param Parameter of interest, named from PAR or CTL file (one of c("NatM","GrowthK","Linf","SelPars50","SelPars95","NatMn","VonKn","LinfN","sel50n","sel95n"))
 #' @param OMfile Name of CTL file to base truth on
 #' @param EMvec Vector of EM names
-#' @param saveplot Save plot to TIFF
 #' @param dolegend Logical; include legend?
 #' @param ylims vector of length two containing limits for y-axis
 #' @param ... any other graphical parameters, e.g., ylab,xlab
@@ -14,7 +13,7 @@
 #'
 #' @export
 #'
-PlotParam <- function(param,OMfile,EMvec,saveplot,plotnames=NA,dolegend=F,ylims=NA,...) {
+PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,ylims=NA,...) {
   if (!param %in% c("NatM","GrowthK","Linf","SelPars50","SelPars95",
                    "NatMn","VonKn","LinfN","sel50n","sel95n"))
       {stop("param not listed in PAR or CTL file. It should be one of these:\n
