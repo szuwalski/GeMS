@@ -14,7 +14,7 @@
 #'
 #' @export
 #'
-PlotParam <- function(param,OMfile,EMvec,saveplot,dolegend=F,ylims=NA,...) {
+PlotParam <- function(param,OMfile,EMvec,saveplot,plotnames=NA,dolegend=F,ylims=NA,...) {
   if (!param %in% c("NatM","GrowthK","Linf","SelPars50","SelPars95",
                    "NatMn","VonKn","LinfN","sel50n","sel95n"))
       {stop("param not listed in PAR or CTL file. It should be one of these:\n
@@ -46,6 +46,20 @@ PlotParam <- function(param,OMfile,EMvec,saveplot,dolegend=F,ylims=NA,...) {
     paramPAR <- "SelPars50"
   }
   
+  if(length(EMvec==1)) {
+    col95 <- "grey50"
+    col50 <- "grey75"
+    colmed <- "grey25"
+  }
+
+  if(length(EMvec)>1) {
+    if(length(EMvec)==2) {Ncols<-3}
+    else{Ncols<-length(EMvec)}
+    col95 <- adjustcolor(RColorBrewer::brewer.pal(Ncols,"Set1"),alpha=.25)
+    col50 <- adjustcolor(RColorBrewer::brewer.pal(Ncols,"Set1"),alpha=.5)
+    colmed <-adjustcolor(RColorBrewer::brewer.pal(Ncols,"Set1"),alpha=1)
+  }
+    
   # For own checking purposes in case ReadCTL variables change
   OM <- ReadCTLfile(OMfile)
   if(!paramCTL %in% names(OM$OM)) {stop("paramCTL not found in .par file. Check variable names from ReadCTLfile() output.")}
@@ -110,12 +124,13 @@ PlotParam <- function(param,OMfile,EMvec,saveplot,dolegend=F,ylims=NA,...) {
   plot(0,type='n',ylim=ylims,xlim=range(estimates$Year),...)
   for(em in seq_along(EMvec)) {
     tempdat <- estimates[estimates$EM==em,]
-    polygon(x=yearcoords,y=c(tempdat$Quant95,rev(tempdat$Quant05)),col="grey75",border=F)
-    polygon(x=yearcoords,y=c(tempdat$Quant25,rev(tempdat$Quant75)),col="grey50",border=F)
-    lines(x=1:dSimYear,y=tempdat$Median,lwd=2,col="grey25")
+    polygon(x=yearcoords,y=c(tempdat$Quant95,rev(tempdat$Quant05)),col=col95[em],border=F)
+    polygon(x=yearcoords,y=c(tempdat$Quant25,rev(tempdat$Quant75)),col=col50[em],border=F)
+    lines(x=1:dSimYear,y=tempdat$Median,lwd=2,col=colmed[em])
   }
   lines(x=1:SimYear,y=truth,lwd=2,lty=2,col="black")
-  if(dolegend) {legend("topleft",c("Truth","Median Estimates"),lty=c(2,1),col=c("black","grey25"),lwd=2)}
+  if(is.na(plotnames)) plotnames <- EMvec
+  if(dolegend) {legend("topleft",c("Truth",plotnames),lty=c(2,rep(1,length(EMvec))),col=c("black",colmed),lwd=2)}
   retlist <- list(truth=truth,estimates=estimates)
 
 }
