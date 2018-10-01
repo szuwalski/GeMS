@@ -10,7 +10,8 @@ LazyData: true
 ByteCompile: true
 Imports: foreach,
          doParallel,
-         colorspace
+         colorspace,
+         stringr
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.0
 Suggests: testthat

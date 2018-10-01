@@ -19,20 +19,22 @@ ReadRep <- function(wd) {
   namedlines <- grep(paste(patterns,collapse="|"),rawfile)
   retlist <- list()
   
-  listnames <- unlist(strsplit(rawfile[namedlines],split="#"))
-  listnames <- listnames[-which(listnames=="")]
+  listnames <- gsub("#","",rawfile[namedlines])
   listnames <- gsub(" ", "_", listnames)
   
   patterns <- c("pred", "bio")
-  toshortern <- Reduce(`&`, lapply(patterns, grepl, listnames))
+  toshorten <- Reduce(`&`, lapply(patterns, grepl, listnames))
+  temp <- grep("biomass",listnames)
+  toshorten[temp] <- TRUE
   
   for(i in 1:(length(namedlines)-1)) {
     cnt <- namedlines[i]+1
     retlist[[i]] <- suppressWarnings(as.numeric(unlist(strsplit(rawfile[cnt],split=" "))))
     if(length(retlist[[i]])>1) retlist[[i]] <- retlist[[i]][-1]
-    if(toshortern[i]) retlist[[i]] <- retlist[[i]][1:yearsdat]
+    if(toshorten[i]) retlist[[i]] <- retlist[[i]][1:yearsdat]
     while(cnt<(namedlines[i+1]-1)) {
       temp <- suppressWarnings(as.numeric(unlist(strsplit(rawfile[cnt+1],split=" "))))[-1]
+      if(toshorten[i]) temp <- temp[1:yearsdat]
       retlist[[i]] <- rbind(retlist[[i]],temp)
       cnt<- cnt+1
     }
@@ -43,9 +45,10 @@ ReadRep <- function(wd) {
   fin <- length(namedlines)
   retlist[[fin]] <- suppressWarnings(as.numeric(unlist(strsplit(rawfile[cnt],split=" "))))
   if(length(retlist[[fin]])>1) retlist[[fin]] <- retlist[[fin]][-1]
+  if(toshorten[fin]) retlist[[fin]] <- retlist[[fin]][1:yearsdat]
   while(cnt<length(rawfile)) {
     temp <- suppressWarnings(as.numeric(unlist(strsplit(rawfile[cnt+1],split=" "))))
-    if(length(temp)>1) temp <- temp[-1]
+    if(toshorten[i]) temp <- temp[1:yearsdat]
     retlist[[fin]] <- rbind(retlist[[fin]],temp)
     cnt <- cnt+1
   }

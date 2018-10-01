@@ -58,27 +58,22 @@ DrawDir		<-CTLNameList[p]
 out			<-ReadCTLfile(file.path(MSEdir,paste0(CTLNameList[p])))
 
 IndSimFolder	<-file.path(DrawDir,Nsim,SimYear)
-TRU			<-readLines(file.path(MSEdir,IndSimFolder,"TrueQuantities.DAT"))
+TRU			<-ReadTruDat(IndSimFolder)
 
-#==true
-temp		<-grep("fishing mortality",TRU)
-TrueFmort[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
-
+#==true Fmort
+TrueFmort[,,p]<-TRU$fishing_mortality
+  
 #==true Catch
-temp		<-grep("Catch",TRU)
-TrueCatch[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
+TrueCatch[,,p]<-TRU$Catch
 
 #==true Spawning biomass
-temp		<-grep("spawning biomass",TRU)
-TrueSpbio[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
-
-temp		<-grep("recruitment",TRU)
-TrueRec[,,p]<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
-
+TrueSpbio[,,p]<-TRU$spawning_biomass
+  
+TrueRec[,,p]<-TRU$recruitment
+  
 #==OFL 
-temp			<-grep("OFL",TRU)
-TrueOFL[,,p]	<-matrix(suppressWarnings(as.numeric(unlist(strsplit(TRU[(temp+1):(temp+Nsim)],split=" ")))),ncol=SimYear,byrow=T)
-
+TrueOFL[,,p]	<-TRU$OFL
+  
 for(n in 1:Nsim)
 {
 IndSimFolder	<-file.path(DrawDir,n,SimYear)

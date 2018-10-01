@@ -13,7 +13,7 @@
 #'
 #' @export
 #'
-PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,ylims=NA,...) {
+PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,legpos="topleft",ylims=NA,...) {
   if (!param %in% c("NatM","GrowthK","Linf","SelPars50","SelPars95",
                    "NatMn","VonKn","LinfN","sel50n","sel95n"))
       {stop("param not listed in PAR or CTL file. It should be one of these:\n
@@ -64,13 +64,14 @@ PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,ylims=NA,...) {
   if(!paramCTL %in% names(OM$OM)) {stop("paramCTL not found in .par file. Check variable names from ReadCTLfile() output.")}
   SimYear <- OM$OM$SimYear
   dSimYear <- SimYear-1
+  stYear <- OM$OM$start_assessment
+  Nyrs <- length(stYear:SimYear)-1
   Nsim <- OM$OM$Nsim
   temp <- paste0("OM$OM$",paramCTL)
   truth <- CleanInput(eval(parse(text=temp)),SimYear)
   
-  estimates <- matrix(ncol=5)
-  colnames(estimates) <- c("EM","Year","Mean","Quant50","Quant95")
-  temp <- matrix(nrow=Nsim,ncol=dSimYear)
+  estimates <- matrix(ncol=7)
+  temp <- matrix(nrow=Nsim,ncol=Nyrs)
   for(i in seq_along(EMvec)) {
     for(s in 1:Nsim) {
       EMdir <- file.path(getwd(),EMvec[i],s,SimYear)
@@ -97,8 +98,8 @@ PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,ylims=NA,...) {
     }
     
     tempmat <- cbind(
-                rep(i,dSimYear),
-                1:dSimYear,
+                rep(i,Nyrs),
+                stYear:dSimYear,
                 apply(temp,2,median,na.rm=T),
                 apply(temp,2,quantile,na.rm=T,probs=.25),
                 apply(temp,2,quantile,na.rm=T,probs=.75),              
@@ -117,19 +118,19 @@ PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,ylims=NA,...) {
   
   colnames(estimates) <- c("EM","Year","Median","Quant25","Quant75","Quant05","Quant95")
   estimates <- data.frame(estimates)
-  yearcoords <- c(1:dSimYear,dSimYear:1)
+  yearcoords <- c(stYear:dSimYear,dSimYear:stYear)
 
-  if(is.na(ylims)) ylims <- range(c(estimates$Quant95,estimates$Quant05))
-  plot(0,type='n',ylim=ylims,xlim=range(estimates$Year),...)
+  if(is.na(ylims[1])) ylims <- range(c(estimates$Quant95,estimates$Quant05),truth)
+  plot(-1E5,type='n',ylim=ylims,xlim=range(estimates$Year),...)
   for(em in seq_along(EMvec)) {
     tempdat <- estimates[estimates$EM==em,]
     polygon(x=yearcoords,y=c(tempdat$Quant95,rev(tempdat$Quant05)),col=col95[em],border=F)
     polygon(x=yearcoords,y=c(tempdat$Quant25,rev(tempdat$Quant75)),col=col50[em],border=F)
-    lines(x=1:dSimYear,y=tempdat$Median,lwd=2,col=colmed[em])
+    lines(x=stYear:dSimYear,y=tempdat$Median,lwd=2,col=colmed[em])
   }
   lines(x=1:SimYear,y=truth,lwd=2,lty=2,col="black")
-  if(is.na(plotnames)) plotnames <- EMvec
-  if(dolegend) {legend("topleft",c("Truth",plotnames),lty=c(2,rep(1,length(EMvec))),col=c("black",colmed),lwd=2)}
+  if(is.na(plotnames[1])) plotnames <- EMvec
+  if(dolegend) {legend(legpos,c("Truth",plotnames),lty=c(2,rep(1,length(EMvec))),col=c("black",colmed),lwd=2)}
   retlist <- list(truth=truth,estimates=estimates)
 
 }

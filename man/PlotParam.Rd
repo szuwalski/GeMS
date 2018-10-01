@@ -5,7 +5,7 @@
 \title{Plot Life History Parameter}
 \usage{
 PlotParam(param, OMfile, EMvec, plotnames = NA, dolegend = F,
-  ylims = NA, ...)
+  legpos = "topleft", ylims = NA, ...)
 }
 \arguments{
 \item{param}{Parameter of interest, named from PAR or CTL file (one of c("NatM","GrowthK","Linf","SelPars50","SelPars95","NatMn","VonKn","LinfN","sel50n","sel95n"))}

@@ -23,8 +23,8 @@ ReadPar <- function(wd) {
   retlist[[3]] <- temp[3]
   namedlines <- namedlines[-1]
   
-  listnames <- unlist(strsplit(rawfile[namedlines],split="# "))
-  listnames <- unlist(strsplit(listnames,split=":"))
+  listnames <- gsub("# ","",rawfile[namedlines])
+  listnames <- gsub(":","",listnames)
   
   for(i in 1:length(listnames)) {
     retlist[[3+i]] <- suppressWarnings(as.numeric(unlist(strsplit(rawfile[namedlines[i]+1],split=" "))))
