@@ -15,7 +15,16 @@
 #' 
 plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=NA,nSim=Nsim)
 { 
+  if(length(dim(input1))<3) {
+    temp<-input1
+    input1<-array(temp,dim=c(dim(temp),length(CTLNameList)))
+  }
+  if(length(dim(input2))<3) {
+    temp<-input2
+    input2<-array(temp,dim=c(dim(temp),length(CTLNameList)))
+  }
   if(is.na(plotNames[1])) plotNames<-CTLNameList
+  
   par(mfcol=c(1,length(CTLNameList)),mar=c(.1,.1,.1,.1),oma=c(4,6,1,4))
   if(nSim>1) 
   {
@@ -54,3 +63,4 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=NA,nSim=Ns
   
   legend('topleft',col=c(1,2),pch=c(15,NA),lty=c(NA,1),legend=c("True","Estimated"),bty='n')
 }
+
