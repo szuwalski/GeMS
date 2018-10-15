@@ -19,8 +19,11 @@ CalculateBias<-function(RetroOuts)
   {
    tempPreds<-preds[,,x]
    tempTrue<-RetroOuts[[2]][x,]
-  for(y in 1:dim(preds)[1])
-   BiasSSB[y,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
+   if(dim(preds)[1]>1) 
+  	for(y in 1:dim(preds)[1])
+   		BiasSSB[y,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
+   if(dim(preds)[1]==1)
+   	BiasSSB[,x]<-(tempPreds[(length(tempPreds)-1)]-tempTrue[(length(tempPreds)-1)])/tempTrue[(length(tempPreds)-1)]
    }
  return(BiasSSB)
 }

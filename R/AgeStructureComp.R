@@ -62,7 +62,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   BigB35<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
   BigF35<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
   BigOFL<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
-  if(out$OM$Nsim>1) {
+  if(out$OM$Nsim>1 & (out$OM$SimYear-out$OM$InitYear)>1) {
     for(x in seq_along(CTLNameList))
     {
       BigB35[,x]<-apply((B35save[,,x]-tB35save[,,x])/tB35save[,,x],2,median,na.rm=T)
@@ -71,7 +71,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
     }
   }
   
-  if(out$OM$Nsim==1) {
+  if(out$OM$Nsim==1 | (out$OM$SimYear-out$OM$InitYear)==1) {
     for(x in seq_along(CTLNameList))
     {
       BigB35[,x]<-median((B35save[,,x]-tB35save[,,x])/tB35save[,,x],na.rm=T)
@@ -95,11 +95,18 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
     out			<-ReadCTLfile(file.path(MSEdir,CTLNameList[x]))
     DrawDir		<-CTLNameList[x]
     RetroOuts		<-CheckRetro(RetroPeels=RetroPeels,DrawDir,PlotRetro=0,out=out,MSEdir)
-    MohnsRho[,,x]	<-CalculateMohn(RetroOuts)
-    SSBbias[,,x]	<-CalculateBias(RetroOuts)
+    if(RetroPeels>1) {
+      MohnsRho[,,x]	<-CalculateMohn(RetroOuts)
+
+    }
+    if(RetroPeels==1) {
+      MohnsRho<-NA
+    }
+    SSBbias[,,x]  <-CalculateBias(RetroOuts)
   }
   
   BigMohn<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
+  if(RetroPeels==1) BigMohn<-NA
   if(out$OM$Nsim > 1 & (RetroPeels-1)>1) {
     for(x in seq_along(CTLNameList))
     {
@@ -117,20 +124,20 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   }
 
   BigBias<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
-  if(out$OM$Nsim > 1 & (RetroPeels-1) > 1) {
-    for(x in seq_along(CTLNameList))
-    {
-      temp<-SSBbias[,,x]
-      BigBias[,x]<-apply(temp,2,mean) 
-    }
-  }
   
-  if(out$OM$Nsim == 1 | (RetroPeels-1) == 1) {
-    for(x in seq_along(CTLNameList))
+  for(x in seq_along(CTLNameList))
     {
       temp<-SSBbias[,,x]
-      BigBias[,x]<-mean(temp) 
-    }
+
+      if(out$OM$Nsim > 1 & RetroPeels > 1) {
+        BigBias[,x]<-apply(temp,2,mean) 
+      }
+      if(out$OM$Nsim == 1 & RetroPeels > 1) {
+        BigBias[,x]<-mean(temp) 
+      }
+      if(RetroPeels == 1) {
+        BigBias[,x]<-temp 
+      }
   }
 
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("CompareRefPoints",paste(CTLNameList,sep="_",collapse=""),".png")),height=7,width=3.5,units='in',res=1200)

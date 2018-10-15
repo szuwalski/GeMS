@@ -172,9 +172,12 @@ if((SimYear-out$OM$InitYear)>2) {
   polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[1,1:SimYear-1],rev(inShape[4,1:SimYear-1])),col='darkgrey',border=F)
   polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
 }
-if((SimYear-out$OM$InitYear)<=2 & (SimYear-out$OM$InitYear)>0) {
+if((SimYear-out$OM$InitYear)==2) {
 #  plot(0,type="n",xlim=c(0,2),ylim=use_ylim,xlab="Year",ylab="",xaxt='n',yaxt='n')
   boxplot(RelativeErrorBMSY[[y]][,(out$OM$InitYear+1):(out$OM$SimYear-1)],add=T,at=(out$OM$SimYear-1),axes=F)
+}
+if((SimYear-out$OM$InitYear)==1) {  
+  boxplot(RelativeErrorBMSY[[y]][,(out$OM$InitYear+1):(out$OM$SimYear)],add=T,at=(out$OM$SimYear-.5),axes=F)
 }
 mtext(side=3,plotNames[y],cex=.7)
 
@@ -197,9 +200,13 @@ polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-
 axis(side=1)
 }
 
-if((out$OM$SimYear-out$OM$InitYear)<=2 & (out$OM$SimYear-out$OM$InitYear)>0) {
+if((out$OM$SimYear-out$OM$InitYear)==2) {
   plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n',xaxt='n')
   boxplot(RelativeErrorFMSY[[y]][,(out$OM$InitYear+1):(SimYear-1)],add=T,at=(SimYear-1),axes=F)
+}
+if((out$OM$SimYear-out$OM$InitYear)==1) {
+  plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n',xaxt='n')
+  boxplot(RelativeErrorFMSY[[y]][,(out$OM$InitYear+1):(SimYear)],add=T,at=(SimYear-.5),axes=F)
 }
 abline(h=0,lty=2)
 if(y==1)
@@ -220,9 +227,13 @@ if(y==1)
   polygon(x=c(seq(1,(SimYear-1)),rev(seq(1,(SimYear-1)))),y=c(inShape[2,1:SimYear-1],rev(inShape[3,1:SimYear-1])),col='lightgrey',border=F)
   }
   
-  if((SimYear-out$OM$InitYear)<=2 & (SimYear-out$OM$InitYear)>0) {
+  if((SimYear-out$OM$InitYear)==2) {
     plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n',xaxt='n')
     boxplot(RelativeErrorTAC[[y]][,(out$OM$InitYear+1):(SimYear-1)],add=T,at=(SimYear-1),axes=F)
+  }
+  if((SimYear-out$OM$InitYear)==1) {
+    plot(-100000000000,ylim=c(ydown,yUp),las=1,ylab="",xlab="Year",xlim=c(out$OM$InitYear,SimYear),yaxt='n',xaxt='n')
+    boxplot(RelativeErrorTAC[[y]][,(out$OM$InitYear+1):(SimYear)],add=T,at=(SimYear-.5),axes=F)
   }
   abline(h=0,lty=2)
   if(y==1)

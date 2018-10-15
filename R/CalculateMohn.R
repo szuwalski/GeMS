@@ -18,8 +18,14 @@ CalculateMohn<-function(RetroOuts)
   {
    tempPreds<-preds[,,x]
    tempTrue<-preds[1,,x]
-  for(y in 2:dim(preds)[1])
-   MohnsRho[y-1,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
+   if(dim(preds)[1]>1) {
+  	for(y in 2:dim(preds)[1]) {
+   		MohnsRho[y-1,x]<-(tempPreds[y,(ncol(tempPreds)-y)]-tempTrue[(ncol(tempPreds)-y)])/tempTrue[(ncol(tempPreds)-y)]
+  	}
    }
+   if(dim(preds)[1]==1) {
+   	MohnsRho<-NA
+   }
+  }
  return(MohnsRho)
 }

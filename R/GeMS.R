@@ -911,7 +911,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    
    cat("#data cpue","\n",file=inFile,append=TRUE)
    for(m in 1:Nsim)
-   cat(CPUEDataN,"\n",file=inFile,append=TRUE)
+    cat(CPUEDataN,"\n",file=inFile,append=TRUE)
    }
   }
   #========================================
@@ -925,46 +925,8 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    if(!dir.exists(IndSimFolder)) dir.create(IndSimFolder)
   
    #==write the true values
-   file.create(file.path(IndSimFolder,"TrueQuantities.DAT"))
-   cat("#True quantities","\n",file=TQfile)
-   cat("#","\n",file=TQfile,append=TRUE)
-   cat("#recruitment","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueRecN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#Catch","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueCatchN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#fishing mortality","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueFmortN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#spawning biomass","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueSpbioN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#survey index","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueSurvIndN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#cpue index","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueCPUEindN[q,],"\n",file=TQfile,append=TRUE)
-   #cat("#total allowable catch","\n",file=TQfile,append=TRUE)
-   #cat(trueTACn[q,],"\n",file=TQfile,append=TRUE)
-   cat("#","\n",file=TQfile,append=TRUE)
-   cat("#BMSY begin","\n",file=TQfile,append=TRUE)
-   cat(trueBMSYbegin,"\n",file=TQfile,append=TRUE)
-   cat("#FMSY begin","\n",file=TQfile,append=TRUE)
-   cat(trueFMSYbegin,"\n",file=TQfile,append=TRUE)
-   cat("#BMSY end","\n",file=TQfile,append=TRUE)
-   cat(trueBMSYend,"\n",file=TQfile,append=TRUE)
-   cat("#FMSY end","\n",file=TQfile,append=TRUE)
-   cat(trueFMSYend,"\n",file=TQfile,append=TRUE)
-   cat("#B35","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueB35[q,],"\n",file=TQfile,append=TRUE)
-   cat("#F35","\n",file=TQfile,append=TRUE)
-   cat(trueF35,"\n",file=TQfile,append=TRUE)
-   cat("#OFL","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueOFL[q,],"\n",file=TQfile,append=TRUE)
+   TQfile <- file.path(IndSimFolder,"TrueQuantities.DAT")
+   file.create(TQfile)
   
    #==calculate the TAC based on a SRR or a proxy, depending on data
    #==allow this to be a user defined function of any of the things that can be input
@@ -985,60 +947,19 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    #==Better way of doing this??
    execfile <- get_exec(SimAssExec)
    copied <- file.copy(from=execfile,to=IndSimFolder,overwrite=TRUE)
-   if(!copied) stop("Executable failed to copy. Might want to check what's up.")
+   if(!copied) stop(paste0("Executable failed to copy from ",execfile,". Might want to check what's up."))
   
    #==write the true values
    #==Probably don't need this if it is stored in the MSE object
    TQfile <- file.path(IndSimFolder,"TrueQuantities.DAT")
-   file.create(TQfile)
-   cat("#True quantities","\n",file=TQfile)
-   cat("#","\n",file=TQfile,append=TRUE)
-   cat("#recruitment","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueRecN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#Catch","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueCatchN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#fishing mortality","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueFmortN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#spawning biomass","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueSpbioN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#survey index","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueSurvIndN[q,],"\n",file=TQfile,append=TRUE)
-   cat("#cpue index","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueCPUEindN[q,],"\n",file=TQfile,append=TRUE)
-   #cat("#total allowable catch","\n",file=TQfile,append=TRUE)
-   #cat(trueTAC[q,],"\n",file=TQfile,append=TRUE)
-   cat("#","\n",file=TQfile,append=TRUE)
-   cat("#BMSY begin","\n",file=TQfile,append=TRUE)
-   cat(trueBMSYbegin,"\n",file=TQfile,append=TRUE)
-   cat("#FMSY begin","\n",file=TQfile,append=TRUE)
-   cat(trueFMSYbegin,"\n",file=TQfile,append=TRUE)
-   cat("#BMSY end","\n",file=TQfile,append=TRUE)
-   cat(trueBMSYend,"\n",file=TQfile,append=TRUE)
-   cat("#FMSY end","\n",file=TQfile,append=TRUE)
-   cat(trueFMSYend,"\n",file=TQfile,append=TRUE)
-   cat("#B35in","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueB35[q,],"\n",file=TQfile,append=TRUE)
-   cat("#F35in","\n",file=TQfile,append=TRUE)
-   cat(trueF35,"\n",file=TQfile,append=TRUE)
-   cat("#OFL","\n",file=TQfile,append=TRUE)
-   for(q in 1:Nsim)
-   cat(trueOFL[q,],"\n",file=TQfile,append=TRUE)
-  
-   #selAtAgeFunc(sel50n[1],VonKn[1],LinfN[1],t0n[1])
-   #selAtAgeFunc(sel95n[1],VonKn[1],LinfN[1],t0n[1])
-   #selAtAgeFunc(surv50n[1],VonKn[1],LinfN[1],t0n[1])
-   #selAtAgeFunc(surv95n[1],VonKn[1],LinfN[1],t0n[1])
+   if(!file.exists(TQfile)) file.create(TQfile)
+
+   # TQfile now written at the end after the assessment -LQ 11/10/18
+
   
    #==.CTL file  !!!!!!!!!!!!!!!!!how should we deal with space?!!!!!!!!!!!!!!!!!!!!!!
    CTLfile <- file.path(IndSimFolder,"SimAss.CTL")
-   file.create(CTLfile)
+   if(!file.exists(CTLfile)) file.create(CTLfile)
    cat("#Simulated assessment control file","\n",file=CTLfile)
    cat("#","\n",file=CTLfile,append=TRUE)
    cat("#weight parameters","\n",file=CTLfile,append=TRUE)
@@ -1101,6 +1022,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   
   #==write .PIN file to get initial values close for estimation
    PINfile <- file.path(IndSimFolder,"SimAss.PIN")
+   if(!file.exists(PINfile)) file.create(PINfile)
    cat("# Simulated assessment pin file","\n",file=PINfile)
    cat("#","\n",file=PINfile,append=TRUE)
   
@@ -1123,26 +1045,26 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    cat(rep(0,y-start_assessment),"\n",file=PINfile,append=TRUE)
    cat("# log_avg_NatM","\n",file=PINfile,append=TRUE)
    if(EstM > 0) {
-   cat(log(mean(NatMn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file=PINfile,append=TRUE)
+    cat(log(mean(NatMn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file=PINfile,append=TRUE)
    }
    if(EstM <= 0) {
-   cat(log(mean(NatMn,na.rm=T)),"\n",file=PINfile,append=TRUE) 
+    cat(log(mean(NatMn,na.rm=T)),"\n",file=PINfile,append=TRUE) 
    }
    cat("# NatM_dev","\n",file=PINfile,append=TRUE)
    cat(rep(0,y-start_assessment),"\n",file=PINfile,append=TRUE)
    cat("# log_avg_GrowthK","\n",file=PINfile,append=TRUE)
    if(EstGrowthK > 0) {
-   cat(log(mean(VonKn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file=PINfile,append=TRUE)
+    cat(log(mean(VonKn,na.rm=T))*rnorm(1,1,InitValSig),"\n",file=PINfile,append=TRUE)
    }
    if(EstGrowthK <= 0) {
-   cat(log(mean(VonKn,na.rm=T)),"\n",file=PINfile,append=TRUE)
+    cat(log(mean(VonKn,na.rm=T)),"\n",file=PINfile,append=TRUE)
    }
    cat("# log_avg_Linf","\n",file=PINfile,append=TRUE)
    if(EstLinf > 0) {
-   cat(log(mean(LinfN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file=PINfile,append=TRUE)
+    cat(log(mean(LinfN,na.rm=T))*rnorm(1,1,InitValSig),"\n",file=PINfile,append=TRUE)
    }
    if(EstLinf < 0) {
-   cat(log(mean(LinfN,na.rm=T)),"\n",file=PINfile,append=TRUE)
+    cat(log(mean(LinfN,na.rm=T)),"\n",file=PINfile,append=TRUE)
    }
    cat("# GrowthK_dev","\n",file=PINfile,append=TRUE)
    cat(rep(0,y-start_assessment),"\n",file=PINfile,append=TRUE)
@@ -1166,7 +1088,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    #==.DAT file 
    #=======================================
    DATfile <- file.path(IndSimFolder,"SimAss.DAT")
-   file.create(DATfile)
+   if(!file.exists(DATfile)) file.create(DATfile)
    cat("#Simulated generalized assessment","\n",file=DATfile)
    cat("#","\n",file=DATfile,append=TRUE)
    cat("#start/end year","\n",file=DATfile,append=TRUE)
@@ -1252,11 +1174,10 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   REP<-readLines(file.path(IndSimFolder,"simass.rep"))
   CTL<-readLines(CTLfile)
   DAT<-readLines(DATfile)
-  TRU<-readLines(TQfile)
+
   data2<-scan(file.path(IndSimFolder,"simass.PAR"),what="character",quiet=T)
   
-   if(EstimationPlots==1 & z==Nsim & y == SimYear)
-    AgeAssPlot(REP,CTL,DAT,TRU,data2,MSEdir,CTLName)
+
   
   temp<-grep("OFL",REP)[2]
   OFL<-suppressWarnings(as.numeric(unlist(strsplit(REP[temp+1],split=" "))))
@@ -1399,10 +1320,98 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
      projNs[y,1,z]		<-Recruitment(EggsIN=EggsS,steepnessIN=steepnessS[y],RzeroIN=RzeroS[y],RecErrIN=RecErrS[z,y],recType="BH",NatMin=NatMs[y],
   							vulnIN=vulnS[y,],matureIN=matureS[y,],weightIN=WeightAtAgeS[y,],LenAtAgeIN=LenAtAgeS[y,],MaxAge=MaxAge,sigmaRin=sigmaRs[y])
      trueRecN[z,y]		<-projNn[y,1,z]
-  
-    if(!silent) cat(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,"\n",sep=""))
     
     trueB35[z,y]  <-trueSBPR35[y]*mean(trueRecN[z,start_assessment:SimYear],na.rm=T)
+
+    if(AssessmentType==2)  {
+      cat("#True quantities","\n",file=TQfile)
+      cat("#","\n",file=TQfile,append=TRUE)
+      cat("#recruitment","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueRecN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#Catch","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueCatchN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#fishing mortality","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueFmortN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#spawning biomass","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueSpbioN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#survey index","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueSurvIndN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#cpue index","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueCPUEindN[q,],"\n",file=TQfile,append=TRUE)
+      #cat("#total allowable catch","\n",file=TQfile,append=TRUE)
+      #cat(trueTAC[q,],"\n",file=TQfile,append=TRUE)
+      cat("#","\n",file=TQfile,append=TRUE)
+      cat("#BMSY begin","\n",file=TQfile,append=TRUE)
+      cat(trueBMSYbegin,"\n",file=TQfile,append=TRUE)
+      cat("#FMSY begin","\n",file=TQfile,append=TRUE)
+      cat(trueFMSYbegin,"\n",file=TQfile,append=TRUE)
+      cat("#BMSY end","\n",file=TQfile,append=TRUE)
+      cat(trueBMSYend,"\n",file=TQfile,append=TRUE)
+      cat("#FMSY end","\n",file=TQfile,append=TRUE)
+      cat(trueFMSYend,"\n",file=TQfile,append=TRUE)
+      cat("#B35in","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueB35[q,],"\n",file=TQfile,append=TRUE)
+      cat("#F35in","\n",file=TQfile,append=TRUE)
+      cat(trueF35,"\n",file=TQfile,append=TRUE)
+      cat("#OFL","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueOFL[q,],"\n",file=TQfile,append=TRUE)
+
+      TRU<-readLines(TQfile)
+      if(EstimationPlots==1 & z==Nsim & y == SimYear)
+       AgeAssPlot(REP,CTL,DAT,TRU,data2,MSEdir,CTLName)
+    }
+    if(AssessmentType==0)  {
+      cat("#True quantities","\n",file=TQfile)
+      cat("#","\n",file=TQfile,append=TRUE)
+      cat("#recruitment","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueRecN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#Catch","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueCatchN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#fishing mortality","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueFmortN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#spawning biomass","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueSpbioN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#survey index","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueSurvIndN[q,],"\n",file=TQfile,append=TRUE)
+      cat("#cpue index","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueCPUEindN[q,],"\n",file=TQfile,append=TRUE)
+      #cat("#total allowable catch","\n",file=TQfile,append=TRUE)
+      #cat(trueTACn[q,],"\n",file=TQfile,append=TRUE)
+      cat("#","\n",file=TQfile,append=TRUE)
+      cat("#BMSY begin","\n",file=TQfile,append=TRUE)
+      cat(trueBMSYbegin,"\n",file=TQfile,append=TRUE)
+      cat("#FMSY begin","\n",file=TQfile,append=TRUE)
+      cat(trueFMSYbegin,"\n",file=TQfile,append=TRUE)
+      cat("#BMSY end","\n",file=TQfile,append=TRUE)
+      cat(trueBMSYend,"\n",file=TQfile,append=TRUE)
+      cat("#FMSY end","\n",file=TQfile,append=TRUE)
+      cat(trueFMSYend,"\n",file=TQfile,append=TRUE)
+      cat("#B35","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueB35[q,],"\n",file=TQfile,append=TRUE)
+      cat("#F35","\n",file=TQfile,append=TRUE)
+      cat(trueF35,"\n",file=TQfile,append=TRUE)
+      cat("#OFL","\n",file=TQfile,append=TRUE)
+      for(q in 1:Nsim)
+       cat(trueOFL[q,],"\n",file=TQfile,append=TRUE)
+    }
+
+    if(!silent) cat(paste("Year ",y," of ",SimYear," in simulation ",z," of ",Nsim,"\n",sep=""))
+
    } # end y
   } # end z
 
