@@ -32,7 +32,11 @@ if(estInit==1)
 CatchData<-c(CatchData,0)
 for(i in 2:length(CatchData))
 {
- predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
+ if(predBio[i-1]<=0) predBio[i] <- 0
+ if(predBio[i-1]>0) {
+  predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
+  if(predBio[i]<0) predBio[i] <- 0
+ }
 }
 if(plots==1)
 {
