@@ -839,6 +839,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    MSY		<-BMSY[z,y]*FMSY[z,y]
    CurBio[z,y]<-PredBio[length(PredBio)-1]
    inBio	<-projExpBn[z,y-1]
+   if(CurBio[z,y]<0) CurBio[z,y]<-0
    TAC[z,y]	<-HarvestControlRule(FMSY=FMSY[z,y],BMSY=BMSY[z,y],ExploitBio=CurBio[z,y],SpawnBio=CurBio[z,y],
   			alpha=HCalphaN,beta=HCbetaN,HarvestControl=HarvestControlN,ConstantCatch=ConstantCatchN,
     			ConstantF=ConstantFn)

@@ -158,9 +158,10 @@ temp<-sweep(estFMSY[,,y],MAR=2,trueFMSY[y],FUN="-")
 RelativeErrorFMSY[[y]]<-sweep(temp,MAR=2,trueFMSY[y],FUN="/")
 RelativeErrorTAC[[y]]<-(estTAC[,,y]-trueTAC[,,y])/trueTAC[,,y]
 }
-
-yUp   <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY),unlist(RelativeErrorTAC)),na.rm=T,probs=c(0.975))
-ydown <-quantile(c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY),unlist(RelativeErrorTAC)),na.rm=T,probs=c(0.025))
+temp<-c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY),unlist(RelativeErrorTAC))
+temp[!is.finite(temp)]<-NA
+yUp   <-quantile(temp,na.rm=T,probs=c(0.975))
+ydown <-quantile(temp,na.rm=T,probs=c(0.025))
 use_ylim<-c(ydown,yUp)
 
 for(y in seq_along(CTLNameList))
