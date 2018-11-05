@@ -59,6 +59,13 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
     tOFLsave[,,x]	<-temp[[6]][TakeRows,]
   } 
   
+  temp<-tB35save<=0
+  tB35save[temp]<-1E-10
+  temp<-tF35save<=0
+  tF35save[temp]<-1E-10
+  temp<-tOFLsave<=0
+  tOFLsave[temp]<-1E-10
+
   BigB35<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
   BigF35<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))
   BigOFL<-matrix(nrow=out$OM$Nsim,ncol=length(CTLNameList))

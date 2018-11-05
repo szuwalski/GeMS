@@ -23,7 +23,8 @@
 #' 
 ProdMod<-function(x,CatchData,IndexData,estInit=0)
 {
-	K<-exp(x[1])
+	x<-exp(x)
+	K<-x[1]
 	r<-x[2]
 	if(sum(is.na(x))>0 | sum(x<0)>0) return(Inf)
 		predBio<-rep(0,length(IndexData))
@@ -32,7 +33,11 @@ ProdMod<-function(x,CatchData,IndexData,estInit=0)
 		  predBio[1]<-K*x[3]
 		for(i in 2:length(CatchData))
 		{
-		 predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
+ 			if(predBio[i-1]<=0) predBio[i] <- 0
+ 			if(predBio[i-1]>0) {
+ 			 predBio[i]<-predBio[i-1]+r*predBio[i-1]*(1-predBio[i-1]/K)-CatchData[i]
+ 			 if(predBio[i]<0) predBio[i] <- 0
+ 			}
 		}
 
 		SSQ<-sum((predBio-IndexData)^2)

@@ -23,7 +23,8 @@
 #' 
 ProdModPlot<-function(x,CatchData,IndexData,plots=0,estInit=0)
 {
-K<-exp(x[1])
+x<-exp(x)
+K<-x[1]
 r<-x[2]
 predBio<-rep(0,length(IndexData)+1)
 predBio[1]<-K

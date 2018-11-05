@@ -161,7 +161,9 @@ RelativeErrorTAC[[y]]<-(estTAC[,,y]-trueTAC[,,y])/trueTAC[,,y]
 temp<-c(unlist(RelativeErrorBMSY),unlist(RelativeErrorFMSY),unlist(RelativeErrorTAC))
 temp[!is.finite(temp)]<-NA
 yUp   <-quantile(temp,na.rm=T,probs=c(0.975))
+if(yUp>10) yUp<-5
 ydown <-quantile(temp,na.rm=T,probs=c(0.025))
+if(ydown<(-10)) ydown<-(-5)
 use_ylim<-c(ydown,yUp)
 
 for(y in seq_along(CTLNameList))

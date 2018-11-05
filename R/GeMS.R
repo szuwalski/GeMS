@@ -127,10 +127,11 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   LenAtAgeN	<-matrix(nrow=SimYear,ncol=MaxAge)
   
   LenAtAgeN[1,]<-LinfN[1]*(1-exp(-VonKn[1]*(Ages-t0n[1])))
-  LenAtAgeN[,1]<-LenAtAgeN[1,1]
-  for(i in 2:SimYear)
+  for(i in 2:SimYear) {
+    LenAtAgeN[i,1]<-LinfN[i]*(1-exp(-VonKn[i]*(Ages[1]-t0n[i])))
    for(j in 2:MaxAge)
     LenAtAgeN[i,j]<-LenAtAgeN[i-1,j-1]+(LinfN[i]-LenAtAgeN[i-1,j-1])*(1-exp(-VonKn[i]))
+  }
   if(echo) cat("# LenAtAgeN \n",file=echofile,append=T)
   if(echo) cat("# Ages", Ages,"\n",file=echofile,append=T)
   if(echo) write.table(row.names=F,col.names=F,LenAtAgeN,file=echofile,append=T)
@@ -139,16 +140,18 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   
   if(TwoPop>0)
   { 
-  VonKs		<-CleanInput(out$OM$VonKs,SimYear)
-  LinfS		<-CleanInput(out$OM$LinfS,SimYear)
-  t0s		<-CleanInput(out$OM$t0s,SimYear)
-  LenAtAgeS	<-matrix(nrow=SimYear,ncol=MaxAge)
+  VonKs   <-CleanInput(out$OM$VonKs,SimYear)
+  LinfS   <-CleanInput(out$OM$LinfS,SimYear)
+  t0s   <-CleanInput(out$OM$t0s,SimYear)
+  LenAtAgeS <-matrix(nrow=SimYear,ncol=MaxAge)
   
   LenAtAgeS[1,]<-LinfS[1]*(1-exp(-VonKs[1]*(Ages-t0s[1])))
   LenAtAgeS[,1]<-LenAtAgeS[1,1]
-  for(i in 2:SimYear)
+  for(i in 2:SimYear) {
+    LenAtAgeN[i,1]<-LinfN[i]*(1-exp(-VonKn[i]*(Ages[1]-t0n[i])))
    for(j in 2:MaxAge)
-    LenAtAgeS[i,j]<-LenAtAgeS[i-1,j-1]+(LinfS[i]-LenAtAgeS[i-1,j-1])*(1-exp(-VonKs[i]))
+    LenAtAgeN[i,j]<-LenAtAgeN[i-1,j-1]+(LinfN[i]-LenAtAgeN[i-1,j-1])*(1-exp(-VonKn[i]))
+    } 
   }
   
   #==specify the number of length bins
@@ -818,23 +821,25 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    {
    if(y==(InitYear+1))
    {
-    x		<-c(log(InitBzeroMod*(VirBioN)),InitGrowthRate)	
+    x		<-c((InitBzeroMod*(VirBioN)),InitGrowthRate)	
     if(estInit==1)
-      x		<-c(log(InitBzeroMod*(VirBioN)),InitGrowthRate,InitBioProd)	
+      x		<-c((InitBzeroMod*(VirBioN)),InitGrowthRate,InitBioProd)	
    }
+    logx<-suppressWarnings(log(x))
     if(y>(InitYear+1))
-    x		<-outs$par
+    logx		<-outs$par
    inCatch	<-CatchDataN[start_assessment:(y-1)]
    inCPUE	<-CPUEDataN[start_assessment:(y-1)]
-   outs		<-suppressWarnings(nlminb(start=x,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit))
+   
+   outs		<-suppressWarnings(nlminb(start=logx,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit))
    #outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
    if(sum(is.na(outs$par))>0) {stop("Production model converged on NaNs. Not really sure why. Try changing your starting values?")}
    Converge[z,y]<-outs$convergence
    PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
-   FMSY[z,y] 	<-outs$par[2]/2
+   FMSY[z,y] 	<-exp(outs$par[2])/2
    BMSY[z,y]	<-exp(outs$par[1])/2
    if(estInit==1)
-    est_init_B[z,y]<-outs$par[3]
+    est_init_B[z,y]<-exp(outs$par[3])
    
    MSY		<-BMSY[z,y]*FMSY[z,y]
    CurBio[z,y]<-PredBio[length(PredBio)-1]
@@ -913,6 +918,10 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    cat("#data cpue","\n",file=inFile,append=TRUE)
    for(m in 1:Nsim)
     cat(CPUEDataN,"\n",file=inFile,append=TRUE)
+
+   cat("#convergence","\n",file=inFile,append=TRUE)
+   for(m in 1:Nsim)
+    cat(Converge[m,],"\n",file=inFile,append=TRUE)
    }
   }
   #========================================
