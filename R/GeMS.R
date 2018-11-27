@@ -148,9 +148,9 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   LenAtAgeS[1,]<-LinfS[1]*(1-exp(-VonKs[1]*(Ages-t0s[1])))
   LenAtAgeS[,1]<-LenAtAgeS[1,1]
   for(i in 2:SimYear) {
-    LenAtAgeN[i,1]<-LinfN[i]*(1-exp(-VonKn[i]*(Ages[1]-t0n[i])))
+    LenAtAgeS[i,1]<-LinfS[i]*(1-exp(-VonKs[i]*(Ages[1]-t0s[i])))
    for(j in 2:MaxAge)
-    LenAtAgeN[i,j]<-LenAtAgeN[i-1,j-1]+(LinfN[i]-LenAtAgeN[i-1,j-1])*(1-exp(-VonKn[i]))
+    LenAtAgeS[i,j]<-LenAtAgeS[i-1,j-1]+(LinfS[i]-LenAtAgeS[i-1,j-1])*(1-exp(-VonKs[i]))
     } 
   }
   
