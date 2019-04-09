@@ -168,7 +168,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   mtext(side=2,"Relative Error",line=3,cex=.7)
   abline(h=0,lty=2)
   boxplot(ReF35,col=ScenCols,ylim=inYlim,xaxt='n',las=1)
-  legend("topleft",expression("(c) F"[35]),bty='n')
+  legend("topleft",expression("(d) F"[35]),bty='n')
   mtext(side=2,"Relative Error",line=3,cex=.7)
   abline(h=0,lty=2)
   boxplot(BigOFL,col=ScenCols,ylim=inYlim,xaxt='n',las=2)
@@ -221,9 +221,10 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   #==FISHING MORTALITY
   input<-quants[[3]]
   NatM<-quants[[7]]
-  tInput<-quants[[4]] 
+  tInput<-quants[[4]]
+  mortrange<-range(0,quants[[3]],quants[[7]],quants[[4]],quants[[8]],na.rm=T)
   
-  plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
+  plot(-1000,xlim=c(1,dim(input)[2]),ylim=mortrange,las=1,xaxt='n',yaxt='n')
   axis(side=3)
   mtext(side=3,line=2,"Time")
   for(x in seq_along(CTLNameList))
@@ -250,7 +251,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   input<-quants[[7]]
   tInput<-quants[[8]] 
   
-  plot(-1000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,NatM,na.rm=T)),las=1,xaxt='n',yaxt='n')
+  plot(-1000,xlim=c(1,dim(input)[2]),ylim=mortrange,las=1,xaxt='n',yaxt='n')
   axis(side=4,las=1)
   for(x in seq_along(CTLNameList))
   {

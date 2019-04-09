@@ -72,8 +72,10 @@ for(x in seq_along(Quant))
 
 tmp<-grep("true total allowable catch",Data[[y]])
 Quant<-Data[[y]][(tmp+1):(tmp+out$OM$Nsim)]
-for(x in seq_along(Quant))
+for(x in seq_along(Quant)) {
  trueTAC[x,,y]<-suppressWarnings(as.numeric(unlist(strsplit(Quant[x],split=" "))))
+ trueTAC[x,,y][trueTAC[x,,y]%in%0]<-NA
+}
 
 }
 

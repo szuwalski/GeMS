@@ -363,6 +363,7 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
   
   InitBzeroMod	<-out$OM$InitBzeroMod
   InitGrowthRate	<-out$OM$InitGrowthRate
+  InitShape     <-out$OM$InitShape
   estInit       <-out$OM$estInit
   InitBioProd   <-out$OM$InitBioProd
   
@@ -821,9 +822,11 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    {
    if(y==(InitYear+1))
    {
-    x		<-c((InitBzeroMod*(VirBioN)),InitGrowthRate)	
+    x		<-c((InitBzeroMod*(VirBioN)),InitGrowthRate)
+    if(!InitShape%in%c(0,1))
+      x   <-c(x,InitShape)
     if(estInit==1)
-      x		<-c((InitBzeroMod*(VirBioN)),InitGrowthRate,InitBioProd)	
+      x		<-c(x,InitBioProd)
    }
     logx<-suppressWarnings(log(x))
     if(y>(InitYear+1))
@@ -831,15 +834,31 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    inCatch	<-CatchDataN[start_assessment:(y-1)]
    inCPUE	<-CPUEDataN[start_assessment:(y-1)]
    
-   outs		<-suppressWarnings(nlminb(start=logx,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit))
+   outs		<-suppressWarnings(nlminb(start=logx,objective=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit,InitShape=InitShape))
    #outs <- optim(par=x,fn=ProdMod,CatchData=inCatch,IndexData=inCPUE,estInit=estInit)
    if(sum(is.na(outs$par))>0) {stop("Production model converged on NaNs. Not really sure why. Try changing your starting values?")}
    Converge[z,y]<-outs$convergence
-   PredBio	<-ProdModPlot(outs$par,inCatch,inCPUE,plots=EstimationPlots,estInit=estInit)
-   FMSY[z,y] 	<-exp(outs$par[2])/2
-   BMSY[z,y]	<-exp(outs$par[1])/2
-   if(estInit==1)
-    est_init_B[z,y]<-exp(outs$par[3])
+   PredBio	<-ProdModPlot(exp(outs$par),inCatch,inCPUE,plots=EstimationPlots,estInit=estInit,InitShape=InitShape)
+   
+   if(!InitShape%in%c(0,1)) {
+      FMSY[z,y]  <-(exp(outs$par[2])/exp(outs$par[3]))*(1-(1/(exp(outs$par[3])+1)))
+      BMSY[z,y]  <-exp(outs$par[1])*(exp(outs$par[3])+1)^(-1/exp(outs$par[3]))
+      if(estInit==1)
+        est_init_B[z,y]<-exp(outs$par[4])
+   }
+
+   if(InitShape%in%c(0,1)) {
+    if(InitShape==0) 
+      InitShape<-1E-10
+
+    FMSY[z,y]  <-(exp(outs$par[2])/InitShape)*(1-(1/(InitShape+1)))
+    BMSY[z,y]  <-exp(outs$par[1])*(InitShape+1)^(-1/InitShape)
+
+    if(InitShape==1E-10)
+      InitShape<-0
+    if(estInit==1)
+      est_init_B[z,y]<-exp(outs$par[3])    
+   }
    
    MSY		<-BMSY[z,y]*FMSY[z,y]
    CurBio[z,y]<-PredBio[length(PredBio)-1]

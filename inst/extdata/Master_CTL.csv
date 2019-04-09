@@ -2,7 +2,7 @@
 #==Control file for General MSE==========,,
 #=====================================,,
 #=simulation controls==================,,
-20,,# Nsim : Number of simulated stocks (
+20,,# Nsim : Number of simulated stocks
 80,,# SimYear : total number of years in simulation
 50,,# InitYear : year in which the MSE starts (i.e. the number of years for which there are data going into the first assessment)
 1,,# start_assessment : the year of historical data in which to start the assessment FOR BOTH AGE AND PROD MODELS
@@ -124,5 +124,6 @@
 #=================================================,,
 1.5,,# InitBzeroMod : determines what fraction the true Bzero is multiplied by for an initial value for estimation
 0.3,,# InitGrowthRate : initial value for intrinsic growth rate in production model estimation
+1,,# InitShape : initial value for shape parameter in Pella-Tomlinson form of production model. 0 = Fox model; 1 = Schaefer; all other values will result in an estimation of the shape parameter.
 0,,# estInit : estimate initial biomass? 1 = yes; 0 = no
 1,,# InitBioProd : percent of K to use as initial biomass (must be positive)
