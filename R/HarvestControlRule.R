@@ -5,11 +5,11 @@
 #' @param BMSY Biomass at MSY
 #' @param ExploitBio Exploitable biomass
 #' @param SpawnBio Spawning biomass
-#' @param alpha Currently not implemented
-#' @param beta Slope of harvest control rule
-#' @param HarvestControl Harvest control rule (options in CTL file)
-#' @param ConstantCatch Currently not implemented
-#' @param ConstantF Currently not implemented
+#' @param alpha Slope of harvest control rule
+#' @param beta Fraction of BMSY below which fishing mortality is set to zero
+#' @param HarvestControl Harvest control rule (User-input HCR; 1=FMSY; 2=Constant Catch; 3=Constant F; 4=Sloped HCR)
+#' @param ConstantCatch User-input catch (option in CTL file)
+#' @param ConstantF User-input F (option in CTL file)
 
 #' @param RetroPeels Number of years to peel for retrospective analysis
 #' @param CTLNameList Vector of CTL file names
@@ -32,11 +32,11 @@ HarvestControlRule<-function(FMSY,BMSY,ExploitBio,SpawnBio,alpha,beta,HarvestCon
  if(HarvestControl==4)
   {
    useF	<-FMSY
-   if(SpawnBio<BMSY)
+   if(SpawnBio<(BMSY*beta))
     {
     useF	<-0
     if(SpawnBio>(BMSY*beta)) 
-      useF	<-FMSY-((FMSY/(BMSY-beta*BMSY))*(BMSY-SpawnBio))
+      useF	<-FMSY-((FMSY/(BMSY-alpha*BMSY))*(BMSY-SpawnBio))
      }
    outTAC<-ExploitBio*useF
   }
