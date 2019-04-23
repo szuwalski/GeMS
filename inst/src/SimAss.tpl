@@ -670,8 +670,8 @@ FUNCTION Find_OFL
   
   if(HarvestControl==4)
   {
-  alpha = 0.05;
-  beta = 0.25;
+  alpha = HCalpha;
+  beta = HCbeta;
   
   // Define Fmsy
   Fmsy = F35;
