@@ -5,3 +5,17 @@
 ^Personal Examples$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^inst/extdata/Cod_1_Production/Cod_Base_CTL$
+^inst/extdata/Cod_1_Production/Cod_HighProd_CTL$
+^inst/extdata/Cod_1_Production/Cod_LowProd_CTL$
+^inst/extdata/Cod_2_Selectivity/Cod_Selectivity_CTL$
+^inst/extdata/Cod_2_Selectivity/plots$
+^inst/extdata/Cod_3_Movement/Cod_Movement_CTL$
+^inst/extdata/Cod_3_Movement/plots$
+^inst/extdata/Cod_4_MPA/Cod_MPA_CTL$
+^inst/extdata/Cod_4_MPA/plots$
+^inst/extdata/Cod_5_AgeStructure/Cod_AgeStructure_CTL$
+^inst/extdata/Cod_5_AgeStructure/Cod_Age_Mvary_CTL$
+^inst/extdata/Cod_5_AgeStructure/Cod_Age_Mvary_estM_CTL$
+^inst/extdata/Cod_1_Production/plots$
+^inst/extdata/Cod_5_AgeStructure/plots$

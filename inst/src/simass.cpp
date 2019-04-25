@@ -774,9 +774,11 @@ void model_parameters::Find_OFL(void)
   Rbar = Rbar / nn;
  // Specify the BMSY proxy
   Bmsy = SBPRF35 * Rbar;
+  ipass = endyr+1;
   if(HarvestControl==1)
   {
-	FOFL = F35;
+	 FOFL = F35;
+   FutMort = FOFL;
    get_fut_mortality();
    get_num_at_len_yr();
    OFL = 0;
@@ -784,10 +786,15 @@ void model_parameters::Find_OFL(void)
     OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ipass,ii);
   }
    if(HarvestControl==2)
-   OFL = ConstantCatch;
+   {
+    OFL = ConstantCatch;
+    FOFL = ConstantCatch/Spbio(ipass); // Not sure if this is kosher??
+    FutMort = FOFL;
+   }
   if(HarvestControl==3)
   {
-  FOFL = ConstantF;
+   FOFL = ConstantF;
+   FutMort = FOFL;
    get_fut_mortality();
    get_num_at_len_yr();
    OFL = 0;
@@ -829,7 +836,7 @@ void model_parameters::Find_OFL(void)
       for (ii=1;ii<=10;ii++)
        {
         FutMort = Fmsy*(Spbio(ipass)/Bmsy-alpha)/(1-alpha);
-		cout<<"FutMOrt"<<FutMort<<endl;
+		    cout<<"FutMort"<<FutMort<<endl;
         get_fut_mortality();
         get_num_at_len_yr();
        }
