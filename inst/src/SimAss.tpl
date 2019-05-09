@@ -69,7 +69,8 @@ DATA_SECTION
   init_number ConstantF
   init_number HCalpha
   init_number HCbeta
-
+  init_number true_FMSY
+  
   !!cout<<"steep"<<steepness<<endl;
   
   int ipass;
@@ -648,7 +649,7 @@ FUNCTION Find_OFL
 
   if(HarvestControl==1)
   {
-	 FOFL = F35;
+	 FOFL = true_FMSY;
    FutMort = FOFL;
    get_fut_mortality();
    get_num_at_len_yr();

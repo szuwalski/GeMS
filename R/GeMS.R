@@ -1048,7 +1048,10 @@ GeMS<-function(out,CTLName,MSEdir=getwd(),silent=F,ADoptions=NA,ADsilent=T,echo=
    cat(HCalphaN,"\n",file=CTLfile,append=TRUE)
    cat("#40 10 parameters for harvest control 4","\n",file=CTLfile,append=TRUE)
    cat(HCbetaN,"\n",file=CTLfile,append=TRUE)
-  
+
+   cat("#true FMSY using final year parameters","\n",file=CTLfile,append=TRUE)
+   cat(trueFMSYend,"\n",file=CTLfile,append=TRUE)
+     
   #==write .PIN file to get initial values close for estimation
    PINfile <- file.path(IndSimFolder,"SimAss.PIN")
    if(!file.exists(PINfile)) file.create(PINfile)

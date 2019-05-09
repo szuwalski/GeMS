@@ -1,5 +1,5 @@
-#if !defined(_SimAss_)
-#  define _SimAss_
+#if !defined(_SIMASS_)
+#  define _SIMASS_
 
 class model_data : public ad_comm{
   ofstream *   pad_post;
@@ -56,6 +56,7 @@ class model_data : public ad_comm{
   data_number ConstantF;
   data_number HCalpha;
   data_number HCbeta;
+  data_number true_FMSY;
   int ipass;
   int Nproj;
   int IsB0;
