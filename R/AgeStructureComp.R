@@ -222,9 +222,9 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   input<-quants[[3]]
   NatM<-quants[[7]]
   tInput<-quants[[4]]
-  mortrange<-range(0,quants[[3]],quants[[7]],quants[[4]],quants[[8]],na.rm=T)
+#  mortrange<-range(0,quants[[3]],quants[[7]],quants[[4]],quants[[8]],na.rm=T)
   
-  plot(-1000,xlim=c(1,dim(input)[2]),ylim=mortrange,las=1,xaxt='n',yaxt='n')
+  plot(-1000,xlim=c(1,dim(input)[2]),las=1,xaxt='n',yaxt='n')
   axis(side=3)
   mtext(side=3,line=2,"Time")
   for(x in seq_along(CTLNameList))
@@ -251,7 +251,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,plotNames=NA,Nrun
   input<-quants[[7]]
   tInput<-quants[[8]] 
   
-  plot(-1000,xlim=c(1,dim(input)[2]),ylim=mortrange,las=1,xaxt='n',yaxt='n')
+  plot(-1000,xlim=c(1,dim(input)[2]),las=1,xaxt='n',yaxt='n')
   axis(side=4,las=1)
   for(x in seq_along(CTLNameList))
   {

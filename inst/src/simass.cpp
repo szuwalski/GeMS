@@ -356,14 +356,17 @@ void model_parameters::userfunction(void)
   // cout<<"Numbers"<<endl;
   evaluate_the_objective_function();
   // cout<<"objfun"<<endl;
+  
     if (mceval_phase())
    {
     // Find_F35();
     // Find_OFL();
+	
     // post << Bmsy << " " << F35 << " " << FOFL << " " << OFL << " ";   
     // post << srv_sel50 << " " << srv_sel95 << " " << log_avg_fmort_dir << " " << fmort_dir_dev << " " << log_avg_fmort_trawl << " ";
     // post << mean_log_rec << " " << rec_dev << " " <<endl;
    }
+  
 }
 
 void model_parameters::getselectivity(void)
@@ -371,8 +374,10 @@ void model_parameters::getselectivity(void)
   ofstream& post= *pad_post;
  int  i,j,k;
  dvar_vector tempSelProj(1,maxAge);
+ 
     for (j=1;j<=maxAge;j++)
       sel_srv(j)		   =  1./(1.+mfexp(-1.*log(19.)*(Ages(j)-srv_sel50)/(srv_sel95-srv_sel50)));
+  
  //calculate fishery selectivity by year
   for(i=styr;i<=endyr;i++)
     for (j=1;j<=maxAge;j++)
@@ -383,12 +388,15 @@ void model_parameters::getselectivity(void)
        for(k=1;k<=maxAge;k++)	
 	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
 			tempSelProj(k)+=sel_fish(j,k);
+		
         tempSelProj = tempSelProj/(projectTimeVary);
 	}
+	
  if(TimeVarySel50<0  & TimeVarySel50<0)
    tempSelProj = sel_fish(endyr);
   for(i=endyr+1;i<=endyr+Nproj;i++)
    sel_fish(i) = tempSelProj;
+ 
 }
 
 void model_parameters::getmaturity(void)
@@ -397,6 +405,7 @@ void model_parameters::getmaturity(void)
  int j,i,k;
   dvar_vector tempLenAtAge(1,maxAge);
   dvar_vector tempWgtAtAge(1,maxAge);
+  
   //calculate length at age
    for (j=1;j<=maxAge;j++)
    {
@@ -423,6 +432,7 @@ void model_parameters::getmaturity(void)
 	 WeightAtAge(i,j) = weightPars(1) * pow(LengthAtAge(i,j),weightPars(2));
    }
   }
+  
   //==taking the average of the calculated values rather than the average of the parameters may introduce wonkiness
  tempLenAtAge.initialize();
  tempWgtAtAge.initialize(); 
@@ -431,17 +441,22 @@ void model_parameters::getmaturity(void)
        for(k=1;k<=maxAge;k++)	
 	    for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
 			tempLenAtAge(k)+=LengthAtAge(j,k);
+		
            tempLenAtAge = tempLenAtAge/(projectTimeVary);
+		   
        for(k=1;k<=maxAge;k++)	
 		  for(j=endyr-projectTimeVary+1;j<=endyr;j++)	
 			tempWgtAtAge(k)+=WeightAtAge(j,k);
+		
            tempWgtAtAge = tempWgtAtAge/(projectTimeVary);		    
 	}
+	
  if(TimeVaryGrowthK<0  & TimeVaryLinf<0)
 	{
 	tempLenAtAge = LengthAtAge(endyr);
 	tempWgtAtAge = WeightAtAge(endyr);
 	}
+	
 	for(i=endyr+1;i<=endyr+Nproj;i++)
 	{
 	  LengthAtAge(i) = tempLenAtAge;
@@ -458,6 +473,7 @@ void model_parameters::getmortality(void)
   ofstream& post= *pad_post;
  int i,j;
  dvariable tempMproj;
+ 
  for (i=styr;i<=endyr;i++)
  {
 	if(EstM>0)
@@ -471,12 +487,16 @@ void model_parameters::getmortality(void)
 	{
 	    for(j=endyr-projectTimeVary-1;j<=endyr-2;j++)	
 			tempMproj+=NatM(j);
+		
         tempMproj = tempMproj/(projectTimeVary);
 	}
+	
    if(TimeVaryM<0 )
    tempMproj = NatM(endyr);
+  
   for(j=endyr+1;j<=(endyr+Nproj);j++)
 	  NatM(j) = tempMproj;
+  
  // ==========================================================================
 }
 
@@ -489,6 +509,7 @@ void model_parameters::get_num_at_len(void)
  predCpueBio.initialize();
  predCatchAtAge.initialize();
  predCatchBio.initialize();
+ 
  NatAge(styr) = mfexp(stNatLen);
  for(ipass=styr;ipass<=endyr;ipass++) 
     get_num_at_len_yr();
@@ -508,6 +529,7 @@ void model_parameters::get_num_at_len_yr(void)
  dvar_vector nn(1,maxAge);
  dvariable pi;
  pi = 3.14159265;
+ 
   i = ipass;
   //==cpue index==
    dummyN				    = elem_prod(sel_fish(i),NatAge(i));
@@ -515,6 +537,7 @@ void model_parameters::get_num_at_len_yr(void)
    for(j=1;j<=maxAge;j++)
     predCpueBio(i)		+= predCpueBioAge(i,j);
   // cout<<"predCpueBio"<<predCpueBio<<endl;
+  
   //==survey==
   predSurvNatAge(i) 	= elem_prod(sel_srv,NatAge(i));
   predSurvBioAge		= elem_prod(predSurvNatAge(i),WeightAtAge(i));
@@ -542,6 +565,7 @@ void model_parameters::get_num_at_len_yr(void)
 	  // cout<<"predSurvLenFreq"<<predSurvLenFreq<<endl;
 	  predSurvLenFreq(i) = predSurvLenFreq(i)/sum(predSurvLenFreq(i));
 	  // cout<<"predSurvLenFreq"<<predSurvLenFreq<<endl;
+	  
  //==spawning biomass==
    dummyN					= elem_prod(NatAge(i),MatAtAge);
    tempN						= elem_prod(dummyN,WeightAtAge(i));
@@ -549,6 +573,7 @@ void model_parameters::get_num_at_len_yr(void)
    for(j=1;j<=maxAge;j++)
      Spbio(i)				+= tempN(j);
      // cout<<"Spbio"<<Spbio<<endl;
+	 
   // ==fishery==
   //==catch at length==
   Baranov = 0;
@@ -564,9 +589,11 @@ void model_parameters::get_num_at_len_yr(void)
   // cout<<"dummyAllProbs"<<dummyAllProbs<<endl;
    //make a matrix for the N at length for each age given survey data
     nn = rowsum(dummyAllProbs);
+	
  	for(k=1;k<=maxAge;k++)
 	  dummyAllProbs(k) = (dummyAllProbs(k)/nn(k))*predCatchAtAge(i,k);
   // cout<<"dummyAllProbs2"<<dummyAllProbs<<endl;
+  
   //make N at length for entire population	  
 	predCatchLenFreq(i) = colsum(dummyAllProbs);
   // cout<<"predCatchLenFreq(i)"<<predCatchLenFreq(i)<<endl;
@@ -578,6 +605,7 @@ void model_parameters::get_num_at_len_yr(void)
   for(j=1;j<=maxAge;j++)
    predCatchBio(i)		+= tempN(j);
         // cout<<"predCatchBio"<<predCatchBio<<endl;
+		
   // ==some die....but everyone else has a birthday!
   for(j =2;j<=(maxAge-1);j++)
    NatAge(i+1,j)			  = NatAge(i,j-1)*mfexp(-1*(NatM(i)+F_dir(i,j-1)));
@@ -594,6 +622,7 @@ void model_parameters::evaluate_the_objective_function(void)
   ofstream& post= *pad_post;
  int i,j;
  dvariable tempVal;
+ 
  CpueBio_like.initialize();
  SurvBio_like.initialize();
  SurvLen_like.initialize();
@@ -611,14 +640,17 @@ void model_parameters::evaluate_the_objective_function(void)
   //CPUE biomass
    for(i=styr+1;i<=endyr;i++)
 	CpueBio_like +=  square(log(cpueIndex(i) + smallNum) - log(predCpueBio(i) + smallNum))  / ((log(cpueCV(i)*cpueCV(i)+ 1)  ));
+ 
  //Survey biomass
 	for(i=styr;i<=endyr;i++)
 	 SurvBio_like +=  square(log(survBiomass(i) + smallNum) - log(predSurvBio(i) + smallNum))  / ((log(survCV(i)*survCV(i)+ 1)  ));
     // cout<<"SurvBio"<<SurvBio_like<<endl;
+ 
   //catch biomass
    for(i=styr+1;i<=endyr;i++)
   	Catch_like +=  square(log(catchBiomass(i) + smallNum) - log(predCatchBio(i) + smallNum))  / ((log(catchCV(i)*catchCV(i)+ 1)  ));
     // cout<<"Catch_like"<<Catch_like<<endl;	
+	
    // survey length frequencies
 	for(i=styr+1;i<=endyr;i++)
 	 for(j=1;j<=LengthBinN;j++)
@@ -627,6 +659,7 @@ void model_parameters::evaluate_the_objective_function(void)
 	   SurvLen_like -= survSampN(i) *survLenFreq(i,j) *log(predSurvLenFreq(i,j) +smallNum);
 	 }
     // cout<<"SurvLen_like"<<SurvLen_like<<endl;	
+	
    //catch length frequencies
 	for(i=styr+1;i<=endyr;i++)
 	 for(j=1;j<=LengthBinN;j++)
@@ -635,6 +668,7 @@ void model_parameters::evaluate_the_objective_function(void)
 	   CatchLen_like -= catchSampN(i) *catchLenFreq(i,j) *log(predCatchLenFreq(i,j)+smallNum );		//same sample size for survey and catch right now...
       }  
     // cout<<"CatchLen_like"<<CatchLen_like<<endl;	
+	
   initsmo_penal = InitSmoothWeight*(norm2(first_difference(stNatLen)));
   Rec_pen = RecruitPen*(norm2(first_difference(rec_dev)));
   F_pen = FmortPen*(norm2(first_difference(fmort_dir_dev)));
@@ -644,11 +678,13 @@ void model_parameters::evaluate_the_objective_function(void)
   Sel50_pen = SelPenalty*(norm2(first_difference(SelPars_dev50)));
   Sel95_pen = SelPenalty*(norm2(first_difference(SelPars_dev95)));
   f = 0;
+ 
  if(FisheryIndependentData==1)
  {
   f += SurvBio_like;
   f += SurvLen_like;
  }
+ 
  f += CpueBio_like;
  f += Catch_like; 
  f += CatchLen_like;
@@ -660,7 +696,9 @@ void model_parameters::evaluate_the_objective_function(void)
  f += Growth_pen2;
  f += Sel50_pen;
  f += Sel95_pen;
+  
  cout << current_phase() << " " << call_no << " " << f << endl;
+ 
  // ==========================================================================
 }
 
@@ -676,6 +714,7 @@ void model_parameters::get_fut_mortality(void)
 	fmort_dir(i) = FutMort; 
     F_dir(i) = sel_fish(i)*fmort_dir(i);
    }
+ 
 }
 
 void model_parameters::Find_F35(void)
@@ -693,10 +732,12 @@ void model_parameters::Find_F35(void)
   ipass = endyr+1;
   get_fut_mortality();
   for (ipass=endyr+1;ipass<=endyr+100;ipass++) get_num_at_len_yr(); 
+  
  // put biomass in here soon
   B0 = Spbio(endyr +99);
   cout<<"B0"<<B0<<endl;
   Target = 0.35;
+  
   IsB0 = 1;
   FutMort = 0.3;
   for (icnt=1;icnt<=20;icnt++)
@@ -705,10 +746,12 @@ void model_parameters::Find_F35(void)
     get_fut_mortality();
     for (ipass=endyr+1;ipass<=endyr+100;ipass++) get_num_at_len_yr(); 
      Btest = Spbio(endyr +99);
+   
    Ratio = Btest/B0;
     cout << FutMort << " " << Ratio << endl;
     FutMort = FutMort * Ratio / Target;
    }
+   
   Bzero = B0;
   F35 = FutMort; 
   SBPRF35 = Btest/FutRec;
@@ -720,6 +763,7 @@ void model_parameters::Find_OFL(void)
   ofstream& post= *pad_post;
   dvariable Fmsy,Rbar,nn,alpha,beta;
   int BMSY_Yr1, BMSY_Yr2,ii,Iyr,kk,jj;
+ 
   BMSY_Yr1 = styr; BMSY_Yr2 = endyr;  //THINK ABOUT THIS HARDER.  HARDDRRR!
  // Find Rbar (Dynamic or not)
   Rbar = 0; nn= 0;
@@ -758,12 +802,15 @@ void model_parameters::Find_OFL(void)
    for(ii = 1;ii<=maxAge;ii++)
     OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ipass,ii);
   }
+  
   if(HarvestControl==4)
   {
   alpha = HCalpha;
   beta = HCbeta;
+  
   // Define Fmsy
   Fmsy = F35;
+  
   // cout << "Rbar" << Rbar << endl;
   // cout << "Bmsy" << Bmsy << endl;
   // cout<<"FMSY"<<Fmsy<<endl;
@@ -771,6 +818,7 @@ void model_parameters::Find_OFL(void)
   ipass = endyr+1;
   // Define future recruitment 
   if (ipass > endyr) FutRec = Rbar;
+ 
   // Find FOFL
   FutMort = Fmsy;
   get_fut_mortality();
@@ -803,6 +851,7 @@ void model_parameters::Find_OFL(void)
    for(ii = 1;ii<=maxAge;ii++)
     OFL += predCatchAtAge(ipass,ii) *WeightAtAge(ipass,ii);
   }
+  
 }
 
 void model_parameters::report(const dvector& gradients)
@@ -815,8 +864,10 @@ void model_parameters::report(const dvector& gradients)
     return;
   }
  int i,j;
+ 
   Find_F35();
   Find_OFL();
+  
   report<<"SBPRF35"<<endl;
   report<<SBPRF35<<endl; 
   report<<"Curr Bio"<<endl;
@@ -831,10 +882,12 @@ void model_parameters::report(const dvector& gradients)
   report<<OFL<<endl;
   report<<"Bzero"<<endl;
   report<<Bzero<<endl;
+  
  report << "#pred survey bio"<<endl;
  report << predSurvBio << endl;
  report << "#obs survey bio"<<endl;
  report << survBiomass << endl;
+ 
  report << "#pred catch bio"<<endl;
  report << predCatchBio << endl;
  report << "#obs catch bio"<<endl;
@@ -843,6 +896,7 @@ void model_parameters::report(const dvector& gradients)
  report << predCpueBio << endl;
  report << "#obs cpue bio"<<endl;
  report << cpueIndex << endl;
+ 
  report << "#pred surv len freq" <<endl;
     for(j=styr;j<=endyr;j++)
      report <<predSurvLenFreq(j) << endl; 
@@ -855,8 +909,10 @@ void model_parameters::report(const dvector& gradients)
  report << "#obs catch len freq" <<endl;
     for(j=styr;j<=endyr;j++)
      report <<catchLenFreq(j) << endl; 	 
+ 
   report<<"#spawning biomass"<< endl;
   report<<Spbio<<endl;
+ 
 }
 
 void model_parameters::set_runtime(void)

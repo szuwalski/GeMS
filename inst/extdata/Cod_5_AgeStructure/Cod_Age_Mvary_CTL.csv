@@ -2,7 +2,7 @@
 #==Control file for General MSE==========,,
 #=====================================,,
 #=simulation controls==================,,
-10,,# Nsim : Number of simulated stocks (
+100,,# Nsim : Number of simulated stocks (
 70,,# SimYear : total number of years in simulation
 50,,# InitYear : year in which the MSE starts (i.e. the number of years for which there are data going into the first assessment)
 1,,# start_assessment : the year in which historical data for assessment starts (for both age and prod)
