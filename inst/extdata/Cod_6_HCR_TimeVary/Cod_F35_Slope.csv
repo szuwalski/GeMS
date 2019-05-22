@@ -105,7 +105,7 @@
 3,,# InitSmooth : smoothness for initial size comps
 3,,# FmortPen : a smoothness penalty for F
 3,,# RecruitPen : a smoothness penalty for Recruitment devs
-2,,"# EstM : should M be estimated? If positive, indicates the phase to estimate, if negative, M is not estimated"
+-2,,"# EstM : should M be estimated? If positive, indicates the phase to estimate, if negative, M is not estimated"
 -2,,"# TimeVaryM : should a time-varying M be estimated? 1 = yes, 0 = no"
 3,,# Mpenalty : smoothness penalty on estimated natural mortality devs
 -1,,# EstGrowthK : should growth be estimated (Linf and K); positive indictes the phase to estimate; negative means do not estimate

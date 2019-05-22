@@ -17,7 +17,7 @@
 0.05,,# CatchCVn : CV of catch in Box 1
 0.2,,# CPUEcvN : CV of CPUE in Box 1
 0.2,,# IndexCVn : CV of survey in Box 1
-40,,# LenSampleN : Number of length samples from box 1
+200,,# LenSampleN : Number of length samples from box 1
 25,,# LengthBinN : number of length bins used for the assessment
 ,,
 #== Pop 1 life history ===========================,,
@@ -47,11 +47,11 @@
 #==Define historic fishing mortality for pop 1 =========================================================,,
 "c(seq(0.01,0.3,0.02),seq(0.3,0.2,-0.005),rep(0.2,60))",,# HistoricalFn : fishing mortality over the historic period (i.e. the number of years designated as the year in which the MSE starts above)
 0.01,,# PastFsdN : standard deviation applied to HistoricalF to generate stochastic past fishing mortality
-2,,"# HarvestControlN : 1 = FMSY; 2 = constant catch, 3 = constant F; 4 = 40/10, "
-49000,,"# ConstantCatchN : if above ==2, this sets the constant catch"
+4,,"# HarvestControlN : 1 = FMSY; 2 = constant catch, 3 = constant F; 4 = 40/10, "
+0,,"# ConstantCatchN : if above ==2, this sets the constant catch"
 0.1,,"# ConstantFn : if above == 3, this sets the constant F applied"
-0.05,,# HCalphaN : this defines the slope of the control rule
-0.5,,# HCbetaN : this defines the proportion of target biomass at which no fishing occurs
+0,,# HCalphaN : this defines the slope of the control rule
+0,,# HCbetaN : this defines the proportion of target biomass at which no fishing occurs
 ,,
 # ===========================================================,,
 "#==If a second population is modeled, the below must be filled in",,
@@ -113,7 +113,7 @@
 -1,,# EstLinf : should growth be estimated (Linf and K); positive indictes the phase to estimate; negative means do not estimate
 -1,,"# TimeVaryLinf : should growth be time-varying when estimated? If positive, indicates phase to estimate, if negative, not estimated."
 3,,# Growthpenalty : smoothness penalty on estimated growth devs
--1,,# TimeVarySel50 : is time varying selectivity eestimated?? Negative number == no; positive number == phase in which estimation occurs
+1,,# TimeVarySel50 : is time varying selectivity eestimated?? Negative number == no; positive number == phase in which estimation occurs
 -1,,# TimeVarySel95 : is time varying selectivity eestimated?? Negative number == no; positive number == phase in which estimation occurs
 3,,# SelPenalty : smoothness penalty on estimated selectivity devs
 10,,# ProjectTimeVary : how many years to average over at the end of the estimated time series of the timevarying process for projections?
