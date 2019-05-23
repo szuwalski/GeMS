@@ -40,7 +40,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
   #ScenCols<-c("grey",as.numeric(seq(2,length(CTLNameList),1)))
   ScenCols<-colorspace::rainbow_hcl(length(CTLNameList))
 
-  convRuns<-GradientSave[RetroPeels,,]<GradientTolerance
+  convRuns<-as.matrix(GradientSave[RetroPeels,,]<GradientTolerance)
 
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("ConvergenceRates_",paste(CTLNameList,sep="_",collapse=""),".png")),height=6,width=9,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("ConvergenceRates_",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=2,width=3,units='in',res=1200)  
