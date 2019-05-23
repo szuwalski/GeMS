@@ -7,13 +7,13 @@
 #' @param title Quantity being plotted, e.g. "Catch", "Survey Index", etc.
 #' @param CTLNameList Vector of CTL file names
 #' @param plotNames Vector of the same length as CTLNameList with "prettier" names for plotting
-#' @param nSim Number of replicates per OM, specified Nsim in CTL file
+#' @param runs2plot Matrix of runs to plot
 #'
 #' @return Plot comparing age-structured estimating models
 #'
 #' @export
 #' 
-plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=CTLNameList,nSim=out$OM$Nsim,ProjYr=out$OM$InitYear)
+plot_stuff_inside<-function(input1,input2,title,CTLNameList,runs2plot,plotNames=CTLNameList,ProjYr=out$OM$InitYear)
 { 
   if(length(dim(input1))<3) {
     temp<-input1
@@ -39,13 +39,13 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=CTLNameLis
 
   if(!plotProj) par(mfcol(c(1,length(CTLNameList))))
 
-  if(nSim>1) 
+  if(dim(runs2plot)[2]>1) 
   {
     for(y in seq_along(CTLNameList))
     {
       boxplot(input1[,,y],type="l",ylim=c(0,max(input1,input2,na.rm=T)),
               las=1,xaxt='n',ylab='',yaxt='n')
-      for(x in 1:nrow(input2))
+      for(x in runs2plot[,y])
         lines(input2[x,,y],col='#ff000066')
       if(y==1)
       {
@@ -63,7 +63,7 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=CTLNameLis
     if(plotProj) {
      boxplot(input1[,ProjYr:dim(input1)[2],y],type="l",ylim=c(0,max(input1[,ProjYr:dim(input1)[2],],input2[,ProjYr:dim(input2)[2],],na.rm=T)),
               las=1,xaxt='n',ylab='',yaxt='n')
-      for(x in 1:nrow(input2))
+      for(x in runs2plot[,y])
         lines(input2[x,ProjYr:dim(input1)[2],y],col='#ff000066')
       if(y==1)
       {
@@ -75,12 +75,12 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=CTLNameLis
     }
   }
   
-  if(nSim==1) {
+  if(dim(runs2plot)[2]==1) {
     for(y in seq_along(CTLNameList))
     {
       plot(input1[,,y],type="l",ylim=c(0,max(input1,input2,na.rm=T)),
            las=1,xaxt='n',ylab='',yaxt='n')
-      for(x in 1:nrow(input2))
+      for(x in runs2plot[,y])
         lines(input2[x,,y],col='#ff000066')
       if(y==1)
       {
@@ -94,7 +94,7 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,plotNames=CTLNameLis
     if(plotProj) {
       plot(input1[,ProjYr:dim(input1)[2],y],type="l",ylim=c(0,max(input1[,ProjYr:dim(input1)[2],],input2[,ProjYr:dim(input2)[2],],na.rm=T)),
               las=1,xaxt='n',ylab='',yaxt='n')
-      for(x in 1:nrow(input2))
+      for(x in runs2plot[,y])
         lines(input2[x,ProjYr:dim(input1)[2],y],col='#ff000066')
       if(y==1)
       {

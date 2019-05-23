@@ -13,8 +13,8 @@ run_GeMS(CTLNameList=CTLNameList[7])
 
 ##==compare just two scenarios: estimating M vs. not estimating M when M is varying
  Inout<-ReadCTLfile(CTLNameList[1])
- AgeStructureComp(out=Inout,CTLNameList=CTLNameList[1:4],MSEdir=getwd(),Nruns=20,
- 					plotNames=c("Constant Catch","F35","Sloped F35","Inc Length Comps"))
+ AgeStructureComp(out=Inout,CTLNameList=CTLNameList[1:3],MSEdir=getwd(),Nruns=20,
+ 					plotNames=c("Constant Catch","F35","Sloped F35"))
 
 
 ##==compare just two scenarios: estimating M vs. not estimating M when M is varying

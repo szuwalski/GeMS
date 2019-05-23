@@ -212,7 +212,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
   input<-quants[[1]]
   tInput<-quants[[2]] 
   
-  plot(-100000,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,na.rm=T)),las=1,xaxt='n')
+  plot(0,xlim=c(1,dim(input)[2]),ylim=c(0,max(input,tInput,na.rm=T)),las=1,xaxt='n',xlab=NA,type="n")
   for(x in seq_along(CTLNameList))
   {
     #color<-seq(1,length(CTLNameList)+1)
@@ -238,7 +238,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
   input<-quants[[3]]
   tInput<-quants[[4]]
   
-  plot(-1000,xlim=c(1,dim(input)[2]),ylim=range(c(0,input,tInput),na.rm=T),las=1,xaxt='n',yaxt='n')
+  plot(0,xlim=c(1,dim(input)[2]),ylim=range(c(0,input,tInput),na.rm=T),las=1,xaxt='n',yaxt='n',type='n')
   axis(side=3)
   mtext(side=3,line=2,"Time")
   for(x in seq_along(CTLNameList))
@@ -290,17 +290,17 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
   input<-quants[[9]]
   tInput<-quants[[10]] 
 
-  plot(-1000,xlim=c(1,which(input[1,,1,1]>0.99)[3]),ylim=c(0,max(input,na.rm=T)),las=1)
+  plot(0,xlim=c(1,which(tInput[1,,1]>0.99)[3]),ylim=c(0,max(input,tInput,na.rm=T)),las=1)
   for(x in seq_along(CTLNameList))
   {
     #color<-seq(1,length(CTLNameList)+1)
     color<-colorspace::rainbow_hcl(length(CTLNameList))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
-    for(y in 1:dim(input)[1])
+    for(y in c(1,dim(input)[1])) # Only plot first and final year selectivity
     {
       #lines(tInput[y,,x],col=tCol)
-      for(z in runs2plot)
+      for(z in runs2plot[,x])
         lines(input[y,,z,x],col=incol[x])
     }   
   } 
@@ -318,7 +318,7 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
   input<-quants[[5]]
   tInput<-quants[[6]] 
 
-  plot(-1000,xlim=c(1,out$OM$MaxAge),ylim=c(0,max(input,na.rm=T)),las=1,yaxt='n')
+  plot(0,xlim=c(1,out$OM$MaxAge),ylim=c(0,max(input,na.rm=T)),las=1,yaxt='n',type='n')
   axis(side=4,las=1)
   for(x in seq_along(CTLNameList))
   {
@@ -326,10 +326,10 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
     color<-colorspace::rainbow_hcl(length(CTLNameList))
     incol<-adjustcolor(color,alpha.f=.2)
     tCol<-rgb(0,0,0,0.2)
-    for(y in 1:dim(input)[1])
+    for(y in c(1,dim(input)[1])) # Only plot first and final year growth
     {
       #lines(tInput[y,,x],col=tCol)
-      for(z in seq_along(runs2plot))
+      for(z in seq_along(runs2plot[,x]))
         lines(input[y,,z,x],col=incol[x])
     }   
   } 
@@ -356,19 +356,19 @@ AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
   #====================================
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][runs2plot,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
+  plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
   dev.off()
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]][runs2plot,,],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
+  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
   dev.off()
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]][runs2plot,,],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
+  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
   dev.off()
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]][runs2plot,,],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames,nSim=out$OM$Nsim)
+  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
   dev.off()
  
 
