@@ -25,7 +25,7 @@
 #'                  plotNames=c("Base","Fixed M","Estimate M"))
 #' }
 #' 
-AgeStructureComp<-function(out,RetroPeels=6,CTLNameList,MSEdir,
+AgeStructureComp<-function(out,CTLNameList,RetroPeels=6,MSEdir=getwd(),
                             plotNames=CTLNameList,Nruns=out$OM$Nsim,
                             plottiff=F,GradientTolerance=1E-3)
 {
