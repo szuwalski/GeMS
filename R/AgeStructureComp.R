@@ -26,7 +26,7 @@
 #' }
 #' 
 AgeStructureComp<-function(out,CTLNameList,RetroPeels=6,MSEdir=getwd(),
-                            plotNames=CTLNameList,Nruns=out$OM$Nsim,
+                            plotNames=CTLNameList,Nruns=OMfile$OM$Nsim,
                             plottiff=F,GradientTolerance=1E-3)
 {
   TakeRows<-(out$OM$SimYear-RetroPeels+1):out$OM$SimYear
@@ -356,19 +356,19 @@ AgeStructureComp<-function(out,CTLNameList,RetroPeels=6,MSEdir=getwd(),
   #====================================
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("Spbio_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
+  plot_stuff_inside(input1=quants[[14]][,out$OM$start_assessment:out$OM$SimYear,],input2=quants[[15]][,out$OM$start_assessment:out$OM$SimYear,],title="Biomass",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot=runs2plot,ProjYr=out$OM$InitYear)
   dev.off()
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("SurveyInd_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
+  plot_stuff_inside(input1=quants[[17]],input2=quants[[16]],title="Survey",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot=runs2plot,ProjYr=out$OM$InitYear)
   dev.off()
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("CPUE_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
+  plot_stuff_inside(input1=quants[[19]],input2=quants[[18]],title="CPUE",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot=runs2plot,ProjYr=out$OM$InitYear)
   dev.off()
   if(!plottiff)png(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".png")),height=5,width=7.5,units='in',res=1200)
   if(plottiff)tiff(file.path(MSEdir,"plots",paste0("Catch_true_vs_est",paste(CTLNameList,sep="_",collapse=""),".tiff")),height=5,width=7.5,units='in',res=1200)
-  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot)
+  plot_stuff_inside(input1=quants[[21]],input2=quants[[20]],title="Catch",CTLNameList=CTLNameList,plotNames=plotNames,runs2plot=runs2plot,ProjYr=out$OM$InitYear)
   dev.off()
  
 

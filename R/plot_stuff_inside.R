@@ -78,7 +78,7 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,runs2plot,plotNames=
   if(dim(runs2plot)[2]==1) {
     for(y in seq_along(CTLNameList))
     {
-      plot(input1[,,y],type="l",ylim=c(0,max(input1,input2,na.rm=T)),
+      boxplot(input1[,,y],type="l",ylim=c(0,max(input1,input2,na.rm=T)),
            las=1,xaxt='n',ylab='',yaxt='n')
       for(x in runs2plot[,y])
         lines(input2[x,,y],col='#ff000066')
@@ -92,7 +92,7 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,runs2plot,plotNames=
       abline(v=ProjYr,lty=3)
 
     if(plotProj) {
-      plot(input1[,ProjYr:dim(input1)[2],y],type="l",ylim=c(0,max(input1[,ProjYr:dim(input1)[2],],input2[,ProjYr:dim(input2)[2],],na.rm=T)),
+      boxplot(input1[,ProjYr:dim(input1)[2],y],type="l",ylim=c(0,max(input1[,ProjYr:dim(input1)[2],],input2[,ProjYr:dim(input2)[2],],na.rm=T)),
               las=1,xaxt='n',ylab='',yaxt='n')
       for(x in runs2plot[,y])
         lines(input2[x,ProjYr:dim(input1)[2],y],col='#ff000066')
