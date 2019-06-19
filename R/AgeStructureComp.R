@@ -26,9 +26,10 @@
 #' }
 #' 
 AgeStructureComp<-function(out,CTLNameList,RetroPeels=6,MSEdir=getwd(),
-                            plotNames=CTLNameList,Nruns=OMfile$OM$Nsim,
+                            plotNames=CTLNameList,Nruns=NA,
                             plottiff=F,GradientTolerance=1E-3)
 {
+  if(is.na(Nruns)) Nruns <- out$OM$Nsim
   TakeRows<-(out$OM$SimYear-RetroPeels+1):out$OM$SimYear
   GradientSave<-array(dim=c(RetroPeels,out$OM$Nsim,length(CTLNameList)))
   

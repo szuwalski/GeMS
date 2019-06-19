@@ -115,7 +115,7 @@
 3,,# Growthpenalty : smoothness penalty on estimated growth devs
 1,,# TimeVarySel50 : is time varying selectivity eestimated?? Negative number == no; positive number == phase in which estimation occurs
 -1,,# TimeVarySel95 : is time varying selectivity eestimated?? Negative number == no; positive number == phase in which estimation occurs
-10,,# SelPenalty : smoothness penalty on estimated selectivity devs
+15,,# SelPenalty : smoothness penalty on estimated selectivity devs
 10,,# ProjectTimeVary : how many years to average over at the end of the estimated time series of the timevarying process for projections?
 0.02,,# InitValSig : standard deviation for how much to jitter starting parameters for the .pin file
 ,,
