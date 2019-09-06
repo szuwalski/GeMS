@@ -94,7 +94,7 @@ plot(TotRec[1:(yearsDat-1)],type="l",las=1,ylab="Recruitment")
 lines(trueRec[1:(yearsDat-1)],lty=2,col=2)
 plot(TotFdir,type="l",las=1,ylab="Directed F")
 lines(trueFmort,lty=2,col=2)
-barplot(exp(stNatLen))
+barplot(exp(stNatLen),ylab="Initial Numbers-at-Age")
 #==plot estimated selectivities
 
 cnt<-grep("srv_sel50",data2)
