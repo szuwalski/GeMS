@@ -130,7 +130,7 @@ PlotParam <- function(param,OMfile,EMvec,plotnames=NA,dolegend=F,legpos="topleft
   }
   lines(x=1:SimYear,y=truth,lwd=2,lty=2,col="black")
   if(is.na(plotnames[1])) plotnames <- EMvec
-  if(dolegend) {legend(legpos,c("Truth",plotnames),lty=c(2,rep(1,length(EMvec))),col=c("black",colmed),lwd=2)}
+  if(dolegend) {legend(legpos,c("Truth",plotnames),lty=c(2,rep(1,length(EMvec))),col=c("black",colmed),lwd=2,bty='n')}
   retlist <- list(truth=truth,estimates=estimates)
 
 }

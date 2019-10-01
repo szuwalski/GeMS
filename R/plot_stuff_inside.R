@@ -37,7 +37,7 @@ plot_stuff_inside<-function(input1,input2,title,CTLNameList,runs2plot,plotNames=
   layout(inmat)
   }
 
-  if(!plotProj) par(mfcol(c(1,length(CTLNameList))))
+  if(!plotProj) par(mfcol=c(1,length(CTLNameList)))
 
   if(dim(runs2plot)[2]>1) 
   {
